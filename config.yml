@@ -1,0 +1,35 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+
+collections:
+  - name: "settings"
+    label: "Impostazioni"
+    files:
+      - file: "data/settings.json"
+        label: "Impostazioni sito"
+        name: "settings"
+        fields:
+          - {label: "Telefono WhatsApp (internazionale, es. 39345...)", name: "whatsapp_phone", widget: "string", default: ""}
+          - {label: "Tariffa partner €/h", name: "partner_hourly", widget: "number", value_type: "float", step: 0.1, default: 14.2}
+          - {label: "Tariffa cliente €/h", name: "client_hourly", widget: "number", value_type: "float", step: 0.1, default: 22}
+  - name: "houses"
+    label: "Case"
+    files:
+      - file: "data/houses.json"
+        label: "Elenco Case"
+        name: "houses"
+        fields:
+          - label: "Case"
+            name: "items"
+            widget: "list"
+            summary: "{{fields.code}} — {{fields.city}} (M: {{fields.median_hours}}h)"
+            fields:
+              - {label: "Codice casa", name: "code", widget: "string"}
+              - {label: "Indirizzo", name: "address", widget: "string"}
+              - {label: "Città", name: "city", widget: "string"}
+              - {label: "CAP", name: "zip", widget: "string"}
+              - {label: "Mediana ore (M)", name: "median_hours", widget: "number", value_type: "float", step: 0.25, default: 1}

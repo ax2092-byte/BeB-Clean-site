@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diventa Partner — B&amp;B Clean</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="p-6">
+  <p><a class="underline" href="index.html">← Torna alla Home</a></p>
+  <h1 class="text-2xl font-bold mt-2">Diventa Partner</h1>
+  <form name="candidatura-partner" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" class="grid gap-3 max-w-xl mt-4">
+    <input type="hidden" name="form-name" value="candidatura-partner" />
+    <p class="hidden"><label>Non compilare: <input name="bot-field" /></label></p>
+    <input name="nome" placeholder="Nome e Cognome" class="border p-2 rounded" required>
+    <input name="email" type="email" placeholder="Email" class="border p-2 rounded" required>
+    <input name="telefono" placeholder="Telefono" class="border p-2 rounded" required>
+    <input name="citta" placeholder="Città" class="border p-2 rounded" required>
+    <input name="zona" placeholder="Zona di lavoro" class="border p-2 rounded">
+    <textarea name="esperienza" rows="4" placeholder="Esperienza" class="border p-2 rounded"></textarea>
+    <input name="documento" type="file" accept=".pdf,.jpg,.jpeg,.png" class="border p-2 rounded">
+    <input name="iban" placeholder="IBAN" class="border p-2 rounded">
+    <label class="text-sm"><input type="checkbox" required> Accetto la <a href="privacy-cookie.html" class="underline">Privacy</a></label>
+    <button class="bg-emerald-600 text-white px-4 py-2 rounded">Invia candidatura</button>
+  </form>
+  <p class="text-xs text-gray-600 mt-2">Le candidature arrivano in Netlify → Forms.</p>
+  <p class="mt-4"><a class="underline" href="partner-app.html">Apri App Partner (QR & Timer)</a></p>
+</body></html>
