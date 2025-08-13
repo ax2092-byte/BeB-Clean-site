@@ -51,7 +51,165 @@
     });
   })();
 </script>
- <body>
+ <script>
+  (function () {
+    // ---------- utilità ----------
+    const PREFIX = 'BB'; // prefisso codice casa
+
+    function norm(s) {
+      return (s || '')
+        .toString()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^A-Za-z0-9]/g, '')
+        .toUpperCase();
+    }
+
+    // Hash FNV-1a (deterministico)
+    function fnv1a(str) {
+      let h = 0x811c9dc5 >>> 0;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = (h + (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24)) >>> 0;
+      }
+      return h >>> 0;
+    }
+
+    // Codice casa leggibile + hash
+    function buildHouseCode(payload) {
+      const nZip  = norm(payload.zip).slice(0, 5).padEnd(5, '0');
+      const nCity = norm(payload.city).slice(0, 3).padEnd(3, 'X');
+      const base  = [
+        norm(payload.country),
+        norm(payload.zip),
+        norm(payload.city),
+        norm(payload.street),
+        norm(payload.number),
+        norm(payload.owner_cf)
+      ].join('|');
+      const hash5 = fnv1a(base).toString(36).toUpperCase().slice(0, 5).padStart(5, '0');
+      return `${PREFIX}-${nZip}-${nCity}-${hash5}`;
+    }
+
+    // ---------- validazione Codice Fiscale ----------
+    const MONTH = { A:1, B:2, C:3, D:4, E:5, H:6, L:7, M:8, P:9, R:10, S:11, T:12 };
+    const ODD = { '0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
+      A:1,B:0,C:5,D:7,E:9,F:13,G:15,H:17,I:19,J:21,K:2,L:4,M:18,N:20,O:11,P:3,Q:6,R:8,S:12,T:14,U:16,V:10,W:22,X:25,Y:24,Z:23 };
+    const EVEN = { '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
+      A:0,B:1,C:2,D:3,E:4,F:5,G:6,H:7,I:8,J:9,K:10,L:11,M:12,N:13,O:14,P:15,Q:16,R:17,S:18,T:19,U:20,V:21,W:22,X:23,Y:24,Z:25 };
+
+    function cfChecksum(cf15) {
+      let sum = 0;
+      for (let i = 0; i < 15; i++) {
+        const c = cf15[i];
+        if (!c) return null;
+        sum += ( (i % 2) === 0 ? ODD[c] : EVEN[c] ); // posizione 1-based dispari -> indice 0
+      }
+      return String.fromCharCode((sum % 26) + 65);
+    }
+
+    // Verifica: formato + check digit + coerenza data/sesso con i dati inseriti
+    function validateCF(cf, birthISO, gender) {
+      const out = { valid: false, message: "" };
+      if (!cf || !/^[A-Z0-9]{16}$/i.test(cf)) { out.message = "Formato CF non valido (16 caratteri alfanumerici)."; return out; }
+      cf = cf.toUpperCase();
+
+      // check digit
+      const expected = cfChecksum(cf.slice(0,15));
+      if (!expected || expected !== cf[15]) { out.message = "Carattere di controllo (ultima lettera) non valido."; return out; }
+
+      // data/sesso
+      if (!birthISO || !gender) { out.message = "Inserisci data di nascita e sesso."; return out; }
+      const y = birthISO.slice(2,4);
+      const m = parseInt(birthISO.slice(5,7),10);
+      const d = parseInt(birthISO.slice(8,10),10);
+      const cfYY = cf.slice(6,8);
+      const cfM  = cf[8];
+      const cfDD = parseInt(cf.slice(9,11),10);
+
+      if (cfYY !== y) { out.message = "Il CF non coincide con l'anno di nascita inserito."; return out; }
+      if (MONTH[cfM] !== m) { out.message = "Il CF non coincide con il mese di nascita inserito."; return out; }
+      const ddFromCF = (gender === 'F') ? (d + 40) : d;
+      if (cfDD !== ddFromCF) { out.message = "Il CF non coincide con il giorno/sesso inserito."; return out; }
+
+      out.valid = true;
+      return out;
+    }
+
+    // ---------- Decap hooks ----------
+    // 1) Prima del salvataggio: genera il codice casa se i dati sono completi e CF valido
+    CMS.registerEventListener({
+      name: 'preSave',
+      handler: ({ entry, collection }) => {
+        if (!collection || collection.get('name') !== 'houses') return;
+
+        let data  = entry.get('data');
+        let items = data && data.get && data.get('items');
+        if (!items || !items.forEach) return;
+
+        // set di codici esistenti (evita duplicati)
+        const existing = new Set();
+        items.forEach(it => { const c = it?.get?.('code'); if (c) existing.add(String(c).toUpperCase()); });
+
+        items = items.map(it => {
+          // Se già presente, lascia stare (sola lettura)
+          if (it.get('code')) return it;
+
+          const payload = {
+            country: it.get('country'),
+            city: it.get('city'),
+            province: it.get('province'),
+            zip: it.get('zip'),
+            street: it.get('street'),
+            number: it.get('number'),
+            owner_cf: norm(it.get('owner_cf')),
+            owner_birth: it.get('owner_birth'),
+            owner_gender: it.get('owner_gender'),
+          };
+
+          // Validazioni minime campi obbligatori
+          const mandatory = ['country','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
+          for (const k of mandatory) { if (!payload[k]) return it; } // manca qualcosa: non generiamo
+
+          // Validazione CF
+          const cfCheck = validateCF(payload.owner_cf, String(payload.owner_birth).slice(0,10), payload.owner_gender);
+          if (!cfCheck.valid) {
+            alert("Errore Codice Fiscale: " + cfCheck.message);
+            return it; // niente codice -> il campo 'code' resta vuoto e la pubblicazione fallirà (essendo required)
+          }
+
+          // Genera codice e garantisci unicità
+          let code = buildHouseCode(payload);
+          if (existing.has(code)) {
+            // se collide (rarissimo), aggiungi suffisso numerico
+            let i = 2; while (existing.has(`${code}-${i}`) && i < 99) i++;
+            code = `${code}-${i}`;
+          }
+          existing.add(code);
+          return it.set('code', code);
+        });
+
+        data = data.set('items', items);
+        return { entry: entry.set('data', data) };
+      }
+    });
+
+    // 2) Prima della pubblicazione: blocca se manca il codice (quindi CF/dati non validi)
+    CMS.registerEventListener({
+      name: 'prePublish',
+      handler: ({ entry, collection }) => {
+        if (!collection || collection.get('name') !== 'houses') return;
+        const items = entry.get('data')?.get?.('items') || [];
+        let ok = true, idx = -1;
+        items.forEach((it, i) => { if (!it?.get?.('code')) { ok = false; idx = i; } });
+        if (!ok) {
+          alert("Impossibile pubblicare: completa i dati obbligatori e inserisci un Codice Fiscale valido (controllo anno/mese/giorno/sesso). Voce n° " + (idx+1));
+          throw new Error("Validazione Case: codice mancante.");
+        }
+      }
+    });
+  })();
+</script>
+<body>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </body>
 </html>
