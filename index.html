@@ -21,7 +21,6 @@
       .bb-ac-empty { padding: .5rem .75rem; color: #666; }
       .bb-ac-spinner { padding: .5rem .75rem; color: #666; font-style: italic; }
 
-      /* Bottone copia */
       .bb-inline { display:inline-flex; gap:.5rem; align-items:center; width:100%; }
       .bb-copy { padding:.35rem .6rem; border:1px solid #ccc; border-radius:.4rem; background:#fff; cursor:pointer; }
     </style>
@@ -52,7 +51,7 @@
     <!-- Script principale -->
     <script>
       (function () {
-        // ================== UTILITÀ ==================
+        // ================== UTILITÀ BASE ==================
         const PREFIX = 'BB';
         const MONTH = { A:1,B:2,C:3,D:4,E:5,H:6,L:7,M:8,P:9,R:10,S:11,T:12 };
         const ODD = { '0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
@@ -84,41 +83,47 @@
           return `${PREFIX}-${nZip}-${nCity}-${hash5}`;
         }
 
-        function findFieldByLabel(txt){
-          const labs=[...document.querySelectorAll('label')];
-          const lab=labs.find(l=>l.textContent && l.textContent.trim().toLowerCase().includes(txt.toLowerCase()));
+        // Trova input/select per etichetta, ma **all’interno** di un contenitore (riga) se passato
+        function getInputByLabel(labelText, root=document){
+          const labels=[...root.querySelectorAll('label')];
+          const lab=labels.find(l=>l.textContent && l.textContent.trim().toLowerCase().includes(labelText.toLowerCase()));
           if(!lab) return null;
           const wrap=lab.closest('[class*="ControlContainer"]')||lab.parentElement;
-          return wrap ? wrap.querySelector('input,select') : null;
+          return wrap ? (wrap.querySelector('input,select')||null) : null;
         }
+
+        // Scova il "contenitore riga" della casa corrente (risale finché trova un blocco con Codice casa)
+        function findRowRoot(fromEl){
+          let p = fromEl;
+          while (p && p !== document.body) {
+            if (getInputByLabel('Codice casa', p)) return p;
+            p = p.parentElement;
+          }
+          // fallback: tutta la pagina
+          return document;
+        }
+
+        // Imposta valore compatibile con React/Decap (anche per <select>)
         function setReactValue(el, value){
           if (!el) return;
-          if (el.__bbSetting) return;
-          const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-          el.__bbSetting = true;
-          setter.call(el, value);
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-          setTimeout(()=>{ el.__bbSetting = false; }, 0);
+          if (el.nodeName === 'SELECT') {
+            const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+            setter.call(el, value);
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          } else {
+            const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+            setter.call(el, value);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          }
         }
+
         function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
 
-        // ================== AUTOCOMPLETE CUSTOM ==================
-        const FALLBACK_CITIES = {
-          "Sardegna": ["Cagliari","Carbonia","Dorgali","Nuoro","Olbia","Oristano","Orosei","Sassari"],
-          "Lazio": ["Roma","Fiumicino","Tivoli","Viterbo","Latina","Rieti"],
-          "Lombardia": ["Milano","Bergamo","Brescia","Como","Lecco","Monza","Pavia","Varese"],
-          "Piemonte": ["Torino","Alessandria","Asti","Cuneo","Novara","Vercelli"],
-          "Campania": ["Napoli","Salerno","Caserta","Avellino","Benevento"],
-          "Sicilia": ["Palermo","Catania","Messina","Siracusa","Ragusa","Trapani"],
-          "Toscana": ["Firenze","Pisa","Lucca","Prato","Siena","Arezzo"]
-        };
+        // ================== AUTOCOMPLETE CON CACHE E ABORT ==================
+        const cityCache   = new Map(); // key: region|q  -> string[]
+        const streetCache = new Map(); // key: city|q    -> string[]
 
-        function createPanel(){
-          const p=document.createElement('div'); p.className='bb-ac-panel'; p.style.display='none'; document.body.appendChild(p); return p;
-        }
-        const cityPanel = createPanel();
-        const streetPanel = createPanel();
-
+        function createPanel(){ const p=document.createElement('div'); p.className='bb-ac-panel'; p.style.display='none'; document.body.appendChild(p); return p; }
         function positionPanel(panel, input){
           const r=input.getBoundingClientRect();
           panel.style.left = (window.scrollX + r.left) + 'px';
@@ -128,88 +133,113 @@
         }
         function fillPanel(panel, items, onPick){
           panel.innerHTML='';
-          if (!items || items.length===0){ const d=document.createElement('div'); d.className='bb-ac-empty'; d.textContent='Nessun risultato'; panel.appendChild(d); return; }
-          items.forEach((txt,i)=>{
-            const it=document.createElement('div'); it.className='bb-ac-item'; it.textContent=txt;
-            it.onmousedown=(e)=>{ e.preventDefault(); onPick(txt); panel.style.display='none'; };
+          if (!items || !items.length){ const d=document.createElement('div'); d.className='bb-ac-empty'; d.textContent='Nessun risultato'; panel.appendChild(d); return; }
+          items.forEach(v=>{
+            const it=document.createElement('div'); it.className='bb-ac-item'; it.textContent=v;
+            it.onmousedown=(e)=>{ e.preventDefault(); onPick(v); panel.style.display='none'; };
             panel.appendChild(it);
           });
         }
         function showSpinner(panel){ panel.innerHTML='<div class="bb-ac-spinner">Sto cercando…</div>'; }
-        document.addEventListener('click', (e)=>{
-          if (!cityPanel.contains(e.target)) cityPanel.style.display='none';
-          if (!streetPanel.contains(e.target)) streetPanel.style.display='none';
-        });
 
-        async function suggestCities(q, region){
-          // Prova OSM
-          if (q && q.length>=1){
-            try{
-              const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q)}`;
-              const r=await fetch(url); const js=await r.json();
-              const allowed=new Set(['city','town','village','hamlet','municipality']); const out=[];
-              for(const it of js){
-                const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality;
-                const reg =it.address.state||it.address.region;
-                if (allowed.has(it.type) && city){
-                  // filtro soft per regione (se diversa, non escludo ma do priorità)
-                  out.push({city, score: (region && reg && reg.toLowerCase().includes(region.toLowerCase())) ? 0 : 1});
-                }
-              }
-              out.sort((a,b)=>a.score-b.score);
-              const names=[...new Set(out.map(o=>o.city))];
-              if (names.length) return names;
-            }catch(e){}
-          }
-          // Fallback locale per regione
-          const loc = FALLBACK_CITIES[region] || [];
-          const filtered = q ? loc.filter(x=>x.toLowerCase().includes(q.toLowerCase())) : loc;
-          return filtered.slice(0,12);
-        }
+        async function fetchCities(q, region, signal){
+          if (!q || q.length < 2) return []; // evita richieste inutili
+          const key=(region||'')+'|'+q.toLowerCase();
+          if (cityCache.has(key)) return cityCache.get(key);
 
-        async function suggestStreets(q, city){
-          if (!city) return [];
-          if (q && q.length>=1){
-            try{
-              const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q+', '+city+', Italia')}`;
-              const r=await fetch(url); const js=await r.json();
-              const out=[];
-              for(const it of js){
-                const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||'';
-                if (road) out.push(road);
-              }
-              const uniq=[...new Set(out)];
-              if (uniq.length) return uniq;
-            }catch(e){}
-          }
-          // Fallback: riprende vie già salvate per quella città
+          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q)}`;
           try{
-            const r=await fetch('/houses.json', {cache:'no-store'}); const data=await r.json();
-            const arr=(data.items||[]).filter(x=>x.city===city).map(x=>x.street).filter(Boolean);
-            const uniq=[...new Set(arr)];
-            return (q ? uniq.filter(x=>x.toLowerCase().includes(q.toLowerCase())) : uniq).slice(0,12);
-          }catch(e){ return []; }
+            const r=await fetch(url, { signal });
+            const js=await r.json();
+            const allowed=new Set(['city','town','village','hamlet','municipality']);
+            const out=[];
+            for(const it of js){
+              const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality;
+              const reg =it.address.state||it.address.region;
+              if (allowed.has(it.type) && city){
+                // filtro soft: prima quelle nella stessa regione
+                const score = (region && reg && reg.toLowerCase().includes(region.toLowerCase())) ? 0 : 1;
+                out.push({city, score});
+              }
+            }
+            out.sort((a,b)=>a.score-b.score);
+            const names=[...new Set(out.map(o=>o.city))].slice(0,12);
+            cityCache.set(key, names); // cache anche se vuoto -> evita re-loop
+            return names;
+          }catch(e){
+            cityCache.set(key, []);   // cache vuota per evitare loop
+            return [];
+          }
         }
 
-        function attachAutocomplete(input, panel, fetcher, onPick){
+        async function fetchStreets(q, city, signal){
+          if (!q || q.length < 2 || !city) return [];
+          const key=(city||'')+'|'+q.toLowerCase();
+          if (streetCache.has(key)) return streetCache.get(key);
+
+          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q+', '+city+', Italia')}`;
+          try{
+            const r=await fetch(url, { signal });
+            const js=await r.json();
+            const out=[];
+            for(const it of js){
+              const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||'';
+              if (road) out.push(road);
+            }
+            const names=[...new Set(out)].slice(0,12);
+            streetCache.set(key, names);
+            return names;
+          }catch(e){
+            streetCache.set(key, []);
+            return [];
+          }
+        }
+
+        function attachAutocomplete(input, getParams, onPick){
           if (!input) return;
+          if (input._bbAc) return;  // già collegato
+          input._bbAc = { panel: createPanel(), ctrl: null, lastQ: null };
+
           const run = debounce(async ()=>{
             const q=input.value.trim();
-            panel.style.display='block';
-            positionPanel(panel, input);
-            showSpinner(panel);
-            const items = await fetcher(q);
-            fillPanel(panel, items, (val)=>{ onPick(val); });
-          }, 250);
-          input.addEventListener('input', ()=>{ positionPanel(panel, input); run(); });
-          input.addEventListener('focus', ()=>{ positionPanel(panel, input); run(); });
-          input.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ panel.style.display='none'; }});
+            const { type, region, city } = getParams();
+
+            // Se stessa query di prima -> non rifare
+            if (input._bbAc.lastQ === q) { 
+              input._bbAc.panel.style.display = 'block';
+              positionPanel(input._bbAc.panel, input);
+              return;
+            }
+            input._bbAc.lastQ = q;
+
+            // cancella richiesta precedente
+            if (input._bbAc.ctrl) input._bbAc.ctrl.abort();
+            const ctrl = new AbortController(); input._bbAc.ctrl = ctrl;
+
+            positionPanel(input._bbAc.panel, input);
+            showSpinner(input._bbAc.panel);
+
+            let items=[];
+            if (type==='city')   items = await fetchCities(q, region, ctrl.signal);
+            if (type==='street') items = await fetchStreets(q, city,   ctrl.signal);
+
+            // se l'utente ha digitato altro nel frattempo, esci
+            if (ctrl.signal.aborted || input.value.trim() !== q) return;
+
+            fillPanel(input._bbAc.panel, items, (val)=> onPick(val) );
+          }, 280);
+
+          input.addEventListener('input', ()=>{ positionPanel(input._bbAc.panel, input); run(); });
+          input.addEventListener('focus', ()=>{ positionPanel(input._bbAc.panel, input); run(); });
+          input.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ input._bbAc.panel.style.display='none'; }});
+          document.addEventListener('click', (e)=>{ if (!input._bbAc.panel.contains(e.target) && e.target!==input) input._bbAc.panel.style.display='none'; });
         }
 
-        // ================== DATA MASK ==================
-        function attachBirthMask(){
-          const el = findFieldByLabel('Data di nascita');
-          if (!el) return;
+        // ================== MASCHERA DATA ==================
+        function attachBirthMask(root){
+          const el = getInputByLabel('Data di nascita', root);
+          if (!el || el._bbMasked) return;
+          el._bbMasked = true;
           el.placeholder='gg/mm/aaaa';
           const mask = (v)=>{
             v = (v||'').replace(/[^\d]/g,'').slice(0,8);
@@ -217,31 +247,26 @@
             if (v.length>=3) return v.slice(0,2)+'/'+v.slice(2);
             return v;
           };
-          const onInput = ()=> {
-            if (el.__bbSetting) return;
+          el.addEventListener('input', ()=>{
             const m = mask(el.value);
             if (el.value !== m) setReactValue(el, m);
-          };
-          const onBlur = ()=> {
-            if (el.__bbSetting) return;
+          });
+          el.addEventListener('blur', ()=>{
             const m = mask(el.value);
             if (el.value !== m) setReactValue(el, m);
-          };
-          const onPaste = (e)=> {
+          });
+          el.addEventListener('paste', (e)=>{
             e.preventDefault();
-            const text = (e.clipboardData || window.clipboardData).getData('text') || '';
-            setReactValue(el, text);
-          };
-          el.addEventListener('input', onInput);
-          el.addEventListener('blur', onBlur);
-          el.addEventListener('paste', onPaste);
+            const t=(e.clipboardData||window.clipboardData).getData('text')||'';
+            setReactValue(el, mask(t));
+          });
         }
 
-        // ================== BLOCCO CAMPO CODICE CASA ==================
-        function lockCodeField(){
-          const el = findFieldByLabel('Codice casa');
-          if (!el || el.dataset.bbLocked==='1') return;
-          el.dataset.bbLocked='1';
+        // ================== BLOCCO CAMPO CODICE ==================
+        function lockCodeField(root){
+          const el = getInputByLabel('Codice casa', root);
+          if (!el || el._bbLocked) return;
+          el._bbLocked = true;
           el.readOnly = true;
           el.setAttribute('aria-readonly','true');
           el.classList.add('bb-readonly');
@@ -251,6 +276,7 @@
           });
           el.addEventListener('beforeinput', (e)=> e.preventDefault());
           el.addEventListener('paste', (e)=> e.preventDefault());
+
           // bottone copia
           const parent = el.parentElement;
           if (parent && !parent.querySelector('.bb-copy')){
@@ -263,97 +289,106 @@
           }
         }
 
-        // ================== GENERAZIONE LIVE CODICE ==================
-        function updateHouseCode(){
-          const region  = findFieldByLabel('Regione')?.value || '';
-          const city    = findFieldByLabel('Città')?.value || '';
-          const zip     = findFieldByLabel('CAP')?.value || '';
-          const street  = findFieldByLabel('Via')?.value || '';
-          const number  = findFieldByLabel('Civico')?.value || '';
-          const cf      = (findFieldByLabel('Codice fiscale')?.value || '').toUpperCase();
-          const birth   = findFieldByLabel('Data di nascita')?.value || '';
-          const gender  = findFieldByLabel('Sesso')?.value || '';
+        // ================== GENERAZIONE CODICE (PER-RIGA) ==================
+        function updateCodeForRow(root){
+          const region = getInputByLabel('Regione', root)?.value || '';
+          const city   = getInputByLabel('Città',   root)?.value || '';
+          const zip    = getInputByLabel('CAP',     root)?.value || '';
+          const street = getInputByLabel('Via',     root)?.value || '';
+          const number = getInputByLabel('Civico',  root)?.value || '';
+          const cf     = (getInputByLabel('Codice fiscale', root)?.value || '').toUpperCase();
+          const birth  = getInputByLabel('Data di nascita', root)?.value || '';
+          const gender = getInputByLabel('Sesso', root)?.value || '';
 
-          const codeEl  = findFieldByLabel('Codice casa');
+          const codeEl = getInputByLabel('Codice casa', root);
           if (!codeEl) return;
 
-          const ready = region && city && zip && street && number && cf && birth && gender;
-          if (!ready){ setReactValue(codeEl,''); return; }
+          const ok = region && city && zip && street && number && cf && birth && gender;
+          if (!ok) { setReactValue(codeEl, ''); return; }
 
           const cfCheck = validateCF(cf, birth, gender);
-          if (!cfCheck.valid){ setReactValue(codeEl,''); return; }
+          if (!cfCheck.valid) { setReactValue(codeEl, ''); return; }
 
           const code = buildHouseCode({ region, city, zip, street, number, owner_cf: cf });
           if (codeEl.value !== code) setReactValue(codeEl, code);
         }
 
-        // ================== WIRING ==================
-        async function setup(){
-          attachBirthMask();
-          lockCodeField();
+        // ================== COLLEGAMENTO EVENTI PER-RIGA ==================
+        function wireRow(root){
+          // maschera e lock
+          attachBirthMask(root);
+          lockCodeField(root);
 
-          const regionSel = findFieldByLabel('Regione');   // select
-          const cityInput = findFieldByLabel('Città');
-          const streetInp = findFieldByLabel('Via');
-          const numInput  = findFieldByLabel('Civico');
+          const region = getInputByLabel('Regione', root);
+          const city   = getInputByLabel('Città',   root);
+          const street = getInputByLabel('Via',     root);
+          const num    = getInputByLabel('Civico',  root);
+          const zip    = getInputByLabel('CAP',     root);
+          const cf     = getInputByLabel('Codice fiscale', root);
+          const gender = getInputByLabel('Sesso', root);
 
-          // Autocomplete City
+          // Autocomplete Città (per-riga)
           attachAutocomplete(
-            cityInput,
-            cityPanel,
-            async (q)=>{
-              const region = regionSel ? regionSel.value : '';
-              return await suggestCities(q, region);
-            },
-            (val)=>{ setReactValue(cityInput, val); updateHouseCode(); }
+            city,
+            ()=>({ type:'city', region: region ? region.value : '' }),
+            (val)=>{ setReactValue(city, val); updateCodeForRow(root); }
           );
 
-          // Autocomplete Street
+          // Autocomplete Via (dipende dalla città della stessa riga)
           attachAutocomplete(
-            streetInp,
-            streetPanel,
-            async (q)=>{
-              const city = cityInput ? cityInput.value : '';
-              return await suggestStreets(q, city);
-            },
-            (val)=>{ setReactValue(streetInp, val); updateHouseCode(); }
+            street,
+            ()=>({ type:'street', city: city ? city.value : '' }),
+            (val)=>{ setReactValue(street, val); updateCodeForRow(root); }
           );
 
-          // Eventi che rigenerano il codice
-          [regionSel, cityInput, streetInp, numInput,
-           findFieldByLabel('CAP'),
-           findFieldByLabel('Codice fiscale'),
-           findFieldByLabel('Sesso'),
-           findFieldByLabel('Data di nascita')
-          ].filter(Boolean).forEach(el=>{
-            const evt = (el.tagName==='SELECT') ? 'change' : 'input';
-            el.addEventListener(evt, updateHouseCode);
+          // Ogni campo rilevante aggiorna il codice di questa riga
+          [[region,'change'],[city,'input'],[street,'input'],[num,'input'],[zip,'input'],[cf,'input'],[gender,'change']].forEach(([el,ev])=>{
+            if (el) el.addEventListener(ev, ()=> updateCodeForRow(root));
           });
 
-          // Primo calcolo
-          updateHouseCode();
+          // primo calcolo
+          updateCodeForRow(root);
         }
 
-        CMS.registerEventListener({ name:'preSave', handler:()=>{ updateHouseCode(); } });
-        CMS.registerEventListener({
-          name:'prePublish',
-          handler:({entry,collection})=>{
-            if (!collection || collection.get('name')!=='houses') return;
-            const items = entry.get('data')?.get?.('items') || [];
-            for (let i=0;i<items.size;i++){
-              const it=items.get(i);
-              const code=String(it.get('code')||'');
-              if (!code){ alert("Codice casa mancante alla riga "+(i+1)+". Completa i dati e il CF."); throw new Error("code mancante"); }
-              if (!code.startsWith(PREFIX+'-')){ alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido"); }
+        // ================== SCOPERTA AUTOMATICA DELLE RIGHE ==================
+        function wireAllRows(){
+          // Ogni "riga" è un blocco che contiene un "Codice casa"
+          const labels=[...document.querySelectorAll('label')].filter(l=>l.textContent && l.textContent.includes('Codice casa'));
+          labels.forEach(lab=>{
+            const root = findRowRoot(lab);
+            if (root && !root._bbWired) {
+              root._bbWired = true;
+              wireRow(root);
             }
-          }
-        });
+          });
+        }
 
-        // Osserva il DOM dell'admin (Decap monta i form in asincrono)
-        const obs = new MutationObserver(()=>{ requestAnimationFrame(()=>{ setup(); }); });
+        // Hook Decap
+        CMS.registerEventListener({ name:'preSave',   handler:()=>{ wireAllRows(); } });
+        CMS.registerEventListener({ name:'prePublish', handler:({entry,collection})=>{
+          if(!collection||collection.get('name')!=='houses') return;
+          wireAllRows();
+          const items = entry.get('data')?.get?.('items') || [];
+          for (let i=0;i<items.size;i++){
+            const it=items.get(i);
+            const code=String(it.get('code')||'');
+            if(!code){ alert("Codice casa mancante alla riga "+(i+1)+"."); throw new Error("code mancante"); }
+            if(!code.startsWith(PREFIX+'-')){ alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido"); }
+          }
+        }});
+
+        // Observer: Decap monta i campi in asincrono
+        const obs = new MutationObserver(()=>{ requestAnimationFrame(()=>{ wireAllRows(); }); });
         obs.observe(document.body, { childList:true, subtree:true });
 
-        document.addEventListener('DOMContentLoaded', ()=>{ setup(); });
+        document.addEventListener('DOMContentLoaded', ()=>{ wireAllRows(); });
+
+        // Chiudi pannelli autocomplete cliccando fuori
+        document.addEventListener('click', (e)=>{
+          document.querySelectorAll('.bb-ac-panel').forEach(p=>{
+            if (!p.contains(e.target) && !(e.target && e.target.matches('input'))) p.style.display='none';
+          });
+        });
       })();
     </script>
   </body>
