@@ -18,12 +18,6 @@ collections:
             widget: "list"
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
-              - label: "Codice casa"
-                name: "code"
-                widget: "string"
-                required: false
-                hint: "Generato automaticamente; non modificabile"
-
               - label: "Regione"
                 name: "region"
                 widget: "select"
