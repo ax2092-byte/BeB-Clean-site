@@ -2,18 +2,18 @@
   "items": [
     {
       "zip": "08022",
-      "owner_last": "spanu",
-      "street": "veneto",
-      "owner_first": "alessandro",
+      "owner_last": "SPANU",
+      "street": "VENETO",
+      "owner_first": "ALESSANDRO",
       "number": "8",
-      "city": "DOrgali",
+      "city": "DORGALI",
       "owner_gender": "M",
       "owner_cf": "SPNLSN92L20F979L",
-      "province": "nu",
+      "province": "NU",
       "owner_birth": "20/07/1992",
       "region": "Sardegna",
-      "owner_birth_prov": "nu",
-      "owner_birth_city": "nuoro"
+      "owner_birth_prov": "NU",
+      "owner_birth_city": "NUORO"
     }
   ]
 }
