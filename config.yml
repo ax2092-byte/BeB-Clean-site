@@ -29,7 +29,7 @@ collections:
             widget: list
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
-              # Codice casa: visibile ma non modificabile; NON richiesto nel form (lo validiamo in publish)
+              # Codice casa: visibile ma non modificabile; NON richiesto nel form (verificato in publish)
               - { label: "Codice casa", name: "code", widget: "string", required: false, hint: "Generato automaticamente; non modificabile" }
 
               # Indirizzo
@@ -39,10 +39,10 @@ collections:
                    "Sicilia","Toscana","Trentino-Alto Adige","Umbria","Valle d'Aosta","Veneto"],
                   required: true
                 }
-              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Scrivi e scegli dai suggerimenti" }
+              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Scrivi: i suggerimenti compaiono da soli" }
               - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true, hint: "Es. NU, MI, RM..." }
               - { label: "CAP",      name: "zip",      widget: "string", required: true }
-              - { label: "Via",      name: "street",   widget: "string", required: true, hint: "Scrivi e scegli dai suggerimenti" }
+              - { label: "Via",      name: "street",   widget: "string", required: true, hint: "Scrivi: i suggerimenti compaiono da soli" }
               - { label: "Civico",   name: "number",   widget: "string", required: true, hint: "Scrivi o scegli dai suggerimenti" }
 
               # Proprietario
