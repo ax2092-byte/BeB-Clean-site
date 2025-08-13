@@ -12,7 +12,51 @@
       .bb-copy { padding:.35rem .6rem; border:1px solid #ccc; border-radius:.4rem; background:#fff; cursor:pointer; }
     </style>
   </head>
-  <body>
+  <script>
+(function(){
+  // Trova l'input a partire dal testo della label (usa "includes" così è più robusto)
+  function findInputByLabel(text){
+    const labels = Array.from(document.querySelectorAll('label'));
+    const lab = labels.find(l => l.textContent && l.textContent.trim().toLowerCase().includes(text.toLowerCase()));
+    if (!lab) return null;
+    const wrap = lab.closest('[class*="ControlContainer"]') || lab.parentElement;
+    return wrap ? wrap.querySelector('input') : null;
+  }
+
+  function lockCodeField(){
+    const el = findInputByLabel('Codice casa');
+    if (!el) return;
+    // Mostra ma non fa scrivere
+    el.readOnly = true;                      // impedisce l'editing
+    el.setAttribute('aria-readonly','true');
+    el.style.background = '#f6f7f9';
+    el.style.color = '#555';
+    // blocca eventuali tasti che aggirano readOnly
+    el.addEventListener('keydown', (e) => {
+      const okKeys = ['Tab','Shift','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
+      if (!e.ctrlKey && !e.metaKey && !okKeys.includes(e.key)) e.preventDefault();
+    });
+  }
+
+  // Maschera data dd/mm/yyyy con slash automatici
+  function attachBirthMask(){
+    const el = findInputByLabel('Data di nascita');
+    if (!el) return;
+    el.placeholder = 'gg/mm/aaaa';
+    el.addEventListener('input', () => {
+      let v = el.value.replace(/[^\d]/g,'').slice(0,8);
+      if (v.length >= 5) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
+      else if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+      el.value = v;
+    });
+  }
+
+  // Rilancia quando Decap monta i campi
+  const obs = new MutationObserver(() => { lockCodeField(); attachBirthMask(); });
+  obs.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+<body>
     <!-- Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 
