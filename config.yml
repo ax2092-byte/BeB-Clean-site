@@ -39,11 +39,11 @@ collections:
                    "Sicilia","Toscana","Trentino-Alto Adige","Umbria","Valle d'Aosta","Veneto"],
                   required: true
                 }
-              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Scrivi: i suggerimenti compaiono da soli" }
+              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Scrivi: suggerimenti automatici" }
               - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true, hint: "Es. NU, MI, RM..." }
               - { label: "CAP",      name: "zip",      widget: "string", required: true }
-              - { label: "Via",      name: "street",   widget: "string", required: true, hint: "Scrivi: i suggerimenti compaiono da soli" }
-              - { label: "Civico",   name: "number",   widget: "string", required: true, hint: "Scrivi o scegli dai suggerimenti" }
+              - { label: "Via/Piazza", name: "street", widget: "string", required: true, hint: "Scrivi: suggerimenti automatici" }
+              - { label: "Civico",   name: "number",   widget: "string", required: true, hint: "Puoi scrivere anche '17B'" }
 
               # Proprietario
               - { label: "Proprietario - Nome",    name: "owner_first", widget: "string", required: true }
