@@ -9,7 +9,7 @@ collections:
   - name: "settings"
     label: "Impostazioni"
     files:
-      - file: "settings.json"           # se i tuoi file sono in root
+      - file: "settings.json"           
         label: "Impostazioni sito"
         name: "settings"
         fields:
@@ -20,7 +20,7 @@ collections:
   - name: "houses"
     label: "Case"
     files:
-      - file: "houses.json"             # se i tuoi file sono in root
+      - file: "houses.json"             
         label: "Elenco Case"
         name: "houses"
         fields:
