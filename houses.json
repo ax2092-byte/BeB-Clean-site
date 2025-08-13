@@ -4,7 +4,8 @@
       "median_hours": 2,
       "address": "Via dei Rosmarini",
       "city": "Dorgali",
-      "zip": "08022"
+      "zip": "08022",
+      "code": "00123456789"
     }
   ]
 }
