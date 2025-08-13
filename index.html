@@ -79,14 +79,18 @@
           return wrap ? wrap.querySelector('input,select') : null;
         }
 
-        // Forza l'aggiornamento "alla React" (salva nel modello Decap)
-        function setReactValue(el, value){
+        // Forza l'aggiornamento (senza loop) nel modello Decap
+        function setReactValueSafely(el, value){
+          if (el.__bbMasking) return;
           const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          el.__bbMasking = true;
           setter.call(el, value);
           el.dispatchEvent(new Event('input', { bubbles: true }));
+          // fine: togliamo il flag al prossimo tick (evita re-ingressi)
+          setTimeout(()=>{ el.__bbMasking = false; }, 0);
         }
 
-        // Maschera data dd/mm/yyyy con slash automatici + salvataggio persistente
+        // Maschera data dd/mm/yyyy con slash automatici + salvataggio persistente (senza cicli)
         function attachBirthMask(){
           const el = findFieldByLabelIncludes('Data di nascita');
           if (!el) return;
@@ -100,21 +104,23 @@
           }
 
           const onInput = ()=> {
-            const m = mask(el.value);
-            if (el.value !== m) setReactValue(el, m);
-            else el.dispatchEvent(new Event('input', {bubbles:true})); // registra comunque
+            if (el.__bbMasking) return;                          // evita ricorsione
+            const raw = el.value;
+            const m = mask(raw);
+            if (raw !== m) setReactValueSafely(el, m);           // aggiorna + un solo 'input'
           };
 
           const onBlur = ()=> {
+            if (el.__bbMasking) return;
             const m = mask(el.value);
-            setReactValue(el, m); // forza il valore finale
+            if (el.value !== m) setReactValueSafely(el, m);      // normalizza al blur
           };
 
           const onPaste = (e)=> {
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text') || '';
             const m = mask(text);
-            setReactValue(el, m);
+            setReactValueSafely(el, m);
           };
 
           el.addEventListener('input', onInput);
@@ -129,13 +135,16 @@
 
         // OSM (Nominatim) autocomplete
         async function osmCitySuggest(q,region){ if(!q||q.length<2) return []; const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q)}`;
-          const r=await fetch(url); const js=await r.json(); const allowed=new Set(['city','town','village','hamlet','municipality']); const out=[];
-          for(const it of js){ const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality; const reg=it.address.state||it.address.region; const typeOk=allowed.has(it.type);
-            if(typeOk&&city){ if(region&&reg&&reg.toLowerCase().indexOf(region.toLowerCase())===-1) continue; out.push(city); } }
-          return [...new Set(out)].slice(0,8);
+          try{ const r=await fetch(url); const js=await r.json(); const allowed=new Set(['city','town','village','hamlet','municipality']); const out=[];
+            for(const it of js){ const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality; const reg=it.address.state||it.address.region; const typeOk=allowed.has(it.type);
+              if(typeOk&&city){ if(region&&reg&&reg.toLowerCase().indexOf(region.toLowerCase())===-1) continue; out.push(city); } }
+            return [...new Set(out)].slice(0,8);
+          }catch(e){ return []; }
         }
         async function osmStreetSuggest(q,city){ if(!q||q.length<2||!city) return []; const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q+', '+city+', Italia')}`;
-          const r=await fetch(url); const js=await r.json(); const out=[]; for(const it of js){ const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||''; if(road) out.push(road); } return [...new Set(out)].slice(0,8); }
+          try{ const r=await fetch(url); const js=await r.json(); const out=[]; for(const it of js){ const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||''; if(road) out.push(road); } return [...new Set(out)].slice(0,8);
+          }catch(e){ return []; }
+        }
 
         async function loadExisting(){ try{ const r=await fetch('/houses.json',{cache:'no-store'}); return await r.json(); } catch(e){ return { items:[] }; } }
 
@@ -274,7 +283,7 @@
             if(!collection||collection.get('name')!=='houses') return;
             const items = entry.get('data')?.get?.('items') || [];
 
-            // 1) tutti devono avere dati completi + CF valido + codice rigenerato coerente
+            // 1) tutti: dati completi + CF valido + codice presente
             for(let i=0;i<items.size;i++){
               const it=items.get(i);
               const payload={
@@ -295,10 +304,8 @@
               const cfCheck=validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
               if(!cfCheck.valid){ alert("Errore CF alla riga "+(i+1)+": "+cfCheck.message); throw new Error("CF non valido"); }
 
-              const expected = buildHouseCode(payload);
-              const code     = String(it.get('code')||'');
+              const code = String(it.get('code')||'');
               if(!code){ alert("Codice casa mancante alla riga "+(i+1)); throw new Error("code mancante"); }
-              // opzionale: potremmo imporre esattamente l'uguaglianza, ma lasciamo solo un controllo minimo
               if(!code.startsWith(PREFIX+'-')){ alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido"); }
             }
 
@@ -314,11 +321,17 @@
         });
 
         // Observer continuo: applica maschera/lock anche su campi creati dopo
-        const obs = new MutationObserver(()=>{ lockAllCodeFields(); attachBirthMask(); });
+        const obs = new MutationObserver(()=>{ 
+          // evita ripetizioni aggressive
+          requestAnimationFrame(()=>{ 
+            attachBirthMask(); 
+            lockAllCodeFields(); 
+          });
+        });
         obs.observe(document.body, { childList:true, subtree:true });
 
         // Primo setup
-        document.addEventListener('DOMContentLoaded', ()=>{ lockAllCodeFields(); attachBirthMask(); });
+        document.addEventListener('DOMContentLoaded', ()=>{ attachBirthMask(); lockAllCodeFields(); });
       })();
     </script>
   </body>
