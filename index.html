@@ -9,7 +9,7 @@
       /* Campo "Codice casa" in sola lettura (visibile) */
       .bb-readonly { background:#f6f7f9; color:#555; pointer-events:none; }
 
-      /* Autocomplete custom */
+      /* Autocomplete custom (leggero) */
       .bb-ac-panel {
         position: absolute; z-index: 99999; min-width: 240px; max-width: 520px;
         max-height: 240px; overflow: auto; background: #fff; border: 1px solid #ddd;
@@ -23,6 +23,9 @@
 
       .bb-inline { display:inline-flex; gap:.5rem; align-items:center; width:100%; }
       .bb-copy { padding:.35rem .6rem; border:1px solid #ccc; border-radius:.4rem; background:#fff; cursor:pointer; }
+
+      /* Visual: tutti i testi in maiuscolo */
+      .bb-uppercase { text-transform: uppercase; }
     </style>
   </head>
   <body>
@@ -52,58 +55,86 @@
     <script>
       (function () {
         // ================== UTILITÀ BASE ==================
-        const PREFIX = 'BB';
-        const MONTH = { A:1,B:2,C:3,D:4,E:5,H:6,L:7,M:8,P:9,R:10,S:11,T:12 };
-        const ODD = { '0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
-          A:1,B:0,C:5,D:7,E:9,F:13,G:15,H:17,I:19,J:21,K:2,L:4,M:18,N:20,O:11,P:3,Q:6,R:8,S:12,T:14,U:16,V:10,W:22,X:25,Y:24,Z:23 };
-        const EVEN = { '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
-          A:0,B:1,C:2,D:3,E:4,F:5,G:6,H:7,I:8,J:9,K:10,L:11,M:12,N:13,O:14,P:15,Q:16,R:17,S:18,T:19,U:20,V:21,W:22,X:23,Y:24,Z:25 };
+        const REG_LETTER = {
+          "ABRUZZO":"A","BASILICATA":"B","CALABRIA":"C","CAMPANIA":"D","EMILIA-ROMAGNA":"E",
+          "FRIULI-VENEZIA GIULIA":"F","LAZIO":"G","LIGURIA":"H","LOMBARDIA":"I","MARCHE":"J",
+          "MOLISE":"K","PIEMONTE":"L","PUGLIA":"M","SARDEGNA":"N","SICILIA":"O",
+          "TOSCANA":"P","TRENTINO-ALTO ADIGE":"Q","UMBRIA":"R","VALLE D'AOSTA":"S","VENETO":"T"
+        };
 
-        function norm(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();}
-        function fnv1a(str){let h=0x811c9dc5>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}return h>>>0;}
-        function parseDMY(dmy){if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dmy||''))return null;const d=+dmy.slice(0,2),m=+dmy.slice(3,5),y=+dmy.slice(6,10);if(m<1||m>12||d<1||d>31)return null;return {d,m,y};}
-        function cfChecksum(cf15){let s=0;for(let i=0;i<15;i++){const c=cf15[i];if(!c)return null;s+=((i%2)===0?ODD[c]:EVEN[c]);}return String.fromCharCode((s%26)+65);}
-        function validateCF(cf,dmy,gender){
-          const out={valid:false,message:""};
-          if(!cf||!/^[A-Z0-9]{16}$/i.test(cf)){out.message="Formato CF non valido (16 caratteri).";return out;}
-          cf=cf.toUpperCase();
-          const expected=cfChecksum(cf.slice(0,15)); if(!expected||expected!==cf[15]){out.message="Carattere di controllo CF non valido.";return out;}
-          const p=parseDMY(dmy); if(!p||!gender){out.message="Inserisci data (dd/mm/yyyy) e sesso.";return out;}
-          const yy=String(p.y).slice(2,4), cfYY=cf.slice(6,8), cfM=cf[8], cfDD=+cf.slice(9,11);
-          if(cfYY!==yy){out.message="CF non coincide con anno.";return out;}
-          if(MONTH[cfM]!==p.m){out.message="CF non coincide con mese.";return out;}
-          const dd=(gender==='F')?(p.d+40):p.d; if(cfDD!==dd){out.message="CF non coincide con giorno/sesso.";return out;}
-          out.valid=true; return out;
+        function removeDiacritics(str){
+          return (str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
         }
-        function buildHouseCode(p){
-          const nZip=norm(p.zip).slice(0,5).padEnd(5,'0');
-          const nCity=norm(p.city).slice(0,3).padEnd(3,'X');
-          const base=[norm(p.region),norm(p.zip),norm(p.city),norm(p.street),norm(p.number),norm(p.owner_cf)].join('|');
-          const hash5=fnv1a(base).toString(36).toUpperCase().slice(0,5).padStart(5,'0');
-          return `${PREFIX}-${nZip}-${nCity}-${hash5}`;
+        function onlyLetters(str){ return removeDiacritics(str).replace(/[^A-Z]/g,''); }
+        function toUC(str){ return removeDiacritics((str||'')+'').toUpperCase(); }
+
+        // Estrae prime N lettere (A-Z), paddando con X se mancano
+        function firstNLetters(str, n){
+          const s = onlyLetters(toUC(str));
+          return (s.slice(0,n)+'X'.repeat(n)).slice(0,n);
         }
 
-        // Trova input/select per etichetta, ma **all’interno** di un contenitore (riga) se passato
+        // Pulisce il nome via/piazza togliendo prefissi iniziali e prende il "core"
+        function streetCore(str){
+          const up = toUC(str).trim();
+          const prefixes = [
+            'VIA','VIALE','VICO','VICOLO','CORSO','LARGO','STRADA','PIAZZA','P.ZZA','PZZA','P.ZZ','PZ.','PZ','P/ZA'
+          ];
+          let s = up.replace(/^\s+/, '');
+          for (const pref of prefixes){
+            const re = new RegExp('^' + pref + '\\b\\s*');
+            if (re.test(s)) { s = s.replace(re,''); break; }
+          }
+          return s.trim();
+        }
+
+        // CAP invertito (solo cifre, invertite)
+        function reverseCAP(zip){
+          const digits = (zip||'').replace(/\D/g,'');
+          return digits.split('').reverse().join('');
+        }
+
+        // Giorno da data dd/mm/yyyy
+        function dayFromDate(dmy){
+          const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dmy||'');
+          return m ? m[1] : '';
+        }
+
+        // Costruisce il codice casa secondo le nuove regole
+        function makeHouseCode({ cf, prov, street, number, zip, birth, region, city }){
+          const CF3   = firstNLetters(cf, 3);
+          const PROV2 = firstNLetters(prov, 2);
+          const STR3  = firstNLetters(streetCore(street), 3);
+          const CIV   = toUC(number).replace(/\s+/g,''); // può contenere lettere/numeri
+          const CAPR  = reverseCAP(zip);
+          const DAY   = dayFromDate(birth); // 2 cifre
+          const REG   = REG_LETTER[toUC(region)] || 'Z'; // fallback Z se non trovata
+          const CIT3  = firstNLetters(city, 3);
+
+          if (!(CF3 && PROV2 && STR3 && CIV && CAPR && DAY && REG && CIT3)) return '';
+          return [CF3, PROV2, STR3, CIV, CAPR, DAY, REG, CIT3].join('-');
+        }
+
+        // Trova input/select per etichetta, all’interno di un container (riga) se passato
         function getInputByLabel(labelText, root=document){
           const labels=[...root.querySelectorAll('label')];
-          const lab=labels.find(l=>l.textContent && l.textContent.trim().toLowerCase().includes(labelText.toLowerCase()));
+          const lab=labels.find(l=>l.textContent && l.textContent.trim().toUpperCase().includes(labelText.toUpperCase()));
           if(!lab) return null;
           const wrap=lab.closest('[class*="ControlContainer"]')||lab.parentElement;
           return wrap ? (wrap.querySelector('input,select')||null) : null;
         }
 
-        // Scova il "contenitore riga" della casa corrente (risale finché trova un blocco con Codice casa)
+        // Trova il container “riga” (blocchetto della casa corrente)
         function findRowRoot(fromEl){
           let p = fromEl;
           while (p && p !== document.body) {
             if (getInputByLabel('Codice casa', p)) return p;
             p = p.parentElement;
           }
-          // fallback: tutta la pagina
           return document;
         }
 
-        // Imposta valore compatibile con React/Decap (anche per <select>)
+        // Imposta valore compatibile con React/Decap (input o select)
         function setReactValue(el, value){
           if (!el) return;
           if (el.nodeName === 'SELECT') {
@@ -117,122 +148,37 @@
           }
         }
 
-        function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
+        // ================== MAIUSCOLO FORZATO ==================
+        function enforceUppercase(root){
+          const inputs = [...root.querySelectorAll('input[type="text"], input:not([type])')];
+          inputs.forEach(inp=>{
+            if (inp._bbUC) return;
+            inp._bbUC = true;
 
-        // ================== AUTOCOMPLETE CON CACHE E ABORT ==================
-        const cityCache   = new Map(); // key: region|q  -> string[]
-        const streetCache = new Map(); // key: city|q    -> string[]
+            // non forzare sul campo data e sul "Codice casa"
+            const isDate   = /data di nascita/i.test(inp.closest('label, [class]').textContent || '');
+            const isCode   = /codice casa/i.test(inp.closest('label, [class]').textContent || '');
 
-        function createPanel(){ const p=document.createElement('div'); p.className='bb-ac-panel'; p.style.display='none'; document.body.appendChild(p); return p; }
-        function positionPanel(panel, input){
-          const r=input.getBoundingClientRect();
-          panel.style.left = (window.scrollX + r.left) + 'px';
-          panel.style.top  = (window.scrollY + r.bottom + 4) + 'px';
-          panel.style.minWidth = r.width + 'px';
-          panel.style.display='block';
-        }
-        function fillPanel(panel, items, onPick){
-          panel.innerHTML='';
-          if (!items || !items.length){ const d=document.createElement('div'); d.className='bb-ac-empty'; d.textContent='Nessun risultato'; panel.appendChild(d); return; }
-          items.forEach(v=>{
-            const it=document.createElement('div'); it.className='bb-ac-item'; it.textContent=v;
-            it.onmousedown=(e)=>{ e.preventDefault(); onPick(v); panel.style.display='none'; };
-            panel.appendChild(it);
+            // aspetto visuale
+            inp.classList.add('bb-uppercase');
+
+            if (!isCode && !isDate){
+              inp.addEventListener('input', ()=>{
+                const up = toUC(inp.value);
+                if (inp.value !== up) setReactValue(inp, up);
+              });
+              inp.addEventListener('blur', ()=>{
+                const up = toUC(inp.value);
+                if (inp.value !== up) setReactValue(inp, up);
+              });
+              // paste
+              inp.addEventListener('paste', (e)=>{
+                e.preventDefault();
+                const t=(e.clipboardData||window.clipboardData).getData('text')||'';
+                setReactValue(inp, toUC(t));
+              });
+            }
           });
-        }
-        function showSpinner(panel){ panel.innerHTML='<div class="bb-ac-spinner">Sto cercando…</div>'; }
-
-        async function fetchCities(q, region, signal){
-          if (!q || q.length < 2) return []; // evita richieste inutili
-          const key=(region||'')+'|'+q.toLowerCase();
-          if (cityCache.has(key)) return cityCache.get(key);
-
-          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q)}`;
-          try{
-            const r=await fetch(url, { signal });
-            const js=await r.json();
-            const allowed=new Set(['city','town','village','hamlet','municipality']);
-            const out=[];
-            for(const it of js){
-              const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality;
-              const reg =it.address.state||it.address.region;
-              if (allowed.has(it.type) && city){
-                // filtro soft: prima quelle nella stessa regione
-                const score = (region && reg && reg.toLowerCase().includes(region.toLowerCase())) ? 0 : 1;
-                out.push({city, score});
-              }
-            }
-            out.sort((a,b)=>a.score-b.score);
-            const names=[...new Set(out.map(o=>o.city))].slice(0,12);
-            cityCache.set(key, names); // cache anche se vuoto -> evita re-loop
-            return names;
-          }catch(e){
-            cityCache.set(key, []);   // cache vuota per evitare loop
-            return [];
-          }
-        }
-
-        async function fetchStreets(q, city, signal){
-          if (!q || q.length < 2 || !city) return [];
-          const key=(city||'')+'|'+q.toLowerCase();
-          if (streetCache.has(key)) return streetCache.get(key);
-
-          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q+', '+city+', Italia')}`;
-          try{
-            const r=await fetch(url, { signal });
-            const js=await r.json();
-            const out=[];
-            for(const it of js){
-              const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||'';
-              if (road) out.push(road);
-            }
-            const names=[...new Set(out)].slice(0,12);
-            streetCache.set(key, names);
-            return names;
-          }catch(e){
-            streetCache.set(key, []);
-            return [];
-          }
-        }
-
-        function attachAutocomplete(input, getParams, onPick){
-          if (!input) return;
-          if (input._bbAc) return;  // già collegato
-          input._bbAc = { panel: createPanel(), ctrl: null, lastQ: null };
-
-          const run = debounce(async ()=>{
-            const q=input.value.trim();
-            const { type, region, city } = getParams();
-
-            // Se stessa query di prima -> non rifare
-            if (input._bbAc.lastQ === q) { 
-              input._bbAc.panel.style.display = 'block';
-              positionPanel(input._bbAc.panel, input);
-              return;
-            }
-            input._bbAc.lastQ = q;
-
-            // cancella richiesta precedente
-            if (input._bbAc.ctrl) input._bbAc.ctrl.abort();
-            const ctrl = new AbortController(); input._bbAc.ctrl = ctrl;
-
-            positionPanel(input._bbAc.panel, input);
-            showSpinner(input._bbAc.panel);
-
-            let items=[];
-            if (type==='city')   items = await fetchCities(q, region, ctrl.signal);
-            if (type==='street') items = await fetchStreets(q, city,   ctrl.signal);
-
-            // se l'utente ha digitato altro nel frattempo, esci
-            if (ctrl.signal.aborted || input.value.trim() !== q) return;
-
-            fillPanel(input._bbAc.panel, items, (val)=> onPick(val) );
-          }, 280);
-
-          input.addEventListener('input', ()=>{ positionPanel(input._bbAc.panel, input); run(); });
-          input.addEventListener('focus', ()=>{ positionPanel(input._bbAc.panel, input); run(); });
-          input.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ input._bbAc.panel.style.display='none'; }});
-          document.addEventListener('click', (e)=>{ if (!input._bbAc.panel.contains(e.target) && e.target!==input) input._bbAc.panel.style.display='none'; });
         }
 
         // ================== MASCHERA DATA ==================
@@ -289,71 +235,182 @@
           }
         }
 
+        // ================== AUTOCOMPLETE (leggero, con cache e abort) ==================
+        const cityCache = new Map();   // key: region|q
+        const streetCache = new Map(); // key: city|q
+
+        function createPanel(){ const p=document.createElement('div'); p.className='bb-ac-panel'; p.style.display='none'; document.body.appendChild(p); return p; }
+        function positionPanel(panel, input){
+          const r=input.getBoundingClientRect();
+          panel.style.left = (window.scrollX + r.left) + 'px';
+          panel.style.top  = (window.scrollY + r.bottom + 4) + 'px';
+          panel.style.minWidth = r.width + 'px';
+          panel.style.display='block';
+        }
+        function fillPanel(panel, items, onPick){
+          panel.innerHTML='';
+          if (!items || !items.length){ const d=document.createElement('div'); d.className='bb-ac-empty'; d.textContent='Nessun risultato'; panel.appendChild(d); return; }
+          items.forEach(v=>{
+            const it=document.createElement('div'); it.className='bb-ac-item'; it.textContent=v;
+            it.onmousedown=(e)=>{ e.preventDefault(); onPick(v); panel.style.display='none'; };
+            panel.appendChild(it);
+          });
+        }
+        function showSpinner(panel){ panel.innerHTML='<div class="bb-ac-spinner">Sto cercando…</div>'; }
+
+        async function fetchCities(q, region, signal){
+          if (!q || q.length < 2) return [];
+          const key=(region||'')+'|'+q.toUpperCase();
+          if (cityCache.has(key)) return cityCache.get(key);
+
+          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q)}`;
+          try{
+            const r=await fetch(url, { signal });
+            const js=await r.json();
+            const allowed=new Set(['city','town','village','hamlet','municipality']);
+            const out=[];
+            for(const it of js){
+              const city=(it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality||'').toUpperCase();
+              const reg =(it.address.state||it.address.region||'').toUpperCase();
+              if (allowed.has(it.type) && city){
+                const score = (region && reg.includes(region.toUpperCase())) ? 0 : 1;
+                out.push({city, score});
+              }
+            }
+            out.sort((a,b)=>a.score-b.score);
+            const names=[...new Set(out.map(o=>o.city))].slice(0,12);
+            cityCache.set(key, names);
+            return names;
+          }catch(e){
+            cityCache.set(key, []);
+            return [];
+          }
+        }
+
+        async function fetchStreets(q, city, signal){
+          if (!q || q.length < 2 || !city) return [];
+          const key=(city||'')+'|'+q.toUpperCase();
+          if (streetCache.has(key)) return streetCache.get(key);
+
+          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=12&q=${encodeURIComponent(q+', '+city+', Italia')}`;
+          try{
+            const r=await fetch(url, { signal });
+            const js=await r.json();
+            const out=[];
+            for(const it of js){
+              const road=(it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||'').toUpperCase();
+              if (road) out.push(road);
+            }
+            const names=[...new Set(out)].slice(0,12);
+            streetCache.set(key, names);
+            return names;
+          }catch(e){
+            streetCache.set(key, []);
+            return [];
+          }
+        }
+
+        function attachAutocomplete(input, getParams, onPick){
+          if (!input) return;
+          if (input._bbAc) return;  // già collegato
+          input._bbAc = { panel: createPanel(), ctrl: null, lastQ: null };
+
+          const run = debounce(async ()=>{
+            const q=input.value.trim().toUpperCase();
+            const { type, region, city } = getParams();
+
+            if (input._bbAc.lastQ === q) {
+              input._bbAc.panel.style.display = 'block';
+              positionPanel(input._bbAc.panel, input);
+              return;
+            }
+            input._bbAc.lastQ = q;
+
+            if (input._bbAc.ctrl) input._bbAc.ctrl.abort();
+            const ctrl = new AbortController(); input._bbAc.ctrl = ctrl;
+
+            positionPanel(input._bbAc.panel, input);
+            showSpinner(input._bbAc.panel);
+
+            let items=[];
+            if (type==='city')   items = await fetchCities(q, region, ctrl.signal);
+            if (type==='street') items = await fetchStreets(q, city,   ctrl.signal);
+
+            if (ctrl.signal.aborted || input.value.trim().toUpperCase() !== q) return;
+            fillPanel(input._bbAc.panel, items, (val)=> onPick(val) );
+          }, 280);
+
+          input.addEventListener('input', ()=>{
+            // forza maiuscolo live
+            const up = toUC(input.value);
+            if (input.value !== up) setReactValue(input, up);
+            positionPanel(input._bbAc.panel, input);
+            run();
+          });
+          input.addEventListener('focus', ()=>{ positionPanel(input._bbAc.panel, input); run(); });
+          input.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ input._bbAc.panel.style.display='none'; }});
+          document.addEventListener('click', (e)=>{ if (!input._bbAc.panel.contains(e.target) && e.target!==input) input._bbAc.panel.style.display='none'; });
+        }
+
         // ================== GENERAZIONE CODICE (PER-RIGA) ==================
         function updateCodeForRow(root){
-          const region = getInputByLabel('Regione', root)?.value || '';
-          const city   = getInputByLabel('Città',   root)?.value || '';
-          const zip    = getInputByLabel('CAP',     root)?.value || '';
-          const street = getInputByLabel('Via',     root)?.value || '';
-          const number = getInputByLabel('Civico',  root)?.value || '';
-          const cf     = (getInputByLabel('Codice fiscale', root)?.value || '').toUpperCase();
-          const birth  = getInputByLabel('Data di nascita', root)?.value || '';
-          const gender = getInputByLabel('Sesso', root)?.value || '';
+          const region = (getInputByLabel('Regione', root)?.value || '');
+          const city   = (getInputByLabel('Città',   root)?.value || '');
+          const prov   = (getInputByLabel('Provincia', root)?.value || '');
+          const zip    = (getInputByLabel('CAP',     root)?.value || '');
+          const street = (getInputByLabel('Via/Piazza', root)?.value || getInputByLabel('Via', root)?.value || '');
+          const number = (getInputByLabel('Civico',  root)?.value || '');
+          const cf     = (getInputByLabel('Codice fiscale', root)?.value || '');
+          const birth  = (getInputByLabel('Data di nascita', root)?.value || '');
 
           const codeEl = getInputByLabel('Codice casa', root);
           if (!codeEl) return;
 
-          const ok = region && city && zip && street && number && cf && birth && gender;
-          if (!ok) { setReactValue(codeEl, ''); return; }
-
-          const cfCheck = validateCF(cf, birth, gender);
-          if (!cfCheck.valid) { setReactValue(codeEl, ''); return; }
-
-          const code = buildHouseCode({ region, city, zip, street, number, owner_cf: cf });
-          if (codeEl.value !== code) setReactValue(codeEl, code);
+          const code = makeHouseCode({ cf, prov, street, number, zip, birth, region, city });
+          setReactValue(codeEl, code);
         }
 
         // ================== COLLEGAMENTO EVENTI PER-RIGA ==================
         function wireRow(root){
-          // maschera e lock
+          enforceUppercase(root);
           attachBirthMask(root);
           lockCodeField(root);
 
           const region = getInputByLabel('Regione', root);
           const city   = getInputByLabel('Città',   root);
-          const street = getInputByLabel('Via',     root);
+          const street = getInputByLabel('Via/Piazza', root) || getInputByLabel('Via', root);
           const num    = getInputByLabel('Civico',  root);
           const zip    = getInputByLabel('CAP',     root);
+          const prov   = getInputByLabel('Provincia', root);
           const cf     = getInputByLabel('Codice fiscale', root);
-          const gender = getInputByLabel('Sesso', root);
+          const birth  = getInputByLabel('Data di nascita', root);
 
-          // Autocomplete Città (per-riga)
+          // Autocomplete Città
           attachAutocomplete(
             city,
             ()=>({ type:'city', region: region ? region.value : '' }),
             (val)=>{ setReactValue(city, val); updateCodeForRow(root); }
           );
 
-          // Autocomplete Via (dipende dalla città della stessa riga)
+          // Autocomplete Via/Piazza
           attachAutocomplete(
             street,
             ()=>({ type:'street', city: city ? city.value : '' }),
             (val)=>{ setReactValue(street, val); updateCodeForRow(root); }
           );
 
-          // Ogni campo rilevante aggiorna il codice di questa riga
-          [[region,'change'],[city,'input'],[street,'input'],[num,'input'],[zip,'input'],[cf,'input'],[gender,'change']].forEach(([el,ev])=>{
+          // Eventi che rigenerano il codice
+          [[region,'change'],[city,'input'],[prov,'input'],[zip,'input'],[street,'input'],[num,'input'],[cf,'input'],[birth,'input']].forEach(([el,ev])=>{
             if (el) el.addEventListener(ev, ()=> updateCodeForRow(root));
           });
 
-          // primo calcolo
+          // Primo calcolo
           updateCodeForRow(root);
         }
 
         // ================== SCOPERTA AUTOMATICA DELLE RIGHE ==================
         function wireAllRows(){
-          // Ogni "riga" è un blocco che contiene un "Codice casa"
-          const labels=[...document.querySelectorAll('label')].filter(l=>l.textContent && l.textContent.includes('Codice casa'));
+          const labels=[...document.querySelectorAll('label')].filter(l=>l.textContent && /Codice casa/i.test(l.textContent));
           labels.forEach(lab=>{
             const root = findRowRoot(lab);
             if (root && !root._bbWired) {
@@ -365,30 +422,25 @@
 
         // Hook Decap
         CMS.registerEventListener({ name:'preSave',   handler:()=>{ wireAllRows(); } });
-        CMS.registerEventListener({ name:'prePublish', handler:({entry,collection})=>{
-          if(!collection||collection.get('name')!=='houses') return;
-          wireAllRows();
-          const items = entry.get('data')?.get?.('items') || [];
-          for (let i=0;i<items.size;i++){
-            const it=items.get(i);
-            const code=String(it.get('code')||'');
-            if(!code){ alert("Codice casa mancante alla riga "+(i+1)+"."); throw new Error("code mancante"); }
-            if(!code.startsWith(PREFIX+'-')){ alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido"); }
+        CMS.registerEventListener({
+          name:'prePublish',
+          handler:({entry,collection})=>{
+            if(!collection||collection.get('name')!=='houses') return;
+            wireAllRows();
+            const items = entry.get('data')?.get?.('items') || [];
+            for (let i=0;i<items.size;i++){
+              const it=items.get(i);
+              const code=String(it.get('code')||'');
+              if(!code){ alert("Codice casa mancante alla riga "+(i+1)+"."); throw new Error("code mancante"); }
+            }
           }
-        }});
+        });
 
         // Observer: Decap monta i campi in asincrono
         const obs = new MutationObserver(()=>{ requestAnimationFrame(()=>{ wireAllRows(); }); });
         obs.observe(document.body, { childList:true, subtree:true });
 
         document.addEventListener('DOMContentLoaded', ()=>{ wireAllRows(); });
-
-        // Chiudi pannelli autocomplete cliccando fuori
-        document.addEventListener('click', (e)=>{
-          document.querySelectorAll('.bb-ac-panel').forEach(p=>{
-            if (!p.contains(e.target) && !(e.target && e.target.matches('input'))) p.style.display='none';
-          });
-        });
       })();
     </script>
   </body>
