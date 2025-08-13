@@ -6,61 +6,17 @@
     <title>Admin — B&B Clean</title>
     <link rel="icon" type="image/png" href="../favicon.png">
     <style>
-      /* stile per campo "Codice casa" in sola lettura */
+      /* Campo "Codice casa" in sola lettura (visibile) */
       .bb-readonly { background:#f6f7f9; color:#555; pointer-events:none; }
       .bb-inline { display:inline-flex; gap:.5rem; align-items:center; width:100%; }
       .bb-copy { padding:.35rem .6rem; border:1px solid #ccc; border-radius:.4rem; background:#fff; cursor:pointer; }
     </style>
   </head>
-  <script>
-(function(){
-  // Trova l'input a partire dal testo della label (usa "includes" così è più robusto)
-  function findInputByLabel(text){
-    const labels = Array.from(document.querySelectorAll('label'));
-    const lab = labels.find(l => l.textContent && l.textContent.trim().toLowerCase().includes(text.toLowerCase()));
-    if (!lab) return null;
-    const wrap = lab.closest('[class*="ControlContainer"]') || lab.parentElement;
-    return wrap ? wrap.querySelector('input') : null;
-  }
-
-  function lockCodeField(){
-    const el = findInputByLabel('Codice casa');
-    if (!el) return;
-    // Mostra ma non fa scrivere
-    el.readOnly = true;                      // impedisce l'editing
-    el.setAttribute('aria-readonly','true');
-    el.style.background = '#f6f7f9';
-    el.style.color = '#555';
-    // blocca eventuali tasti che aggirano readOnly
-    el.addEventListener('keydown', (e) => {
-      const okKeys = ['Tab','Shift','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
-      if (!e.ctrlKey && !e.metaKey && !okKeys.includes(e.key)) e.preventDefault();
-    });
-  }
-
-  // Maschera data dd/mm/yyyy con slash automatici
-  function attachBirthMask(){
-    const el = findInputByLabel('Data di nascita');
-    if (!el) return;
-    el.placeholder = 'gg/mm/aaaa';
-    el.addEventListener('input', () => {
-      let v = el.value.replace(/[^\d]/g,'').slice(0,8);
-      if (v.length >= 5) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
-      else if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
-      el.value = v;
-    });
-  }
-
-  // Rilancia quando Decap monta i campi
-  const obs = new MutationObserver(() => { lockCodeField(); attachBirthMask(); });
-  obs.observe(document.body, { childList: true, subtree: true });
-})();
-</script>
-<body>
+  <body>
     <!-- Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 
-    <!-- Netlify Identity -->
+    <!-- Netlify Identity (login/signup) -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
@@ -79,6 +35,7 @@
     </button>
     <script>document.getElementById('idBtn').onclick=()=>window.netlifyIdentity&&window.netlifyIdentity.open();</script>
 
+    <!-- Script principale -->
     <script>
       (function () {
         // ---------- Utilità ----------
@@ -93,15 +50,18 @@
         function fnv1a(str){let h=0x811c9dc5>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}return h>>>0;}
         function parseDMY(dmy){if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dmy||''))return null;const d=+dmy.slice(0,2),m=+dmy.slice(3,5),y=+dmy.slice(6,10);if(m<1||m>12||d<1||d>31)return null;return {d,m,y};}
         function cfChecksum(cf15){let s=0;for(let i=0;i<15;i++){const c=cf15[i];if(!c)return null;s+=((i%2)===0?ODD[c]:EVEN[c]);}return String.fromCharCode((s%26)+65);}
-        function validateCF(cf,dmy,gender){const out={valid:false,message:""};if(!cf||!/^[A-Z0-9]{16}$/i.test(cf)){out.message="Formato CF non valido (16 caratteri).";return out;}
-          cf=cf.toUpperCase();const expected=cfChecksum(cf.slice(0,15));if(!expected||expected!==cf[15]){out.message="Carattere di controllo CF non valido.";return out;}
-          const p=parseDMY(dmy);if(!p||!gender){out.message="Inserisci data di nascita (dd/mm/yyyy) e sesso.";return out;}
+        function validateCF(cf,dmy,gender){
+          const out={valid:false,message:""};
+          if(!cf||!/^[A-Z0-9]{16}$/i.test(cf)){out.message="Formato CF non valido (16 caratteri).";return out;}
+          cf=cf.toUpperCase();
+          const expected=cfChecksum(cf.slice(0,15)); if(!expected||expected!==cf[15]){out.message="Carattere di controllo CF non valido.";return out;}
+          const p=parseDMY(dmy); if(!p||!gender){out.message="Inserisci data (dd/mm/yyyy) e sesso.";return out;}
           const yy=String(p.y).slice(2,4), cfYY=cf.slice(6,8), cfM=cf[8], cfDD=+cf.slice(9,11);
-          if(cfYY!==yy){out.message="CF non coincide con anno di nascita.";return out;}
-          if(MONTH[cfM]!==p.m){out.message="CF non coincide con mese di nascita.";return out;}
+          if(cfYY!==yy){out.message="CF non coincide con anno.";return out;}
+          const MONTH_MAP = MONTH; if(MONTH_MAP[cfM]!==p.m){out.message="CF non coincide con mese.";return out;}
           const dd=(gender==='F')?(p.d+40):p.d; if(cfDD!==dd){out.message="CF non coincide con giorno/sesso.";return out;}
-          out.valid=true;return out;}
-
+          out.valid=true; return out;
+        }
         function buildHouseCode(p){
           const nZip=norm(p.zip).slice(0,5).padEnd(5,'0');
           const nCity=norm(p.city).slice(0,3).padEnd(3,'X');
@@ -110,64 +70,100 @@
           return `${PREFIX}-${nZip}-${nCity}-${hash5}`;
         }
 
-        // Maschera data: dd/mm/yyyy con slash automatici
-        function attachDateMask(input){if(!input)return;input.placeholder='gg/mm/aaaa';
-          input.addEventListener('input',()=>{let v=input.value.replace(/[^\d]/g,'').slice(0,8);if(v.length>=5)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);else if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);input.value=v;});}
-
-        // Trova input/select dal label (approccio robusto con observer)
-        function findFieldByLabelStarts(text){
+        // Trova input/select dal label
+        function findFieldByLabelIncludes(text){
           const labels=[...document.querySelectorAll('label')];
-          const label=labels.find(l=>l.textContent.trim().startsWith(text));
-          if(!label)return null;
-          const wrap=label.closest('[class*="ControlContainer"]')||label.parentElement;
-          return wrap? (wrap.querySelector('input,select')||null):null;
+          const lab=labels.find(l=>l.textContent&&l.textContent.trim().toLowerCase().includes(text.toLowerCase()));
+          if(!lab) return null;
+          const wrap=lab.closest('[class*="ControlContainer"]')||lab.parentElement;
+          return wrap ? wrap.querySelector('input,select') : null;
         }
 
         // Datalist helpers
-        function attachDatalist(input,id){if(!input)return null;let dl=document.getElementById(id);if(!dl){dl=document.createElement('datalist');dl.id=id;document.body.appendChild(dl);}input.setAttribute('list',id);return dl;}
-        function setOptions(dl,arr){if(!dl)return;dl.innerHTML='';(arr||[]).forEach(v=>{const o=document.createElement('option');o.value=v;dl.appendChild(o);});}
-        function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+        function attachDatalist(input,id){ if(!input) return null; let dl=document.getElementById(id); if(!dl){dl=document.createElement('datalist');dl.id=id;document.body.appendChild(dl);} input.setAttribute('list',id); return dl; }
+        function setOptions(dl,arr){ if(!dl) return; dl.innerHTML=''; (arr||[]).forEach(v=>{const o=document.createElement('option');o.value=v;dl.appendChild(o);}); }
+        function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
 
         // OSM (Nominatim) autocomplete
-        async function osmCitySuggest(q,region){if(!q||q.length<2)return[];const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q)}`;
-          const r=await fetch(url);const js=await r.json();const allowed=new Set(['city','town','village','hamlet','municipality']);const out=[];
-          for(const it of js){const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality;const reg=it.address.state||it.address.region;const typeOk=allowed.has(it.type);
-            if(typeOk&&city){if(region&&reg&&reg.toLowerCase().indexOf(region.toLowerCase())===-1)continue;out.push(city);}}
-          return [...new Set(out)].slice(0,8);}
-        async function osmStreetSuggest(q,city){if(!q||q.length<2||!city)return[];const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q+', '+city+', Italia')}`;
-          const r=await fetch(url);const js=await r.json();const out=[];for(const it of js){const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||'';if(road)out.push(road);}return [...new Set(out)].slice(0,8);}
+        async function osmCitySuggest(q,region){ if(!q||q.length<2) return []; const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q)}`;
+          const r=await fetch(url); const js=await r.json(); const allowed=new Set(['city','town','village','hamlet','municipality']); const out=[];
+          for(const it of js){ const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality; const reg=it.address.state||it.address.region; const typeOk=allowed.has(it.type);
+            if(typeOk&&city){ if(region&&reg&&reg.toLowerCase().indexOf(region.toLowerCase())===-1) continue; out.push(city); } }
+          return [...new Set(out)].slice(0,8);
+        }
+        async function osmStreetSuggest(q,city){ if(!q||q.length<2||!city) return []; const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q+', '+city+', Italia')}`;
+          const r=await fetch(url); const js=await r.json(); const out=[]; for(const it of js){ const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||''; if(road) out.push(road); } return [...new Set(out)].slice(0,8); }
 
-        async function loadExisting(){try{const r=await fetch('/houses.json',{cache:'no-store'});return await r.json();}catch(e){return{items:[]};}}
+        async function loadExisting(){ try{ const r=await fetch('/houses.json',{cache:'no-store'}); return await r.json(); } catch(e){ return { items:[] }; } }
 
-        async function setupUI(){
-          // Maschera data
-          attachDateMask(findFieldByLabelStarts('Proprietario - Data di nascita'));
+        // Maschera data dd/mm/yyyy con slash automatici
+        function attachBirthMask(){
+          const el = findFieldByLabelIncludes('Data di nascita');
+          if (!el) return;
+          el.placeholder='gg/mm/aaaa';
+          el.addEventListener('input', ()=> {
+            let v=el.value.replace(/[^\d]/g,'').slice(0,8);
+            if (v.length>=5) v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+            else if (v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
+            el.value=v;
+          });
+        }
 
-          // Codice casa: read-only + pulsante copia
-          const codeField=findFieldByLabelStarts('Codice casa');
-          if(codeField){
-            codeField.readOnly=true; codeField.classList.add('bb-readonly');
-            // wrap con bottone copia
-            const wrapper=document.createElement('div');wrapper.className='bb-inline';
-            codeField.parentNode.insertBefore(wrapper, codeField);
-            wrapper.appendChild(codeField);
-            const copyBtn=document.createElement('button');copyBtn.type='button';copyBtn.className='bb-copy';copyBtn.textContent='Copia';
-            copyBtn.onclick=()=>{codeField.select();document.execCommand('copy');copyBtn.textContent='Copiato!';setTimeout(()=>copyBtn.textContent='Copia',1200);};
-            wrapper.appendChild(copyBtn);
-          }
+        // Blocca TUTTI i campi "Codice casa" (anche quelli aggiunti dopo)
+        function lockAllCodeFields(){
+          const labels=[...document.querySelectorAll('label')];
+          labels.forEach(lab=>{
+            if(lab.textContent && lab.textContent.trim().toLowerCase().includes('codice casa')){
+              const wrap=lab.closest('[class*="ControlContainer"]')||lab.parentElement;
+              if(!wrap) return;
+              const input=wrap.querySelector('input');
+              if(!input) return;
 
-          // Autocomplete città/vie/civico
-          const regionSel = findFieldByLabelStarts('Regione');   // è un <select>
-          const cityInput = findFieldByLabelStarts('Città');
-          const streetInp = findFieldByLabelStarts('Via');
-          const numInput  = findFieldByLabelStarts('Civico');
+              // già processato
+              if(input.dataset.bbLocked==='1') return;
+              input.dataset.bbLocked='1';
 
-          const dlCities  = attachDatalist(cityInput, 'dl-cities');
-          const dlStreets = attachDatalist(streetInp, 'dl-streets');
-          const dlNums    = attachDatalist(numInput,  'dl-nums');
+              input.readOnly = true;
+              input.setAttribute('aria-readonly','true');
+              input.classList.add('bb-readonly');
 
-          const existing=await loadExisting();
-          const items=Array.isArray(existing.items)?existing.items:[];
+              // Previeni ogni modifica da tastiera/paste
+              input.addEventListener('keydown', (e)=>{
+                const ok=['Tab','Shift','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
+                if(!e.ctrlKey && !e.metaKey && !ok.includes(e.key)) e.preventDefault();
+              });
+              input.addEventListener('beforeinput', (e)=> e.preventDefault());
+              input.addEventListener('paste', (e)=> e.preventDefault());
+
+              // aggiungi bottone Copia se non presente
+              if(!wrap.querySelector('.bb-copy')){
+                const inline=document.createElement('div'); inline.className='bb-inline';
+                input.parentNode.insertBefore(inline,input);
+                inline.appendChild(input);
+                const btn=document.createElement('button'); btn.type='button'; btn.className='bb-copy'; btn.textContent='Copia';
+                btn.onclick=()=>{ input.select(); document.execCommand('copy'); btn.textContent='Copiato!'; setTimeout(()=>btn.textContent='Copia',1200); };
+                inline.appendChild(btn);
+              }
+            }
+          });
+        }
+
+        // Autocomplete UI
+        async function setupAutocomplete(){
+          attachBirthMask();
+          lockAllCodeFields();
+
+          const regionSel = findFieldByLabelIncludes('Regione');   // select
+          const cityInput = findFieldByLabelIncludes('Città');
+          const streetInp = findFieldByLabelIncludes('Via');
+          const numInput  = findFieldByLabelIncludes('Civico');
+
+          const dlCities  = attachDatalist(cityInput,'dl-cities');
+          const dlStreets = attachDatalist(streetInp,'dl-streets');
+          const dlNums    = attachDatalist(numInput,'dl-nums');
+
+          const existing = await loadExisting();
+          const items = Array.isArray(existing.items) ? existing.items : [];
 
           function refreshNumbers(){
             const city=(cityInput?.value||'').trim();
@@ -191,29 +187,29 @@
             setOptions(dlStreets, merged); refreshNumbers();
           }, 450);
 
-          regionSel && regionSel.addEventListener('change', ()=>{suggestCities(); suggestStreets();});
-          cityInput && cityInput.addEventListener('input', ()=>{suggestCities(); suggestStreets();});
+          regionSel && regionSel.addEventListener('change', ()=>{ suggestCities(); suggestStreets(); });
+          cityInput && cityInput.addEventListener('input', ()=>{ suggestCities(); suggestStreets(); });
           streetInp && streetInp.addEventListener('input', suggestStreets);
           numInput && numInput.addEventListener('focus', refreshNumbers);
 
-          // Primo popolamento
           suggestCities(); suggestStreets(); refreshNumbers();
         }
 
-        // Genera codice e blocca duplicati CF+indirizzo
+        // Generazione codice + regole di blocco
         CMS.registerEventListener({
           name:'preSave',
           handler:({entry,collection})=>{
-            if(!collection||collection.get('name')!=='houses')return;
-            let data=entry.get('data'); let items=data&&data.get&&data.get('items'); if(!items||!items.forEach)return;
+            if(!collection||collection.get('name')!=='houses') return;
+            let data=entry.get('data');
+            let items=data && data.get && data.get('items');
+            if(!items || !items.forEach) return;
 
-            // set codici già presenti
-            const existingCodes=new Set(); items.forEach(it=>{const c=it?.get?.('code'); if(c)existingCodes.add(String(c).toUpperCase());});
+            // mappa per evitare duplicati di codice
+            const existingCodes=new Set();
+            items.forEach(it=>{ const c=it?.get?.('code'); if(c) existingCodes.add(String(c).toUpperCase()); });
 
             items = items.map(it=>{
-              // se già presente, non toccare
-              if(it.get('code')) return it;
-
+              // crea/forza il codice in base ai dati (sovrascrive eventuale testo digitato)
               const payload={
                 region: it.get('region'),
                 city:   it.get('city'),
@@ -226,19 +222,22 @@
                 owner_gender: it.get('owner_gender')
               };
 
+              // Se i dati base mancano, lascia il code vuoto (verrà bloccato in publish)
               const mandatory=['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
-              for(const k of mandatory){ if(!payload[k]) return it; }
+              for(const k of mandatory){ if(!payload[k]) return it.set('code', it.get('code')||''); }
 
-              const cfCheck=validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
-              if(!cfCheck.valid){ alert("Errore Codice Fiscale: "+cfCheck.message); return it; }
+              // CF valido?
+              const cfCheck = validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
+              if(!cfCheck.valid){ return it.set('code', ''); } // sarà bloccato in prePublish
 
-              let code=buildHouseCode(payload);
-              if(existingCodes.has(code)){ let i=2; while(existingCodes.has(`${code}-${i}`)&&i<99)i++; code=`${code}-${i}`; }
+              // genera
+              let code = buildHouseCode(payload);
+              if(existingCodes.has(code)){ let i=2; while(existingCodes.has(`${code}-${i}`)&&i<99) i++; code=`${code}-${i}`; }
               existingCodes.add(code);
               return it.set('code', code);
             });
 
-            data=data.set('items',items);
+            data = data.set('items', items);
             return { entry: entry.set('data', data) };
           }
         });
@@ -246,26 +245,58 @@
         CMS.registerEventListener({
           name:'prePublish',
           handler:({entry,collection})=>{
-            if(!collection||collection.get('name')!=='houses')return;
-            const items=entry.get('data')?.get?.('items')||[];
+            if(!collection||collection.get('name')!=='houses') return;
+            const items = entry.get('data')?.get?.('items') || [];
 
-            // 1) tutti devono avere code
-            for(let i=0;i<items.size;i++){ const it=items.get(i); if(!it?.get?.('code')){ alert("Impossibile pubblicare: completa i dati e un CF valido (voce n° "+(i+1)+")."); throw new Error("code mancante"); } }
+            // 1) tutti devono avere codice valido rigenerato dai dati
+            for(let i=0;i<items.size;i++){
+              const it=items.get(i);
+              const payload={
+                region: it.get('region'),
+                city:   it.get('city'),
+                province: it.get('province'),
+                zip:    it.get('zip'),
+                street: it.get('street'),
+                number: it.get('number'),
+                owner_cf: norm(it.get('owner_cf')),
+                owner_birth: it.get('owner_birth'),
+                owner_gender: it.get('owner_gender')
+              };
 
-            // 2) blocca duplicati: stesso owner_cf + stesso indirizzo (via+civico+CAP+città+regione)
+              // check campi base
+              const mandatory=['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
+              for(const k of mandatory){ if(!payload[k]){ alert("Dati incompleti alla riga "+(i+1)); throw new Error("campi mancanti"); } }
+
+              // check CF
+              const cfCheck=validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
+              if(!cfCheck.valid){ alert("Errore CF alla riga "+(i+1)+": "+cfCheck.message); throw new Error("CF non valido"); }
+
+              // rigenera codice e confronta (se l’utente provasse a manipolarlo)
+              const expected = buildHouseCode(payload);
+              const code     = String(it.get('code')||'');
+              if(!code){ alert("Codice casa mancante alla riga "+(i+1)); throw new Error("code mancante"); }
+              if(code.split('-')[0]!==PREFIX || code.length<expected.length){
+                alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido");
+              }
+            }
+
+            // 2) blocca duplicati per stesso CF + stesso indirizzo
             const seen=new Map();
-            function addrKey(it){return [norm(it.get('owner_cf')),norm(it.get('street')),norm(it.get('number')),norm(it.get('zip')),norm(it.get('city')),norm(it.get('region'))].join('|');}
+            function addrKey(it){ return [norm(it.get('owner_cf')),norm(it.get('street')),norm(it.get('number')),norm(it.get('zip')),norm(it.get('city')),norm(it.get('region'))].join('|'); }
             for(let i=0;i<items.size;i++){
               const it=items.get(i); const key=addrKey(it);
-              if(seen.has(key)){ const j=seen.get(key); alert(`Duplicato trovato: stessa casa per lo stesso CF (righe ${j+1} e ${i+1}). Correggi o rimuovi una delle due.`); throw new Error("duplicato CF+indirizzo"); }
+              if(seen.has(key)){ const j=seen.get(key); alert(`Duplicato: stessa casa per lo stesso CF (righe ${j+1} e ${i+1}).`); throw new Error("duplicato CF+indirizzo"); }
               seen.set(key,i);
             }
           }
         });
 
-        // Avvio UI con observer (Decap monta i form in asincrono)
-        const obs=new MutationObserver(()=>{const code=findFieldByLabelStarts('Codice casa'); if(code){ obs.disconnect(); setupUI(); }});
-        obs.observe(document.body,{childList:true,subtree:true});
+        // Observer continuo: ogni volta che appaiono campi nuovi, applichiamo maschera/lock
+        const obs = new MutationObserver(()=>{ lockAllCodeFields(); attachBirthMask(); });
+        obs.observe(document.body, { childList:true, subtree:true });
+
+        // Primo setup
+        document.addEventListener('DOMContentLoaded', ()=>{ lockAllCodeFields(); attachBirthMask(); });
       })();
     </script>
   </body>
