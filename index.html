@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin — B&B Clean</title>
     <link rel="icon" type="image/png" href="../favicon.png">
+    <style>
+      /* stile per campo "Codice casa" in sola lettura */
+      .bb-readonly { background:#f6f7f9; color:#555; pointer-events:none; }
+      .bb-inline { display:inline-flex; gap:.5rem; align-items:center; width:100%; }
+      .bb-copy { padding:.35rem .6rem; border:1px solid #ccc; border-radius:.4rem; background:#fff; cursor:pointer; }
+    </style>
   </head>
   <body>
     <!-- Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 
-    <!-- Netlify Identity widget (login/signup) -->
+    <!-- Netlify Identity -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
@@ -24,298 +30,44 @@
         window.netlifyIdentity.on('signup', () => window.location.reload());
       });
     </script>
-
-    <!-- Pulsante di emergenza per aprire il widget -->
     <button id="idBtn" style="position:fixed;right:16px;bottom:16px;padding:.6rem 1rem;border:1px solid #ddd;border-radius:.6rem;background:#fff;cursor:pointer;z-index:9999;">
       Accedi / Registrati
     </button>
-    <script>
-      document.getElementById('idBtn').addEventListener('click', function(){
-        if (window.netlifyIdentity) window.netlifyIdentity.open();
-      });
-    </script>
+    <script>document.getElementById('idBtn').onclick=()=>window.netlifyIdentity&&window.netlifyIdentity.open();</script>
 
-    <!-- Script principale: OSM autocomplete + CF check + codice casa + data mask -->
     <script>
       (function () {
-        // ---------- Dataset Regioni ----------
-        const REGIONS = [
-          "Abruzzo","Basilicata","Calabria","Campania","Emilia-Romagna","Friuli-Venezia Giulia",
-          "Lazio","Liguria","Lombardia","Marche","Molise","Piemonte","Puglia","Sardegna",
-          "Sicilia","Toscana","Trentino-Alto Adige","Umbria","Valle d'Aosta","Veneto"
-        ];
-
-        // ---------- Utilità varie ----------
-        const PREFIX = 'BB'; // prefisso del codice casa
-
-        function norm(s) {
-          return (s || '').toString()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^A-Za-z0-9]/g, '')
-            .toUpperCase();
-        }
-
-        function fnv1a(str) {
-          let h = 0x811c9dc5 >>> 0;
-          for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h + (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)) >>> 0; }
-          return h >>> 0;
-        }
-
-        // dd/mm/yyyy -> {d,m,y}
-        function parseDMY(dmy) {
-          if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dmy||'')) return null;
-          const d = parseInt(dmy.slice(0,2),10);
-          const m = parseInt(dmy.slice(3,5),10);
-          const y = parseInt(dmy.slice(6,10),10);
-          if (m<1||m>12||d<1||d>31) return null;
-          return { d, m, y };
-        }
-
-        // Maschera input: dd/mm/yyyy con slash automatici
-        function attachDateMask(input) {
-          if (!input) return;
-          input.setAttribute('placeholder','gg/mm/aaaa');
-          input.addEventListener('input', (e) => {
-            let v = input.value.replace(/[^\d]/g, '').slice(0,8);
-            if (v.length >= 5) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
-            else if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
-            input.value = v;
-          });
-        }
-
-        // Costruisce codice casa
-        function buildHouseCode(p) {
-          const nZip  = norm(p.zip).slice(0,5).padEnd(5,'0');
-          const nCity = norm(p.city).slice(0,3).padEnd(3,'X');
-          const base  = [
-            norm(p.country||'IT'), norm(p.region), norm(p.zip), norm(p.city),
-            norm(p.street), norm(p.number), norm(p.owner_cf)
-          ].join('|');
-          const hash5 = fnv1a(base).toString(36).toUpperCase().slice(0,5).padStart(5,'0');
-          return `${PREFIX}-${nZip}-${nCity}-${hash5}`;
-        }
-
-        // ---------- Validazione Codice Fiscale ----------
+        // ---------- Utilità ----------
+        const PREFIX = 'BB';
         const MONTH = { A:1,B:2,C:3,D:4,E:5,H:6,L:7,M:8,P:9,R:10,S:11,T:12 };
         const ODD = { '0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
           A:1,B:0,C:5,D:7,E:9,F:13,G:15,H:17,I:19,J:21,K:2,L:4,M:18,N:20,O:11,P:3,Q:6,R:8,S:12,T:14,U:16,V:10,W:22,X:25,Y:24,Z:23 };
         const EVEN = { '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
           A:0,B:1,C:2,D:3,E:4,F:5,G:6,H:7,I:8,J:9,K:10,L:11,M:12,N:13,O:14,P:15,Q:16,R:17,S:18,T:19,U:20,V:21,W:22,X:23,Y:24,Z:25 };
-        function cfChecksum(cf15){let s=0;for(let i=0;i<15;i++){const c=cf15[i]; if(!c)return null; s+=((i%2)===0?ODD[c]:EVEN[c]);}return String.fromCharCode((s%26)+65);}
-        function validateCF(cf, dmy, gender){
-          const out={valid:false,message:""}; if(!cf||!/^[A-Z0-9]{16}$/i.test(cf)){out.message="Formato CF non valido (16 caratteri).";return out;}
-          cf=cf.toUpperCase(); const expected=cfChecksum(cf.slice(0,15));
-          if(!expected||expected!==cf[15]){out.message="Carattere di controllo CF non valido.";return out;}
-          const parsed = parseDMY(dmy); if(!parsed||!gender){out.message="Inserisci data di nascita (dd/mm/yyyy) e sesso.";return out;}
-          const {d,m,y}=parsed;
-          const yy = String(y).slice(2,4);
-          const cfYY=cf.slice(6,8), cfM=cf[8], cfDD=parseInt(cf.slice(9,11),10);
+
+        function norm(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();}
+        function fnv1a(str){let h=0x811c9dc5>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}return h>>>0;}
+        function parseDMY(dmy){if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dmy||''))return null;const d=+dmy.slice(0,2),m=+dmy.slice(3,5),y=+dmy.slice(6,10);if(m<1||m>12||d<1||d>31)return null;return {d,m,y};}
+        function cfChecksum(cf15){let s=0;for(let i=0;i<15;i++){const c=cf15[i];if(!c)return null;s+=((i%2)===0?ODD[c]:EVEN[c]);}return String.fromCharCode((s%26)+65);}
+        function validateCF(cf,dmy,gender){const out={valid:false,message:""};if(!cf||!/^[A-Z0-9]{16}$/i.test(cf)){out.message="Formato CF non valido (16 caratteri).";return out;}
+          cf=cf.toUpperCase();const expected=cfChecksum(cf.slice(0,15));if(!expected||expected!==cf[15]){out.message="Carattere di controllo CF non valido.";return out;}
+          const p=parseDMY(dmy);if(!p||!gender){out.message="Inserisci data di nascita (dd/mm/yyyy) e sesso.";return out;}
+          const yy=String(p.y).slice(2,4), cfYY=cf.slice(6,8), cfM=cf[8], cfDD=+cf.slice(9,11);
           if(cfYY!==yy){out.message="CF non coincide con anno di nascita.";return out;}
-          if(MONTH[cfM]!==m){out.message="CF non coincide con mese di nascita.";return out;}
-          const dd=(gender==='F')?(d+40):d; if(cfDD!==dd){out.message="CF non coincide con giorno/sesso.";return out;}
-          out.valid=true; return out;
+          if(MONTH[cfM]!==p.m){out.message="CF non coincide con mese di nascita.";return out;}
+          const dd=(gender==='F')?(p.d+40):p.d; if(cfDD!==dd){out.message="CF non coincide con giorno/sesso.";return out;}
+          out.valid=true;return out;}
+
+        function buildHouseCode(p){
+          const nZip=norm(p.zip).slice(0,5).padEnd(5,'0');
+          const nCity=norm(p.city).slice(0,3).padEnd(3,'X');
+          const base=[norm(p.region),norm(p.zip),norm(p.city),norm(p.street),norm(p.number),norm(p.owner_cf)].join('|');
+          const hash5=fnv1a(base).toString(36).toUpperCase().slice(0,5).padStart(5,'0');
+          return `${PREFIX}-${nZip}-${nCity}-${hash5}`;
         }
 
-        // ---------- Helpers per trovare gli input dal label ----------
-        function findInputByLabelStarts(text) {
-          const labels = Array.from(document.querySelectorAll('label'));
-          const label = labels.find(l => l.textContent.trim().startsWith(text));
-          if (!label) return null;
-          const wrap = label.closest('[class*="ControlContainer"]') || label.parentElement;
-          return wrap ? wrap.querySelector('input') : null;
-        }
+        // Maschera data: dd/mm/yyyy con slash automatici
+        function attachDateMask(input){if(!input)return;input.placeholder='gg/mm/aaaa';
+          input.addEventListener('input',()=>{let v=input.value.replace(/[^\d]/g,'').slice(0,8);if(v.length>=5)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);else if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);input.value=v;});}
 
-        // ---------- Autocomplete con OSM (Nominatim) ----------
-        function debounce(fn, ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
-
-        async function osmCitySuggest(q, region){
-          if(!q||q.length<2) return [];
-          const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q)}`;
-          const res = await fetch(url, { headers: { 'Accept':'application/json' }});
-          const json = await res.json();
-          const allowed = new Set(['city','town','village','hamlet','municipality']);
-          const out = [];
-          for (const r of json) {
-            const typeOk = allowed.has(r.type);
-            const city = r.address.city || r.address.town || r.address.village || r.address.hamlet || r.address.municipality;
-            const reg  = r.address.state || r.address.region;
-            if (typeOk && city) {
-              if (region && reg && reg.toLowerCase().indexOf(region.toLowerCase()) === -1) continue;
-              out.push(city);
-            }
-          }
-          return [...new Set(out)].slice(0,8);
-        }
-
-        async function osmStreetSuggest(q, city){
-          if(!q||q.length<2||!city) return [];
-          // Cerco come "street, city, Italia"
-          const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q + ', ' + city + ', Italia')}`;
-          const res = await fetch(url, { headers: { 'Accept':'application/json' }});
-          const json = await res.json();
-          const out = [];
-          for (const r of json) {
-            const road = r.address.road || r.address.pedestrian || r.address.footway || r.address.path || r.address.cycleway || '';
-            if (road) out.push(road);
-          }
-          return [...new Set(out)].slice(0,8);
-        }
-
-        function attachDatalist(input, id) {
-          if (!input) return null;
-          let dl = document.getElementById(id);
-          if (!dl) { dl = document.createElement('datalist'); dl.id = id; document.body.appendChild(dl); }
-          input.setAttribute('list', id);
-          return dl;
-        }
-
-        function setOptions(dl, arr) {
-          if (!dl) return;
-          dl.innerHTML = '';
-          (arr||[]).forEach(v => {
-            const o = document.createElement('option');
-            o.value = v;
-            dl.appendChild(o);
-          });
-        }
-
-        async function loadExisting() {
-          try { const r = await fetch('/houses.json', { cache: 'no-store' }); return await r.json(); }
-          catch(e){ return { items: [] }; }
-        }
-
-        async function setupAutocomplete() {
-          // Regione: elenco fisso con ricerca
-          const regionInput = findInputByLabelStarts('Regione');
-          const dlRegions = attachDatalist(regionInput, 'dl-regions');
-          setOptions(dlRegions, REGIONS);
-
-          // Maschera data nascita
-          const birthInput = findInputByLabelStarts('Proprietario - Data di nascita');
-          attachDateMask(birthInput);
-
-          // Datalist città/vie/civici
-          const cityInput   = findInputByLabelStarts('Città');
-          const streetInput = findInputByLabelStarts('Via');
-          const numInput    = findInputByLabelStarts('Civico');
-
-          const dlCities  = attachDatalist(cityInput, 'dl-cities');
-          const dlStreets = attachDatalist(streetInput, 'dl-streets');
-          const dlNums    = attachDatalist(numInput,  'dl-nums');
-
-          const existing = await loadExisting();
-          const items = Array.isArray(existing.items) ? existing.items : [];
-
-          // numeri civici suggeriti in base alla città già salvata
-          function refreshNumbers() {
-            const city = (cityInput && cityInput.value || '').trim();
-            const nums = [...new Set(items.filter(x => (x.city||'')===city).map(x => (x.number||'').trim()).filter(Boolean))].sort();
-            setOptions(dlNums, nums);
-          }
-
-          // città: OSM + già salvate (merge)
-          const suggestCities = debounce(async () => {
-            const q = (cityInput && cityInput.value || '').trim();
-            const region = (regionInput && regionInput.value || '').trim();
-            const osm = await osmCitySuggest(q, region);
-            const fromData = [...new Set(items.filter(x => !q || x.city.toLowerCase().includes(q.toLowerCase())).map(x => x.city))];
-            const merged = [...new Set([...(osm||[]), ...(fromData||[])])].slice(0,20);
-            setOptions(dlCities, merged);
-            refreshNumbers();
-          }, 450);
-
-          // vie: OSM + già salvate (merge)
-          const suggestStreets = debounce(async () => {
-            const q = (streetInput && streetInput.value || '').trim();
-            const city = (cityInput && cityInput.value || '').trim();
-            const osm = await osmStreetSuggest(q, city);
-            const fromData = [...new Set(items.filter(x =>
-              (!q || (x.street||'').toLowerCase().includes(q.toLowerCase())) && (!city || x.city===city)
-            ).map(x => x.street).filter(Boolean))];
-            const merged = [...new Set([...(osm||[]), ...(fromData||[])])].slice(0,20);
-            setOptions(dlStreets, merged);
-            refreshNumbers();
-          }, 450);
-
-          if (regionInput) regionInput.addEventListener('input', suggestCities);
-          if (cityInput) {
-            cityInput.addEventListener('input', () => { suggestCities(); suggestStreets(); });
-            suggestCities();
-          }
-          if (streetInput) {
-            streetInput.addEventListener('input', suggestStreets);
-          }
-          if (numInput) {
-            numInput.addEventListener('focus', refreshNumbers);
-          }
-        }
-
-        // ---------- Hooks Decap: genera codice e blocca publish se non valido ----------
-        CMS.registerEventListener({
-          name: 'preSave',
-          handler: ({ entry, collection }) => {
-            if (!collection || collection.get('name') !== 'houses') return;
-
-            let data  = entry.get('data');
-            let items = data && data.get && data.get('items');
-            if (!items || !items.forEach) return;
-
-            const existing = new Set();
-            items.forEach(it => { const c = it?.get?.('code'); if (c) existing.add(String(c).toUpperCase()); });
-
-            items = items.map(it => {
-              if (it.get('code')) return it;
-
-              const payload = {
-                country: 'IT',
-                region:  it.get('region'),
-                city:    it.get('city'),
-                province:it.get('province'),
-                zip:     it.get('zip'),
-                street:  it.get('street'),
-                number:  it.get('number'),
-                owner_cf: norm(it.get('owner_cf')),
-                owner_birth: it.get('owner_birth'),
-                owner_gender: it.get('owner_gender'),
-              };
-
-              // controlli minimi
-              const mandatory = ['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
-              for (const k of mandatory) { if (!payload[k]) return it; }
-
-              // valida CF con data dd/mm/yyyy
-              const cfCheck = validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
-              if (!cfCheck.valid) { alert("Errore Codice Fiscale: " + cfCheck.message); return it; }
-
-              // genera codice
-              let code = buildHouseCode(payload);
-              if (existing.has(code)) {
-                let i = 2; while (existing.has(`${code}-${i}`) && i < 99) i++;
-                code = `${code}-${i}`;
-              }
-              existing.add(code);
-              return it.set('code', code);
-            });
-
-            data = data.set('items', items);
-            return { entry: entry.set('data', data) };
-          }
-        });
-
-        CMS.registerEventListener({
-          name: 'prePublish',
-          handler: ({ entry, collection }) => {
-            if (!collection || collection.get('name') !== 'houses') return;
-            const items = entry.get('data')?.get?.('items') || [];
-            let ok = true, idx = -1;
-            items.forEach((it,i)=>{ if(!it?.get?.('code')){ ok=false; idx=i; } });
-            if (!ok) { alert("Impossibile pubblicare: completa i dati (Regione, Città, CAP, Via, Civico) e inserisci un CF valido. Voce n° " + (idx+1)); throw new Error("Validazione Case: code mancante."); }
-          }
-        });
-
-        // Avvia suggerimenti quando l'admin è pronto
-        document.addEventListener('DOMContentLoaded', () => { setTimeout(setupAutocomplete, 500); });
-      })();
-    </script>
-  </body>
-</html>
+        // Trova input/select dal label (approccio robusto con
