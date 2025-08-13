@@ -9,7 +9,7 @@ collections:
   - name: "settings"
     label: "Impostazioni"
     files:
-      - file: "settings.json"   # file in root
+      - file: "settings.json"   # file in root del repo
         label: "Impostazioni sito"
         name: "settings"
         fields:
@@ -17,10 +17,10 @@ collections:
           - { label: "Tariffa partner €/h", name: "partner_hourly", widget: "number", value_type: "float", step: 0.1, default: 14.2 }
           - { label: "Tariffa cliente €/h", name: "client_hourly", widget: "number", value_type: "float", step: 0.1, default: 22 }
 
-    - name: "houses"
+  - name: "houses"
     label: "Case"
     files:
-      - file: "houses.json"   # i file sono in root
+      - file: "houses.json"     # file in root del repo
         label: "Elenco Case"
         name: "houses"
         fields:
@@ -29,25 +29,26 @@ collections:
             widget: "list"
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
-              # Codice casa: nascosto e obbligatorio (lo compila lo script)
+              # Codice casa generato dallo script: nascosto ma obbligatorio
               - { label: "Codice casa", name: "code", widget: "hidden", required: true }
 
-              # Indirizzo (obbligatorio)
-              - { label: "Paese",    name: "country", widget: "string", default: "IT", required: true }
-              - { label: "Città",    name: "city",    widget: "string", required: true }
+              # Indirizzo
+              - { label: "Paese", name: "country", widget: "string", default: "IT", required: true }
+              - { label: "Città", name: "city", widget: "string", required: true }
               - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true, hint: "Es. NU, MI, RM..." }
-              - { label: "CAP",      name: "zip",     widget: "string", required: true }
-              - { label: "Via",      name: "street",  widget: "string", required: true }
-              - { label: "Civico",   name: "number",  widget: "string", required: true }
+              - { label: "CAP", name: "zip", widget: "string", required: true }
+              - { label: "Via", name: "street", widget: "string", required: true }
+              - { label: "Civico", name: "number", widget: "string", required: true }
 
-              # Proprietario (obbligatorio)
-              - { label: "Proprietario - Nome",    name: "owner_first", widget: "string", required: true }
-              - { label: "Proprietario - Cognome", name: "owner_last",  widget: "string", required: true }
+              # Proprietario
+              - { label: "Proprietario - Nome", name: "owner_first", widget: "string", required: true }
+              - { label: "Proprietario - Cognome", name: "owner_last", widget: "string", required: true }
               - { label: "Proprietario - Data di nascita", name: "owner_birth", widget: "date", required: true }
               - { label: "Proprietario - Sesso", name: "owner_gender", widget: "select", options: ["M","F"], required: true }
               - { label: "Proprietario - Città di nascita", name: "owner_birth_city", widget: "string", required: true }
               - { label: "Proprietario - Provincia di nascita (2 lettere)", name: "owner_birth_prov", widget: "string", required: true }
               - { label: "Proprietario - Codice fiscale", name: "owner_cf", widget: "string", required: true, hint: "16 caratteri, es. RSSMRA80A01H501U" }
 
-              # Dato operativo
+              # Operativo
               - { label: "Mediana ore (M)", name: "median_hours", widget: "number", value_type: "float", step: 0.25, default: 1 }
+
