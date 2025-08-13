@@ -11,7 +11,7 @@
   <header class="container nav">
     <div class="logo">B&amp;B <span>Clean</span></div>
     <nav>
-      <a href="/index.html">Home</a>
+      <a href="/index.html" class="active">Home</a>
       <a href="/prenota.html" class="btn">Prenota</a>
       <a href="/partner.html">Diventa partner</a>
     </nav>
@@ -27,24 +27,17 @@
   </section>
 
   <section class="features container">
-    <div class="card">
-      <h3>1. Inserisci l'indirizzo</h3>
-      <p>Regione, città, via e civico: troviamo l'operatore più vicino.</p>
-    </div>
-    <div class="card">
-      <h3>2. Scegli giorno e durata</h3>
-      <p>Decidi quando e per quanto tempo. Confermi in un attimo.</p>
-    </div>
-    <div class="card">
-      <h3>3. Paghi online</h3>
-      <p>Transazione sicura. Ricevi conferma e promemoria.</p>
-    </div>
+    <div class="card"><h3>1. Inserisci indirizzo e m²</h3><p>Calcoliamo durata consigliata e il partner più vicino.</p></div>
+    <div class="card"><h3>2. Stima trasparente</h3><p>Totale = tariffa × ore + rimborso km. Acconto 10% ora.</p></div>
+    <div class="card"><h3>3. Paghi online</h3><p>Checkout Stripe sicuro per l'acconto. Il resto al partner.</p></div>
   </section>
 
   <footer class="container footer">
-    <div>&copy; B&B Clean {"{"} new Date().getFullYear() {"}"} — Tutti i diritti riservati.</div>
-    <div class="small">Sito demo — Forms gestiti da Netlify.</div>
+    <div>&copy; B&B Clean {year}</div>
+    <div class="small">MVP demo — Netlify Forms + Functions</div>
   </footer>
-  <script src="/assets/js/main.js"></script>
+  <script>
+    document.querySelector('footer').innerHTML = document.querySelector('footer').innerHTML.replace('{year}', new Date().getFullYear());
+  </script>
 </body>
 </html>

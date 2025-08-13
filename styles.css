@@ -30,4 +30,6 @@ input::placeholder,textarea::placeholder{color:#8aa0b7}
 .chk{font-weight:400;flex-direction:row;align-items:center;gap:10px}
 .actions{margin-top:12px}
 .thanks{padding:80px 16px;text-align:center}
+.est-box{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px 16px;margin:12px 0 18px}
+.muted{color:#93a0b4} .small{font-size:13px}
 @media (max-width:480px){.hero h1{font-size:32px}}

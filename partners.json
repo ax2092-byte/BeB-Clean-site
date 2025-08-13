@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "p1",
+      "name": "Mario Rossi",
+      "email": "mario.rossi@example.com",
+      "phone": "+39 333 1234567",
+      "address": {
+        "street": "Via dei Rosmarini",
+        "number": "17",
+        "zip": "08022",
+        "city": "Dorgali",
+        "region": "Sardegna"
+      },
+      "lat": null,
+      "lon": null,
+      "radius_km": 25,
+      "rate_eur_h": 12,
+      "active": true
+    }
+  ]
+}

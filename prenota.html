@@ -19,7 +19,16 @@
 
   <main class="container form-wrap">
     <h1>Prenota una pulizia</h1>
-    <form name="prenota" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html">
+    <p class="lead">Inserisci i dettagli. Ti mostriamo una stima in tempo reale.</p>
+
+    <div class="est-box" id="estBox">
+      <div><strong>Stima totale:</strong> <span id="stimaTot">—</span></div>
+      <div class="muted">Acconto (10% del compenso partner): <span id="stimaAcconto">—</span></div>
+      <div class="muted">Rimborso distanza (0,25 €/km): <span id="stimaRimb">—</span></div>
+      <div class="muted small" id="stimaNote">Compilando indirizzo e m² calcoliamo durata consigliata e distanza su strada.</div>
+    </div>
+
+    <form name="prenota" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html" id="bookForm">
       <input type="hidden" name="form-name" value="prenota">
       <p class="hidden">
         <label>Non compilare: <input name="bot-field"></label>
@@ -36,8 +45,15 @@
           <input type="tel" name="telefono" required>
         </label>
 
+        <label>m² dell'immobile
+          <input type="number" name="mq" id="mq" required min="10" max="1000" step="1" placeholder="Es. 70">
+        </label>
+        <label>Durata (ore) — consigliata
+          <input type="number" name="durata" id="durata" required min="1" max="10" step="0.5">
+        </label>
+
         <label>Regione
-          <select name="regione" required>
+          <select name="regione" id="regione" required>
             <option value="">Seleziona…</option>
             <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
             <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
@@ -47,13 +63,13 @@
           </select>
         </label>
         <label>Città
-          <input type="text" name="citta" required>
+          <input type="text" name="citta" id="citta" required>
         </label>
         <label>CAP
-          <input type="text" name="cap" required pattern="\d{5}" title="5 cifre">
+          <input type="text" name="cap" id="cap" required pattern="\d{5}" title="5 cifre">
         </label>
         <label>Via e numero civico
-          <input type="text" name="indirizzo" required>
+          <input type="text" name="indirizzo" id="indirizzo" required placeholder="Es. Via Roma 10">
         </label>
 
         <label>Data
@@ -62,8 +78,8 @@
         <label>Ora
           <input type="time" name="ora" required>
         </label>
-        <label>Durata (ore)
-          <input type="number" name="durata" required min="1" max="8" step="1">
+        <label class="full chk">
+          <input type="checkbox" id="annunci" name="annunci"> Richiedi offerte dai partner (entro 12h)
         </label>
 
         <label class="full">Note aggiuntive
@@ -72,7 +88,7 @@
       </div>
 
       <div class="actions">
-        <button type="submit" class="btn primary">Invia richiesta</button>
+        <button type="submit" class="btn primary" id="payBtn">Conferma & paga acconto</button>
       </div>
     </form>
   </main>
@@ -80,5 +96,6 @@
   <footer class="container footer">
     <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
   </footer>
+  <script src="/assets/js/prenota.js"></script>
 </body>
 </html>
