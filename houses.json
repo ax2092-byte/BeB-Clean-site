@@ -1,11 +1,19 @@
 {
   "items": [
     {
-      "median_hours": 2,
-      "address": "Via dei Rosmarini",
-      "city": "Dorgali",
       "zip": "08022",
-      "code": "00123456789"
+      "owner_last": "Spanu",
+      "street": "Via Veneto ",
+      "owner_first": "Alessandro",
+      "number": "8",
+      "city": "Dorgali",
+      "owner_gender": "M",
+      "owner_cf": "SPNLSN92L20F979L",
+      "province": "NU",
+      "owner_birth_prov": "NU",
+      "country": "IT",
+      "owner_birth_city": "Nuoro",
+      "median_hours": 1
     }
   ]
 }
