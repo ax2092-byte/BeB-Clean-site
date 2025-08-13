@@ -29,10 +29,10 @@ collections:
             widget: list
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
-              # Codice casa: visibile ma in sola lettura (lo script lo compila)
+              # Codice casa: visibile ma non modificabile; NON richiesto nel form (verificato in publish)
               - { label: "Codice casa", name: "code", widget: "string", required: false, hint: "Generato automaticamente; non modificabile" }
 
-              # Indirizzo (Regione = select; gli altri campi hanno ricerca/suggerimenti)
+              # Indirizzo
               - { label: "Regione", name: "region", widget: "select", options:
                   ["Abruzzo","Basilicata","Calabria","Campania","Emilia-Romagna","Friuli-Venezia Giulia",
                    "Lazio","Liguria","Lombardia","Marche","Molise","Piemonte","Puglia","Sardegna",
