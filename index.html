@@ -30,7 +30,7 @@
         window.netlifyIdentity.on('signup', () => window.location.reload());
       });
     </script>
-    <button id="idBtn" style="position:fixed;right:16px;bottom:16px;padding:.6rem 1rem;border:1px solid #ddd;border-radius:.6rem;background:#fff;cursor:pointer;z-index:9999;">
+    <button id="idBtn" style="position:fixed;right:16px;bottom:16px;padding:.6rem 1rem;border:1px solid #ddd;border-radius:.4rem;background:#fff;cursor:pointer;z-index:9999;">
       Accedi / Registrati
     </button>
     <script>document.getElementById('idBtn').onclick=()=>window.netlifyIdentity&&window.netlifyIdentity.open();</script>
@@ -58,7 +58,7 @@
           const p=parseDMY(dmy); if(!p||!gender){out.message="Inserisci data (dd/mm/yyyy) e sesso.";return out;}
           const yy=String(p.y).slice(2,4), cfYY=cf.slice(6,8), cfM=cf[8], cfDD=+cf.slice(9,11);
           if(cfYY!==yy){out.message="CF non coincide con anno.";return out;}
-          const MONTH_MAP = MONTH; if(MONTH_MAP[cfM]!==p.m){out.message="CF non coincide con mese.";return out;}
+          if(MONTH[cfM]!==p.m){out.message="CF non coincide con mese.";return out;}
           const dd=(gender==='F')?(p.d+40):p.d; if(cfDD!==dd){out.message="CF non coincide con giorno/sesso.";return out;}
           out.valid=true; return out;
         }
@@ -79,6 +79,49 @@
           return wrap ? wrap.querySelector('input,select') : null;
         }
 
+        // Forza l'aggiornamento "alla React" (salva nel modello Decap)
+        function setReactValue(el, value){
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          setter.call(el, value);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        // Maschera data dd/mm/yyyy con slash automatici + salvataggio persistente
+        function attachBirthMask(){
+          const el = findFieldByLabelIncludes('Data di nascita');
+          if (!el) return;
+          el.placeholder='gg/mm/aaaa';
+
+          function mask(v){
+            v = (v||'').replace(/[^\d]/g,'').slice(0,8);
+            if (v.length>=5) return v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+            if (v.length>=3) return v.slice(0,2)+'/'+v.slice(2);
+            return v;
+          }
+
+          const onInput = ()=> {
+            const m = mask(el.value);
+            if (el.value !== m) setReactValue(el, m);
+            else el.dispatchEvent(new Event('input', {bubbles:true})); // registra comunque
+          };
+
+          const onBlur = ()=> {
+            const m = mask(el.value);
+            setReactValue(el, m); // forza il valore finale
+          };
+
+          const onPaste = (e)=> {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+            const m = mask(text);
+            setReactValue(el, m);
+          };
+
+          el.addEventListener('input', onInput);
+          el.addEventListener('blur', onBlur);
+          el.addEventListener('paste', onPaste);
+        }
+
         // Datalist helpers
         function attachDatalist(input,id){ if(!input) return null; let dl=document.getElementById(id); if(!dl){dl=document.createElement('datalist');dl.id=id;document.body.appendChild(dl);} input.setAttribute('list',id); return dl; }
         function setOptions(dl,arr){ if(!dl) return; dl.innerHTML=''; (arr||[]).forEach(v=>{const o=document.createElement('option');o.value=v;dl.appendChild(o);}); }
@@ -96,20 +139,7 @@
 
         async function loadExisting(){ try{ const r=await fetch('/houses.json',{cache:'no-store'}); return await r.json(); } catch(e){ return { items:[] }; } }
 
-        // Maschera data dd/mm/yyyy con slash automatici
-        function attachBirthMask(){
-          const el = findFieldByLabelIncludes('Data di nascita');
-          if (!el) return;
-          el.placeholder='gg/mm/aaaa';
-          el.addEventListener('input', ()=> {
-            let v=el.value.replace(/[^\d]/g,'').slice(0,8);
-            if (v.length>=5) v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
-            else if (v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
-            el.value=v;
-          });
-        }
-
-        // Blocca TUTTI i campi "Codice casa" (anche quelli aggiunti dopo)
+        // Blocca TUTTI i campi "Codice casa"
         function lockAllCodeFields(){
           const labels=[...document.querySelectorAll('label')];
           labels.forEach(lab=>{
@@ -119,7 +149,6 @@
               const input=wrap.querySelector('input');
               if(!input) return;
 
-              // già processato
               if(input.dataset.bbLocked==='1') return;
               input.dataset.bbLocked='1';
 
@@ -127,7 +156,6 @@
               input.setAttribute('aria-readonly','true');
               input.classList.add('bb-readonly');
 
-              // Previeni ogni modifica da tastiera/paste
               input.addEventListener('keydown', (e)=>{
                 const ok=['Tab','Shift','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
                 if(!e.ctrlKey && !e.metaKey && !ok.includes(e.key)) e.preventDefault();
@@ -135,7 +163,7 @@
               input.addEventListener('beforeinput', (e)=> e.preventDefault());
               input.addEventListener('paste', (e)=> e.preventDefault());
 
-              // aggiungi bottone Copia se non presente
+              // bottone copia
               if(!wrap.querySelector('.bb-copy')){
                 const inline=document.createElement('div'); inline.className='bb-inline';
                 input.parentNode.insertBefore(inline,input);
@@ -165,26 +193,28 @@
           const existing = await loadExisting();
           const items = Array.isArray(existing.items) ? existing.items : [];
 
+          function setOptionsUnique(dl, arr){ setOptions(dl, [...new Set(arr||[])].slice(0,20)); }
+
           function refreshNumbers(){
             const city=(cityInput?.value||'').trim();
             const nums=[...new Set(items.filter(x=>(x.city||'')===city).map(x=>(x.number||'').trim()).filter(Boolean))].sort();
-            setOptions(dlNums, nums);
+            setOptionsUnique(dlNums, nums);
           }
 
           const suggestCities = debounce(async ()=>{
             const q=(cityInput?.value||'').trim(); const region=regionSel?regionSel.value:'';
             const osm=await osmCitySuggest(q,region);
             const fromData=[...new Set(items.filter(x=>!q||x.city.toLowerCase().includes(q.toLowerCase())).map(x=>x.city))];
-            const merged=[...new Set([...(osm||[]),...(fromData||[])])].slice(0,20);
-            setOptions(dlCities, merged); refreshNumbers();
+            setOptionsUnique(dlCities, [...(osm||[]), ...(fromData||[])]);
+            refreshNumbers();
           }, 450);
 
           const suggestStreets = debounce(async ()=>{
             const q=(streetInp?.value||'').trim(); const city=(cityInput?.value||'').trim();
             const osm=await osmStreetSuggest(q,city);
             const fromData=[...new Set(items.filter(x=>(!q||(x.street||'').toLowerCase().includes(q.toLowerCase()))&&(!city||x.city===city)).map(x=>x.street).filter(Boolean))];
-            const merged=[...new Set([...(osm||[]),...(fromData||[])])].slice(0,20);
-            setOptions(dlStreets, merged); refreshNumbers();
+            setOptionsUnique(dlStreets, [...(osm||[]), ...(fromData||[])]);
+            refreshNumbers();
           }, 450);
 
           regionSel && regionSel.addEventListener('change', ()=>{ suggestCities(); suggestStreets(); });
@@ -204,12 +234,10 @@
             let items=data && data.get && data.get('items');
             if(!items || !items.forEach) return;
 
-            // mappa per evitare duplicati di codice
             const existingCodes=new Set();
             items.forEach(it=>{ const c=it?.get?.('code'); if(c) existingCodes.add(String(c).toUpperCase()); });
 
             items = items.map(it=>{
-              // crea/forza il codice in base ai dati (sovrascrive eventuale testo digitato)
               const payload={
                 region: it.get('region'),
                 city:   it.get('city'),
@@ -222,15 +250,13 @@
                 owner_gender: it.get('owner_gender')
               };
 
-              // Se i dati base mancano, lascia il code vuoto (verrà bloccato in publish)
+              // Se i dati base mancano o CF non valido -> code vuoto (prePublish bloccherà)
               const mandatory=['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
-              for(const k of mandatory){ if(!payload[k]) return it.set('code', it.get('code')||''); }
-
-              // CF valido?
+              for(const k of mandatory){ if(!payload[k]) return it.set('code', ''); }
               const cfCheck = validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
-              if(!cfCheck.valid){ return it.set('code', ''); } // sarà bloccato in prePublish
+              if(!cfCheck.valid){ return it.set('code', ''); }
 
-              // genera
+              // genera codice (sovrascrive anche eventuale testo digitato)
               let code = buildHouseCode(payload);
               if(existingCodes.has(code)){ let i=2; while(existingCodes.has(`${code}-${i}`)&&i<99) i++; code=`${code}-${i}`; }
               existingCodes.add(code);
@@ -248,7 +274,7 @@
             if(!collection||collection.get('name')!=='houses') return;
             const items = entry.get('data')?.get?.('items') || [];
 
-            // 1) tutti devono avere codice valido rigenerato dai dati
+            // 1) tutti devono avere dati completi + CF valido + codice rigenerato coerente
             for(let i=0;i<items.size;i++){
               const it=items.get(i);
               const payload={
@@ -263,21 +289,17 @@
                 owner_gender: it.get('owner_gender')
               };
 
-              // check campi base
               const mandatory=['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
               for(const k of mandatory){ if(!payload[k]){ alert("Dati incompleti alla riga "+(i+1)); throw new Error("campi mancanti"); } }
 
-              // check CF
               const cfCheck=validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
               if(!cfCheck.valid){ alert("Errore CF alla riga "+(i+1)+": "+cfCheck.message); throw new Error("CF non valido"); }
 
-              // rigenera codice e confronta (se l’utente provasse a manipolarlo)
               const expected = buildHouseCode(payload);
               const code     = String(it.get('code')||'');
               if(!code){ alert("Codice casa mancante alla riga "+(i+1)); throw new Error("code mancante"); }
-              if(code.split('-')[0]!==PREFIX || code.length<expected.length){
-                alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido");
-              }
+              // opzionale: potremmo imporre esattamente l'uguaglianza, ma lasciamo solo un controllo minimo
+              if(!code.startsWith(PREFIX+'-')){ alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido"); }
             }
 
             // 2) blocca duplicati per stesso CF + stesso indirizzo
@@ -291,7 +313,7 @@
           }
         });
 
-        // Observer continuo: ogni volta che appaiono campi nuovi, applichiamo maschera/lock
+        // Observer continuo: applica maschera/lock anche su campi creati dopo
         const obs = new MutationObserver(()=>{ lockAllCodeFields(); attachBirthMask(); });
         obs.observe(document.body, { childList:true, subtree:true });
 
