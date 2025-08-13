@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prenota — B&B Clean</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <header class="container nav">
+    <div class="logo">B&amp;B <span>Clean</span></div>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/prenota.html" class="active">Prenota</a>
+      <a href="/partner.html">Diventa partner</a>
+    </nav>
+  </header>
+
+  <main class="container form-wrap">
+    <h1>Prenota una pulizia</h1>
+    <form name="prenota" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html">
+      <input type="hidden" name="form-name" value="prenota">
+      <p class="hidden">
+        <label>Non compilare: <input name="bot-field"></label>
+      </p>
+
+      <div class="grid">
+        <label>Nome e Cognome
+          <input type="text" name="nome" required>
+        </label>
+        <label>Email
+          <input type="email" name="email" required>
+        </label>
+        <label>Telefono
+          <input type="tel" name="telefono" required>
+        </label>
+
+        <label>Regione
+          <select name="regione" required>
+            <option value="">Seleziona…</option>
+            <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
+            <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
+            <option>Lombardia</option><option>Marche</option><option>Molise</option><option>Piemonte</option>
+            <option>Puglia</option><option>Sardegna</option><option>Sicilia</option><option>Toscana</option>
+            <option>Trentino-Alto Adige</option><option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
+          </select>
+        </label>
+        <label>Città
+          <input type="text" name="citta" required>
+        </label>
+        <label>CAP
+          <input type="text" name="cap" required pattern="\d{5}" title="5 cifre">
+        </label>
+        <label>Via e numero civico
+          <input type="text" name="indirizzo" required>
+        </label>
+
+        <label>Data
+          <input type="date" name="data" required>
+        </label>
+        <label>Ora
+          <input type="time" name="ora" required>
+        </label>
+        <label>Durata (ore)
+          <input type="number" name="durata" required min="1" max="8" step="1">
+        </label>
+
+        <label class="full">Note aggiuntive
+          <textarea name="note" rows="4" placeholder="Es. presenza animali, richiesta prodotti specifici…"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn primary">Invia richiesta</button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="container footer">
+    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
+  </footer>
+</body>
+</html>

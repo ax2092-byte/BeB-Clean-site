@@ -1,0 +1,33 @@
+
+:root { --bg:#0b1220; --card:#0f172a; --muted:#64748b; --text:#e2e8f0; --brand:#22c55e; --brand-2:#16a34a; }
+*{box-sizing:border-box} body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);background:linear-gradient(180deg,#0b1220 0%,#0b1220 60%,#0d1424 100%);}
+.container{max-width:1040px;margin:0 auto;padding:0 16px}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.logo{font-weight:800;letter-spacing:.5px} .logo span{color:var(--brand)}
+.nav a{color:var(--text);text-decoration:none;margin-left:16px;opacity:.9}
+.nav a.active{border-bottom:2px solid var(--brand);padding-bottom:4px}
+.btn{display:inline-block;padding:10px 16px;border-radius:10px;border:1px solid #263248;text-decoration:none;color:var(--text);}
+.btn.primary{background:var(--brand);color:#05121f;border-color:transparent;font-weight:700}
+.btn.primary:hover{background:var(--brand-2)}
+.btn.ghost{background:transparent}
+.hero{padding:64px 0 24px;text-align:center}
+.hero h1{font-size:40px;line-height:1.1;margin:0 0 12px}
+.hero p{color:var(--muted);margin:0 0 24px}
+.cta{display:flex;gap:12px;justify-content:center}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:32px 0 48px}
+.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px}
+.footer{padding:28px 0 40px;border-top:1px solid rgba(255,255,255,0.06);color:#93a0b4;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.small{font-size:13px}
+.form-wrap{padding:32px 0 40px}
+.form-wrap h1{margin:0 0 12px}
+.form-wrap .lead{color:var(--muted);margin:0 0 18px}
+form .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:600}
+input,select,textarea{background:#0b1526;border:1px solid #1f2a44;border-radius:10px;padding:12px 12px;color:var(--text);}
+input::placeholder,textarea::placeholder{color:#8aa0b7}
+.full{grid-column:1/-1}
+.hidden{display:none}
+.chk{font-weight:400;flex-direction:row;align-items:center;gap:10px}
+.actions{margin-top:12px}
+.thanks{padding:80px 16px;text-align:center}
+@media (max-width:480px){.hero h1{font-size:32px}}

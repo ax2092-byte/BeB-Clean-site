@@ -1,209 +1,50 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin — B&B Clean</title>
-  <link rel="icon" type="image/png" href="../favicon.png">
-  <style>
-    .bb-readonly { background:#f6f7f9; color:#555; pointer-events:none; }
-    .bb-uppercase { text-transform: uppercase; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B&B Clean — Pulizie facili e veloci</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
-  <!-- Decap CMS -->
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <header class="container nav">
+    <div class="logo">B&amp;B <span>Clean</span></div>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/prenota.html" class="btn">Prenota</a>
+      <a href="/partner.html">Diventa partner</a>
+    </nav>
+  </header>
 
-  <!-- Identity -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      if (!window.netlifyIdentity) return;
-      window.netlifyIdentity.init();
-    });
-  </script>
+  <section class="hero container">
+    <h1>La tua pulizia di casa, in pochi click</h1>
+    <p>Prenota un professionista vicino a te. Pagamenti online, zero pensieri.</p>
+    <div class="cta">
+      <a class="btn primary" href="/prenota.html">Prenota ora</a>
+      <a class="btn ghost" href="/partner.html">Diventa partner</a>
+    </div>
+  </section>
 
-  <script>
-  (function(){
-    // ====== UTILS ======
-    const REG_LETTER = {
-      "ABRUZZO":"A","BASILICATA":"B","CALABRIA":"C","CAMPANIA":"D","EMILIA-ROMAGNA":"E",
-      "FRIULI-VENEZIA GIULIA":"F","LAZIO":"G","LIGURIA":"H","LOMBARDIA":"I","MARCHE":"J",
-      "MOLISE":"K","PIEMONTE":"L","PUGLIA":"M","SARDEGNA":"N","SICILIA":"O",
-      "TOSCANA":"P","TRENTINO-ALTO ADIGE":"Q","UMBRIA":"R","VALLE D'AOSTA":"S","VENETO":"T"
-    };
-    const toUC = s => (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
-    const onlyLetters = s => toUC(s).replace(/[^A-Z]/g,'');
-    const firstNLetters = (s, n) => (onlyLetters(s).slice(0,n)+'X'.repeat(n)).slice(0,n);
-    const streetCore = s => {
-      let up = toUC(s).trim();
-      const pref = ['VIA','VIALE','VICO','VICOLO','CORSO','LARGO','STRADA','PIAZZA','P.ZZA','PZZA','P.ZZ','PZ.','PZ','P/ZA'];
-      for (const p of pref) {
-        const re = new RegExp('^'+p+'\\b\\s*');
-        if (re.test(up)) { up = up.replace(re,''); break; }
-      }
-      return up.trim();
-    };
-    const reverseCAP = zip => String((zip||'').replace(/\D/g,'')).split('').reverse().join('');
-    const birthDay = dmy => {
-      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dmy||'');
-      return m ? m[1] : '';
-    };
+  <section class="features container">
+    <div class="card">
+      <h3>1. Inserisci l'indirizzo</h3>
+      <p>Regione, città, via e civico: troviamo l'operatore più vicino.</p>
+    </div>
+    <div class="card">
+      <h3>2. Scegli giorno e durata</h3>
+      <p>Decidi quando e per quanto tempo. Confermi in un attimo.</p>
+    </div>
+    <div class="card">
+      <h3>3. Paghi online</h3>
+      <p>Transazione sicura. Ricevi conferma e promemoria.</p>
+    </div>
+  </section>
 
-    function makeHouseCode(f){
-      const CF3   = firstNLetters(f.owner_cf, 3);
-      const PROV2 = firstNLetters(f.province, 2);
-      const STR3  = firstNLetters(streetCore(f.street), 3);
-      const CIV   = toUC(f.number).replace(/\s+/g,'');
-      const CAPR  = reverseCAP(f.zip);
-      const DAY   = birthDay(f.owner_birth);
-      const REG   = REG_LETTER[toUC(f.region)] || 'Z';
-      const CIT3  = firstNLetters(f.city, 3);
-
-      if (!(CF3 && PROV2 && STR3 && CIV && CAPR && DAY && REG && CIT3)) return '';
-      return [CF3, PROV2, STR3, CIV, CAPR, DAY, REG, CIT3].join('-');
-    }
-
-    // ====== UPPERCASE + DATE SLASH (DOM, leggero) ======
-    function setReactValue(el, value){
-      const proto = el.tagName==='SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
-      const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
-      setter.call(el, value);
-      el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));
-    }
-
-    function forceUppercaseAndDateMask(){
-      const all = Array.from(document.querySelectorAll('input[type="text"], input:not([type])'));
-      all.forEach(inp=>{
-        if (inp._bbWired) return;
-        inp._bbWired = true;
-
-        // label text (if any)
-        let lblText = '';
-        const lab = inp.closest('label') || inp.closest('[class*="ControlContainer"]')?.querySelector('label');
-        if (lab) lblText = (lab.textContent||'').toUpperCase();
-
-        // DATA: maschera dd/mm/yyyy
-        if (lblText.includes('DATA DI NASCITA')) {
-          inp.placeholder = 'gg/mm/aaaa';
-          inp.addEventListener('input', ()=>{
-            let v = (inp.value||'').replace(/[^\d]/g,'').slice(0,8);
-            if (v.length>=5) v = v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
-            else if (v.length>=3) v = v.slice(0,2)+'/'+v.slice(2);
-            if (inp.value!==v) setReactValue(inp, v);
-          });
-          inp.addEventListener('paste', e=>{
-            e.preventDefault();
-            const t=(e.clipboardData||window.clipboardData).getData('text')||'';
-            let v = t.replace(/[^\d]/g,'').slice(0,8);
-            if (v.length>=5) v = v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
-            else if (v.length>=3) v = v.slice(0,2)+'/'+v.slice(2);
-            setReactValue(inp, v);
-          });
-        } else {
-          // TUTTO MAIUSCOLO
-          inp.classList.add('bb-uppercase');
-          inp.addEventListener('input', ()=>{
-            const up = toUC(inp.value);
-            if (inp.value!==up) setReactValue(inp, up);
-          });
-          inp.addEventListener('paste', e=>{
-            e.preventDefault();
-            const t=(e.clipboardData||window.clipboardData).getData('text')||'';
-            setReactValue(inp, toUC(t));
-          });
-        }
-
-        // CODICE CASA: rendilo non editabile (visuale)
-        if (lblText.includes('CODICE CASA')) {
-          inp.readOnly = true;
-          inp.setAttribute('aria-readonly','true');
-          inp.classList.add('bb-readonly');
-          inp.addEventListener('beforeinput', e=>e.preventDefault());
-          inp.addEventListener('keydown', e=>{
-            const ok=['Tab','Shift','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
-            if(!e.ctrlKey && !e.metaKey && !ok.includes(e.key)) e.preventDefault();
-          });
-        }
-      });
-    }
-
-    // Osserva il form (Decap è React): ri-applica handlers quando monta campi
-    const obs = new MutationObserver(()=>{ forceUppercaseAndDateMask(); });
-    obs.observe(document.body, { childList:true, subtree:true });
-    document.addEventListener('DOMContentLoaded', forceUppercaseAndDateMask);
-
-    // ====== GENERAZIONE CODICE — lato modello (affidabile) ======
-    function computeAllCodes(entry){
-      // Leggi items (Immutable.js)
-      let data  = entry.get('data');
-      let items = data && data.get && data.get('items');
-      if (!items || !items.forEach) return entry;
-
-      items = items.map(it=>{
-        const f = {
-          region:       it.get('region')       || '',
-          city:         it.get('city')         || '',
-          province:     it.get('province')     || '',
-          zip:          it.get('zip')          || '',
-          street:       it.get('street')       || '',
-          number:       it.get('number')       || '',
-          owner_birth:  it.get('owner_birth')  || '',
-          owner_cf:     it.get('owner_cf')     || ''
-        };
-
-        // Forza MAIUSCOLO sui campi testo che usiamo nel codice
-        f.region      = toUC(f.region);
-        f.city        = toUC(f.city);
-        f.province    = toUC(f.province);
-        f.zip         = toUC(f.zip);
-        f.street      = toUC(f.street);
-        f.number      = toUC(f.number);
-        f.owner_birth = f.owner_birth; // già mascherata dd/mm/yyyy
-        f.owner_cf    = toUC(f.owner_cf);
-
-        const code = makeHouseCode(f);
-        return it.set('code', code)
-                 .set('region', f.region)
-                 .set('city', f.city)
-                 .set('province', f.province)
-                 .set('zip', f.zip)
-                 .set('street', f.street)
-                 .set('number', f.number)
-                 .set('owner_cf', f.owner_cf);
-      });
-
-      data  = data.set('items', items);
-      return entry.set('data', data);
-    }
-
-    CMS.registerEventListener({
-      name: 'preSave',
-      handler: ({ entry, collection }) => {
-        if (!collection || collection.get('name')!=='houses') return;
-        const newEntry = computeAllCodes(entry);
-        return { entry: newEntry };
-      }
-    });
-
-    CMS.registerEventListener({
-      name: 'prePublish',
-      handler: ({ entry, collection }) => {
-        if (!collection || collection.get('name')!=='houses') return;
-        const newEntry = computeAllCodes(entry);
-        // Blocca pubblicazione se manca il codice
-        const items = newEntry.get('data')?.get?.('items') || [];
-        for (let i=0;i<items.size;i++){
-          const it=items.get(i);
-          if (!String(it.get('code')||'')) {
-            alert('Codice casa mancante alla riga '+(i+1)+'. Completa i campi richiesti.');
-            throw new Error('code mancante');
-          }
-        }
-        return { entry: newEntry };
-      }
-    });
-  })();
-  </script>
+  <footer class="container footer">
+    <div>&copy; B&B Clean {"{"} new Date().getFullYear() {"}"} — Tutti i diritti riservati.</div>
+    <div class="small">Sito demo — Forms gestiti da Netlify.</div>
+  </footer>
+  <script src="/assets/js/main.js"></script>
 </body>
 </html>

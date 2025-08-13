@@ -1,25 +1,74 @@
-<!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Diventa Partner — B&amp;B Clean</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<script src="https://cdn.tailwindcss.com"></script></head>
-<body class="p-6">
-  <p><a class="underline" href="index.html">← Torna alla Home</a></p>
-  <h1 class="text-2xl font-bold mt-2">Diventa Partner</h1>
-  <form name="candidatura-partner" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" class="grid gap-3 max-w-xl mt-4">
-    <input type="hidden" name="form-name" value="candidatura-partner" />
-    <p class="hidden"><label>Non compilare: <input name="bot-field" /></label></p>
-    <input name="nome" placeholder="Nome e Cognome" class="border p-2 rounded" required>
-    <input name="email" type="email" placeholder="Email" class="border p-2 rounded" required>
-    <input name="telefono" placeholder="Telefono" class="border p-2 rounded" required>
-    <input name="citta" placeholder="Città" class="border p-2 rounded" required>
-    <input name="zona" placeholder="Zona di lavoro" class="border p-2 rounded">
-    <textarea name="esperienza" rows="4" placeholder="Esperienza" class="border p-2 rounded"></textarea>
-    <input name="documento" type="file" accept=".pdf,.jpg,.jpeg,.png" class="border p-2 rounded">
-    <input name="iban" placeholder="IBAN" class="border p-2 rounded">
-    <label class="text-sm"><input type="checkbox" required> Accetto la <a href="privacy-cookie.html" class="underline">Privacy</a></label>
-    <button class="bg-emerald-600 text-white px-4 py-2 rounded">Invia candidatura</button>
-  </form>
-  <p class="text-xs text-gray-600 mt-2">Le candidature arrivano in Netlify → Forms.</p>
-  <p class="mt-4"><a class="underline" href="partner-app.html">Apri App Partner (QR & Timer)</a></p>
-</body></html>
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diventa partner — B&B Clean</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <header class="container nav">
+    <div class="logo">B&amp;B <span>Clean</span></div>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/prenota.html">Prenota</a>
+      <a href="/partner.html" class="active">Diventa partner</a>
+    </nav>
+  </header>
+
+  <main class="container form-wrap">
+    <h1>Collabora con noi</h1>
+    <p class="lead">Guadagna offrendo servizi di pulizia nella tua zona. Pagamenti puntuali, supporto e lavoro flessibile.</p>
+
+    <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html">
+      <input type="hidden" name="form-name" value="partner">
+      <p class="hidden">
+        <label>Non compilare: <input name="bot-field"></label>
+      </p>
+
+      <div class="grid">
+        <label>Nome
+          <input type="text" name="nome" required>
+        </label>
+        <label>Cognome
+          <input type="text" name="cognome" required>
+        </label>
+        <label>Email
+          <input type="email" name="email" required>
+        </label>
+        <label>Telefono
+          <input type="tel" name="telefono" required>
+        </label>
+        <label>Città
+          <input type="text" name="citta" required>
+        </label>
+        <label>Provincia
+          <input type="text" name="provincia" required maxlength="2">
+        </label>
+        <label>CAP
+          <input type="text" name="cap" required pattern="\d{5}" title="5 cifre">
+        </label>
+        <label>Esperienza
+          <select name="esperienza" required>
+            <option value="">Seleziona…</option>
+            <option>0-1 anni</option><option>1-3 anni</option><option>3-5 anni</option><option>5+ anni</option>
+          </select>
+        </label>
+        <label class="full">Note
+          <textarea name="note" rows="4"></textarea>
+        </label>
+        <label class="full chk"><input type="checkbox" name="consenso" required> Accetto il trattamento dei dati personali</label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn primary">Invia candidatura</button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="container footer">
+    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
+  </footer>
+</body>
+</html>
