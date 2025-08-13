@@ -14,6 +14,21 @@
       "region": "Sardegna",
       "owner_birth_prov": "nu",
       "owner_birth_city": "Nuoro"
+    },
+    {
+      "zip": "08022",
+      "owner_last": "SPANU",
+      "street": "via dei Rosmarini",
+      "owner_first": "Alessandro",
+      "number": "17",
+      "city": "Dorgali",
+      "owner_gender": "M",
+      "owner_cf": "SPNLSN92L20F979Q",
+      "province": "nu",
+      "owner_birth": "20/07/1992",
+      "region": "Sardegna",
+      "owner_birth_prov": "NU",
+      "owner_birth_city": "Nuoro"
     }
   ]
 }
