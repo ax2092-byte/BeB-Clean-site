@@ -6,7 +6,52 @@
     <title>Admin — B&amp;B Clean</title>
     <link rel="icon" type="image/png" href="../favicon.png">
   </head>
-  <body>
+ <script>
+  (function () {
+    // Prefisso del codice: cambialo se vuoi (es. "HC-" invece di "BB-")
+    const PREFIX = 'BB-';
+
+    function makeCode(existingSet) {
+      let code;
+      do {
+        // 6 caratteri alfanumerici maiuscoli
+        code = PREFIX + Math.random().toString(36).slice(2, 8).toUpperCase();
+      } while (existingSet.has(code));
+      return code;
+    }
+
+    // Decap/Netlify CMS: genera il codice prima del salvataggio
+    CMS.registerEventListener({
+      name: 'preSave',
+      handler: ({ entry, collection }) => {
+        if (!collection || collection.get('name') !== 'houses') return;
+
+        let data = entry.get('data');
+        let items = data && data.get && data.get('items');
+        if (!items || !items.forEach) return;
+
+        // raccogli codici esistenti (per evitare duplicati)
+        const existing = new Set();
+        items.forEach(it => {
+          const c = it && it.get && it.get('code');
+          if (c) existing.add(String(c).toUpperCase());
+        });
+
+        // assegna codice a chi non ce l'ha
+        items = items.map(it => {
+          if (!it.get('code')) {
+            return it.set('code', makeCode(existing));
+          }
+          return it;
+        });
+
+        data = data.set('items', items);
+        return { entry: entry.set('data', data) };
+      }
+    });
+  })();
+</script>
+ <body>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </body>
 </html>
