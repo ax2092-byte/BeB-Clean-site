@@ -29,7 +29,7 @@ collections:
             widget: "list"
             summary: "{{fields.code}} — {{fields.city}} (M: {{fields.median_hours}}h)"
             fields:
-              - { label: "Codice casa", name: "code", widget: "string", required: false, hint: "Lascia vuoto: viene generato automaticamente (es. BB-XXXXXX)" }
+              - { label: "Codice casa", name: "code", widget: "string", required: false }
               - { label: "Indirizzo", name: "address", widget: "string" }
               - { label: "Città", name: "city", widget: "string" }
               - { label: "CAP", name: "zip", widget: "string" }
