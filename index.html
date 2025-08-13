@@ -79,48 +79,43 @@
           return wrap ? wrap.querySelector('input,select') : null;
         }
 
-        // Forza l'aggiornamento (senza loop) nel modello Decap
+        // Imposta valore compatibile con React/Decap
         function setReactValueSafely(el, value){
-          if (el.__bbMasking) return;
+          if (el.__bbSetting) return;
           const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-          el.__bbMasking = true;
+          el.__bbSetting = true;
           setter.call(el, value);
           el.dispatchEvent(new Event('input', { bubbles: true }));
-          // fine: togliamo il flag al prossimo tick (evita re-ingressi)
-          setTimeout(()=>{ el.__bbMasking = false; }, 0);
+          setTimeout(()=>{ el.__bbSetting = false; }, 0);
         }
 
-        // Maschera data dd/mm/yyyy con slash automatici + salvataggio persistente (senza cicli)
+        // Maschera data dd/mm/yyyy con slash automatici + salvataggio persistente
         function attachBirthMask(){
           const el = findFieldByLabelIncludes('Data di nascita');
           if (!el) return;
           el.placeholder='gg/mm/aaaa';
 
-          function mask(v){
+          const mask = (v)=>{
             v = (v||'').replace(/[^\d]/g,'').slice(0,8);
             if (v.length>=5) return v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
             if (v.length>=3) return v.slice(0,2)+'/'+v.slice(2);
             return v;
-          }
+          };
 
           const onInput = ()=> {
-            if (el.__bbMasking) return;                          // evita ricorsione
-            const raw = el.value;
-            const m = mask(raw);
-            if (raw !== m) setReactValueSafely(el, m);           // aggiorna + un solo 'input'
-          };
-
-          const onBlur = ()=> {
-            if (el.__bbMasking) return;
+            if (el.__bbSetting) return;
             const m = mask(el.value);
-            if (el.value !== m) setReactValueSafely(el, m);      // normalizza al blur
+            if (el.value !== m) setReactValueSafely(el, m);
           };
-
+          const onBlur = ()=> {
+            if (el.__bbSetting) return;
+            const m = mask(el.value);
+            if (el.value !== m) setReactValueSafely(el, m);
+          };
           const onPaste = (e)=> {
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text') || '';
-            const m = mask(text);
-            setReactValueSafely(el, m);
+            setReactValueSafely(el, mask(text));
           };
 
           el.addEventListener('input', onInput);
@@ -128,27 +123,107 @@
           el.addEventListener('paste', onPaste);
         }
 
-        // Datalist helpers
+        // ---------- Autocomplete Città/Via con OpenStreetMap ----------
         function attachDatalist(input,id){ if(!input) return null; let dl=document.getElementById(id); if(!dl){dl=document.createElement('datalist');dl.id=id;document.body.appendChild(dl);} input.setAttribute('list',id); return dl; }
         function setOptions(dl,arr){ if(!dl) return; dl.innerHTML=''; (arr||[]).forEach(v=>{const o=document.createElement('option');o.value=v;dl.appendChild(o);}); }
         function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
 
-        // OSM (Nominatim) autocomplete
-        async function osmCitySuggest(q,region){ if(!q||q.length<2) return []; const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q)}`;
-          try{ const r=await fetch(url); const js=await r.json(); const allowed=new Set(['city','town','village','hamlet','municipality']); const out=[];
-            for(const it of js){ const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality; const reg=it.address.state||it.address.region; const typeOk=allowed.has(it.type);
-              if(typeOk&&city){ if(region&&reg&&reg.toLowerCase().indexOf(region.toLowerCase())===-1) continue; out.push(city); } }
-            return [...new Set(out)].slice(0,8);
+        async function osmCitySuggest(q,region){
+          if(!q||q.length<1) return []; // 1 lettera basta
+          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q)}`;
+          try{
+            const r=await fetch(url);
+            const js=await r.json();
+            const allowed=new Set(['city','town','village','hamlet','municipality']);
+            const out=[];
+            for(const it of js){
+              const city=it.address.city||it.address.town||it.address.village||it.address.hamlet||it.address.municipality;
+              const reg =it.address.state||it.address.region;
+              const ok=allowed.has(it.type);
+              if(ok&&city){
+                if(region&&reg&&reg.toLowerCase().indexOf(region.toLowerCase())===-1) continue;
+                out.push(city);
+              }
+            }
+            return [...new Set(out)].slice(0,12);
           }catch(e){ return []; }
         }
-        async function osmStreetSuggest(q,city){ if(!q||q.length<2||!city) return []; const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=8&q=${encodeURIComponent(q+', '+city+', Italia')}`;
-          try{ const r=await fetch(url); const js=await r.json(); const out=[]; for(const it of js){ const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||''; if(road) out.push(road); } return [...new Set(out)].slice(0,8);
+
+        async function osmStreetSuggest(q,city){
+          if(!q||q.length<1||!city) return []; // 1 lettera basta
+          const url=`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=it&countrycodes=it&limit=10&q=${encodeURIComponent(q+', '+city+', Italia')}`;
+          try{
+            const r=await fetch(url);
+            const js=await r.json();
+            const out=[];
+            for(const it of js){
+              const road=it.address.road||it.address.pedestrian||it.address.footway||it.address.path||it.address.cycleway||'';
+              if(road) out.push(road);
+            }
+            return [...new Set(out)].slice(0,12);
           }catch(e){ return []; }
         }
 
         async function loadExisting(){ try{ const r=await fetch('/houses.json',{cache:'no-store'}); return await r.json(); } catch(e){ return { items:[] }; } }
 
-        // Blocca TUTTI i campi "Codice casa"
+        async function setupAutocomplete(){
+          attachBirthMask();
+          lockAllCodeFields();
+
+          const regionSel = findFieldByLabelIncludes('Regione');   // select
+          const cityInput = findFieldByLabelIncludes('Città');
+          const streetInp = findFieldByLabelIncludes('Via');
+          const numInput  = findFieldByLabelIncludes('Civico');
+
+          const dlCities  = attachDatalist(cityInput,'dl-cities');
+          const dlStreets = attachDatalist(streetInp,'dl-streets');
+          const dlNums    = attachDatalist(numInput,'dl-nums');
+
+          const existing = await loadExisting();
+          const items = Array.isArray(existing.items) ? existing.items : [];
+
+          function setOptionsUnique(dl, arr){ setOptions(dl, [...new Set(arr||[])].slice(0,20)); }
+          function refreshNumbers(){
+            const city=(cityInput?.value||'').trim();
+            const nums=[...new Set(items.filter(x=>(x.city||'')===city).map(x=>(x.number||'').trim()).filter(Boolean))].sort();
+            setOptionsUnique(dlNums, nums);
+          }
+
+          const suggestCities = debounce(async ()=>{
+            const q=(cityInput?.value||'').trim(); const region=regionSel?regionSel.value:'';
+            const osm=await osmCitySuggest(q,region);
+            const fromData=[...new Set(items.filter(x=>!q||x.city.toLowerCase().includes(q.toLowerCase())).map(x=>x.city))];
+            setOptionsUnique(dlCities, [...(osm||[]), ...(fromData||[])]);
+            refreshNumbers();
+          }, 350);
+
+          const suggestStreets = debounce(async ()=>{
+            const q=(streetInp?.value||'').trim(); const city=(cityInput?.value||'').trim();
+            const osm=await osmStreetSuggest(q,city);
+            const fromData=[...new Set(items.filter(x=>(!q||(x.street||'').toLowerCase().includes(q.toLowerCase()))&&(!city||x.city===city)).map(x=>x.street).filter(Boolean))];
+            setOptionsUnique(dlStreets, [...(osm||[]), ...(fromData||[])]);
+            refreshNumbers();
+          }, 350);
+
+          regionSel && regionSel.addEventListener('change', ()=>{ suggestCities(); suggestStreets(); updateHouseCode(); });
+          cityInput && cityInput.addEventListener('input', ()=>{ suggestCities(); suggestStreets(); updateHouseCode(); });
+          streetInp && streetInp.addEventListener('input', ()=>{ suggestStreets(); updateHouseCode(); });
+          numInput && numInput.addEventListener('input', updateHouseCode);
+
+          // anche ZIP/CF/sesso/data impattano il codice
+          const zipInput    = findFieldByLabelIncludes('CAP');
+          const cfInput     = findFieldByLabelIncludes('Codice fiscale');
+          const genderInput = findFieldByLabelIncludes('Sesso');
+
+          zipInput    && zipInput.addEventListener('input', updateHouseCode);
+          cfInput     && cfInput.addEventListener('input', updateHouseCode);
+          genderInput && genderInput.addEventListener('change', updateHouseCode);
+
+          suggestCities(); suggestStreets(); refreshNumbers();
+          updateHouseCode(); // prima computazione
+        }
+
+        // ---------- Lock "Codice casa" e pulsante copia ----------
         function lockAllCodeFields(){
           const labels=[...document.querySelectorAll('label')];
           labels.forEach(lab=>{
@@ -185,95 +260,39 @@
           });
         }
 
-        // Autocomplete UI
-        async function setupAutocomplete(){
-          attachBirthMask();
-          lockAllCodeFields();
+        // ---------- Generazione "live" del Codice casa ----------
+        function updateHouseCode(){
+          const region  = findFieldByLabelIncludes('Regione')?.value || '';
+          const city    = findFieldByLabelIncludes('Città')?.value || '';
+          const zip     = findFieldByLabelIncludes('CAP')?.value || '';
+          const street  = findFieldByLabelIncludes('Via')?.value || '';
+          const number  = findFieldByLabelIncludes('Civico')?.value || '';
+          const cf      = (findFieldByLabelIncludes('Codice fiscale')?.value || '').toUpperCase();
+          const birth   = findFieldByLabelIncludes('Data di nascita')?.value || '';
+          const gender  = findFieldByLabelIncludes('Sesso')?.value || '';
 
-          const regionSel = findFieldByLabelIncludes('Regione');   // select
-          const cityInput = findFieldByLabelIncludes('Città');
-          const streetInp = findFieldByLabelIncludes('Via');
-          const numInput  = findFieldByLabelIncludes('Civico');
+          const codeEl  = findFieldByLabelIncludes('Codice casa');
+          if (!codeEl) return;
 
-          const dlCities  = attachDatalist(cityInput,'dl-cities');
-          const dlStreets = attachDatalist(streetInp,'dl-streets');
-          const dlNums    = attachDatalist(numInput,'dl-nums');
+          // Genera solo quando i dati minimi ci sono e CF è valido
+          const mandatoryOk = region && city && zip && street && number && cf && birth && gender;
+          if (!mandatoryOk) { setReactValueSafely(codeEl, ''); return; }
 
-          const existing = await loadExisting();
-          const items = Array.isArray(existing.items) ? existing.items : [];
+          const cfCheck = validateCF(cf, birth, gender);
+          if (!cfCheck.valid) { setReactValueSafely(codeEl, ''); return; }
 
-          function setOptionsUnique(dl, arr){ setOptions(dl, [...new Set(arr||[])].slice(0,20)); }
-
-          function refreshNumbers(){
-            const city=(cityInput?.value||'').trim();
-            const nums=[...new Set(items.filter(x=>(x.city||'')===city).map(x=>(x.number||'').trim()).filter(Boolean))].sort();
-            setOptionsUnique(dlNums, nums);
-          }
-
-          const suggestCities = debounce(async ()=>{
-            const q=(cityInput?.value||'').trim(); const region=regionSel?regionSel.value:'';
-            const osm=await osmCitySuggest(q,region);
-            const fromData=[...new Set(items.filter(x=>!q||x.city.toLowerCase().includes(q.toLowerCase())).map(x=>x.city))];
-            setOptionsUnique(dlCities, [...(osm||[]), ...(fromData||[])]);
-            refreshNumbers();
-          }, 450);
-
-          const suggestStreets = debounce(async ()=>{
-            const q=(streetInp?.value||'').trim(); const city=(cityInput?.value||'').trim();
-            const osm=await osmStreetSuggest(q,city);
-            const fromData=[...new Set(items.filter(x=>(!q||(x.street||'').toLowerCase().includes(q.toLowerCase()))&&(!city||x.city===city)).map(x=>x.street).filter(Boolean))];
-            setOptionsUnique(dlStreets, [...(osm||[]), ...(fromData||[])]);
-            refreshNumbers();
-          }, 450);
-
-          regionSel && regionSel.addEventListener('change', ()=>{ suggestCities(); suggestStreets(); });
-          cityInput && cityInput.addEventListener('input', ()=>{ suggestCities(); suggestStreets(); });
-          streetInp && streetInp.addEventListener('input', suggestStreets);
-          numInput && numInput.addEventListener('focus', refreshNumbers);
-
-          suggestCities(); suggestStreets(); refreshNumbers();
+          const payload = { region, city, zip, street, number, owner_cf: cf };
+          const code = buildHouseCode(payload);
+          if (codeEl.value !== code) setReactValueSafely(codeEl, code);
         }
 
-        // Generazione codice + regole di blocco
+        // ---------- Regole di salvataggio/pubblicazione ----------
         CMS.registerEventListener({
           name:'preSave',
           handler:({entry,collection})=>{
             if(!collection||collection.get('name')!=='houses') return;
-            let data=entry.get('data');
-            let items=data && data.get && data.get('items');
-            if(!items || !items.forEach) return;
-
-            const existingCodes=new Set();
-            items.forEach(it=>{ const c=it?.get?.('code'); if(c) existingCodes.add(String(c).toUpperCase()); });
-
-            items = items.map(it=>{
-              const payload={
-                region: it.get('region'),
-                city:   it.get('city'),
-                province: it.get('province'),
-                zip:    it.get('zip'),
-                street: it.get('street'),
-                number: it.get('number'),
-                owner_cf: norm(it.get('owner_cf')),
-                owner_birth: it.get('owner_birth'),
-                owner_gender: it.get('owner_gender')
-              };
-
-              // Se i dati base mancano o CF non valido -> code vuoto (prePublish bloccherà)
-              const mandatory=['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
-              for(const k of mandatory){ if(!payload[k]) return it.set('code', ''); }
-              const cfCheck = validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
-              if(!cfCheck.valid){ return it.set('code', ''); }
-
-              // genera codice (sovrascrive anche eventuale testo digitato)
-              let code = buildHouseCode(payload);
-              if(existingCodes.has(code)){ let i=2; while(existingCodes.has(`${code}-${i}`)&&i<99) i++; code=`${code}-${i}`; }
-              existingCodes.add(code);
-              return it.set('code', code);
-            });
-
-            data = data.set('items', items);
-            return { entry: entry.set('data', data) };
+            // prova a generare il codice prima di salvare
+            updateHouseCode();
           }
         });
 
@@ -281,51 +300,23 @@
           name:'prePublish',
           handler:({entry,collection})=>{
             if(!collection||collection.get('name')!=='houses') return;
+            // deve esserci un codice valido in ogni riga
             const items = entry.get('data')?.get?.('items') || [];
-
-            // 1) tutti: dati completi + CF valido + codice presente
             for(let i=0;i<items.size;i++){
               const it=items.get(i);
-              const payload={
-                region: it.get('region'),
-                city:   it.get('city'),
-                province: it.get('province'),
-                zip:    it.get('zip'),
-                street: it.get('street'),
-                number: it.get('number'),
-                owner_cf: norm(it.get('owner_cf')),
-                owner_birth: it.get('owner_birth'),
-                owner_gender: it.get('owner_gender')
-              };
-
-              const mandatory=['region','city','province','zip','street','number','owner_cf','owner_birth','owner_gender'];
-              for(const k of mandatory){ if(!payload[k]){ alert("Dati incompleti alla riga "+(i+1)); throw new Error("campi mancanti"); } }
-
-              const cfCheck=validateCF(payload.owner_cf, String(payload.owner_birth), payload.owner_gender);
-              if(!cfCheck.valid){ alert("Errore CF alla riga "+(i+1)+": "+cfCheck.message); throw new Error("CF non valido"); }
-
               const code = String(it.get('code')||'');
-              if(!code){ alert("Codice casa mancante alla riga "+(i+1)); throw new Error("code mancante"); }
+              if(!code){ alert("Codice casa mancante alla riga "+(i+1)+". Completa i dati e il CF."); throw new Error("code mancante"); }
               if(!code.startsWith(PREFIX+'-')){ alert("Codice casa non valido alla riga "+(i+1)); throw new Error("code invalido"); }
-            }
-
-            // 2) blocca duplicati per stesso CF + stesso indirizzo
-            const seen=new Map();
-            function addrKey(it){ return [norm(it.get('owner_cf')),norm(it.get('street')),norm(it.get('number')),norm(it.get('zip')),norm(it.get('city')),norm(it.get('region'))].join('|'); }
-            for(let i=0;i<items.size;i++){
-              const it=items.get(i); const key=addrKey(it);
-              if(seen.has(key)){ const j=seen.get(key); alert(`Duplicato: stessa casa per lo stesso CF (righe ${j+1} e ${i+1}).`); throw new Error("duplicato CF+indirizzo"); }
-              seen.set(key,i);
             }
           }
         });
 
-        // Observer continuo: applica maschera/lock anche su campi creati dopo
+        // Observer: applica maschera/lock/bind ogni volta che il form cambia
         const obs = new MutationObserver(()=>{ 
-          // evita ripetizioni aggressive
           requestAnimationFrame(()=>{ 
             attachBirthMask(); 
             lockAllCodeFields(); 
+            updateHouseCode();
           });
         });
         obs.observe(document.body, { childList:true, subtree:true });
