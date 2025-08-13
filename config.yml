@@ -30,7 +30,7 @@ collections:
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
               # Codice casa: visibile ma in sola lettura (lo script lo compila)
-              - { label: "Codice casa", name: "code", widget: "string", required: true, hint: "Generato automaticamente; non modificabile" }
+              - { label: "Codice casa", name: "code", widget: "string", required: false, hint: "Generato automaticamente; non modificabile" }
 
               # Indirizzo (Regione = select; gli altri campi hanno ricerca/suggerimenti)
               - { label: "Regione", name: "region", widget: "select", options:
