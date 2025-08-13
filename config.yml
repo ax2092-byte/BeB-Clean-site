@@ -29,17 +29,23 @@ collections:
             widget: list
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
+              # Codice casa generato dallo script: nascosto ma obbligatorio
               - { label: "Codice casa", name: "code", widget: "hidden", required: true }
-              - { label: "Regione",  name: "region",   widget: "string", required: true }
-              - { label: "Città",    name: "city",     widget: "string", required: true }
-              - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true }
+
+              # Indirizzo (obbligatori)
+              - { label: "Regione",  name: "region",   widget: "string", required: true, hint: "Seleziona dal menu (con ricerca)" }
+              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Cerca e seleziona dal menu" }
+              - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true, hint: "Es. NU, MI, RM..." }
               - { label: "CAP",      name: "zip",      widget: "string", required: true }
-              - { label: "Via",      name: "street",   widget: "string", required: true }
-              - { label: "Civico",   name: "number",   widget: "string", required: true }
+              - { label: "Via",      name: "street",   widget: "string", required: true, hint: "Cerca e seleziona dal menu" }
+              - { label: "Civico",   name: "number",   widget: "string", required: true, hint: "Puoi cercare/compilare" }
+
+              # Proprietario (obbligatori)
               - { label: "Proprietario - Nome",    name: "owner_first", widget: "string", required: true }
               - { label: "Proprietario - Cognome", name: "owner_last",  widget: "string", required: true }
-              - { label: "Proprietario - Data di nascita (YYYY-MM-DD)", name: "owner_birth", widget: "string", pattern: ["^\\d{4}-\\d{2}-\\d{2}$", "Usa il formato YYYY-MM-DD, es. 1980-01-31"], required: true }
+              - { label: "Proprietario - Data di nascita (dd/mm/yyyy)", name: "owner_birth", widget: "string", pattern: ["^\\d{2}/\\d{2}/\\d{4}$", "Usa il formato dd/mm/yyyy, es. 31/01/1980"], required: true }
               - { label: "Proprietario - Sesso", name: "owner_gender", widget: "select", options: ["M","F"], required: true }
               - { label: "Proprietario - Città di nascita", name: "owner_birth_city", widget: "string", required: true }
               - { label: "Proprietario - Provincia di nascita (2 lettere)", name: "owner_birth_prov", widget: "string", required: true }
-              - { label: "Proprietario - Codice fiscale", name: "owner_cf", widget: "string", required: true }
+              - { label: "Proprietario - Codice fiscale", name: "owner_cf", widget: "string", required: true, hint: "16 caratteri, es. RSSMRA80A01H501U" }
+
