@@ -29,18 +29,23 @@ collections:
             widget: list
             summary: "{{fields.code}} — {{fields.city}} ({{fields.street}} {{fields.number}}, {{fields.zip}})"
             fields:
-              # Codice casa generato dallo script: nascosto ma obbligatorio
-              - { label: "Codice casa", name: "code", widget: "hidden", required: true }
+              # Codice casa: visibile ma in sola lettura (lo script lo compila)
+              - { label: "Codice casa", name: "code", widget: "string", required: true, hint: "Generato automaticamente; non modificabile" }
 
-              # Indirizzo (obbligatori)
-              - { label: "Regione",  name: "region",   widget: "string", required: true, hint: "Seleziona dal menu (con ricerca)" }
-              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Cerca e seleziona dal menu" }
+              # Indirizzo (Regione = select; gli altri campi hanno ricerca/suggerimenti)
+              - { label: "Regione", name: "region", widget: "select", options:
+                  ["Abruzzo","Basilicata","Calabria","Campania","Emilia-Romagna","Friuli-Venezia Giulia",
+                   "Lazio","Liguria","Lombardia","Marche","Molise","Piemonte","Puglia","Sardegna",
+                   "Sicilia","Toscana","Trentino-Alto Adige","Umbria","Valle d'Aosta","Veneto"],
+                  required: true
+                }
+              - { label: "Città",    name: "city",     widget: "string", required: true, hint: "Cerca e seleziona dall'elenco" }
               - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true, hint: "Es. NU, MI, RM..." }
               - { label: "CAP",      name: "zip",      widget: "string", required: true }
-              - { label: "Via",      name: "street",   widget: "string", required: true, hint: "Cerca e seleziona dal menu" }
+              - { label: "Via",      name: "street",   widget: "string", required: true, hint: "Cerca e seleziona dall'elenco" }
               - { label: "Civico",   name: "number",   widget: "string", required: true, hint: "Puoi cercare/compilare" }
 
-              # Proprietario (obbligatori)
+              # Proprietario
               - { label: "Proprietario - Nome",    name: "owner_first", widget: "string", required: true }
               - { label: "Proprietario - Cognome", name: "owner_last",  widget: "string", required: true }
               - { label: "Proprietario - Data di nascita (dd/mm/yyyy)", name: "owner_birth", widget: "string", pattern: ["^\\d{2}/\\d{2}/\\d{4}$", "Usa il formato dd/mm/yyyy, es. 31/01/1980"], required: true }
@@ -48,4 +53,3 @@ collections:
               - { label: "Proprietario - Città di nascita", name: "owner_birth_city", widget: "string", required: true }
               - { label: "Proprietario - Provincia di nascita (2 lettere)", name: "owner_birth_prov", widget: "string", required: true }
               - { label: "Proprietario - Codice fiscale", name: "owner_cf", widget: "string", required: true, hint: "16 caratteri, es. RSSMRA80A01H501U" }
-
