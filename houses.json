@@ -1,1 +1,10 @@
-{ "items": [] }
+{
+  "items": [
+    {
+      "median_hours": 2,
+      "address": "Via dei Rosmarini",
+      "city": "Dorgali",
+      "zip": "08022"
+    }
+  ]
+}
