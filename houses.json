@@ -2,17 +2,17 @@
   "items": [
     {
       "zip": "08022",
-      "owner_last": "SPANU",
-      "street": "via dei Rosmarini",
+      "owner_last": "Spanu",
+      "street": "Via veneto",
       "owner_first": "Alessandro",
-      "number": "17",
+      "number": "8",
       "city": "Dorgali",
       "owner_gender": "M",
       "owner_cf": "SPNLSN92L20F979L",
-      "province": "NU",
-      "owner_birth": "1992-07-20",
+      "province": "Nu",
+      "owner_birth": "20/07/1992",
       "region": "Sardegna",
-      "owner_birth_prov": "NU",
+      "owner_birth_prov": "nu",
       "owner_birth_city": "Nuoro"
     }
   ]
