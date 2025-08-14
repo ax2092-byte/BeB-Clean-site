@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
     input.upper { text-transform: uppercase; }
+    .hint { color:#93a0b4; font-size: 13px; }
+    .status-ok { color:#22c55e; font-weight:600; }
+    .status-err { color:#f87171; font-weight:600; }
   </style>
 </head>
 <body>
@@ -22,9 +25,9 @@
 
   <main class="container form-wrap">
     <h1>Collabora con noi</h1>
-    <p class="lead">Per attivare il tuo profilo raccogliamo i dati base e il documento d’identità.</p>
+    <p class="lead">Per attivare il tuo profilo raccogliamo i dati base, i dati di nascita (per il Codice Fiscale) e il documento d’identità.</p>
 
-    <!-- Importante: enctype per file upload -->
+    <!-- enctype multipart per i file -->
     <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field"
           action="/success.html" enctype="multipart/form-data">
       <input type="hidden" name="form-name" value="partner">
@@ -33,10 +36,10 @@
       <h3>Dati personali</h3>
       <div class="grid">
         <label>Nome
-          <input type="text" name="nome" required>
+          <input type="text" name="nome" id="nome" required>
         </label>
         <label>Cognome
-          <input type="text" name="cognome" required>
+          <input type="text" name="cognome" id="cognome" required>
         </label>
         <label>Email
           <input type="email" name="email" required>
@@ -44,8 +47,35 @@
         <label>Telefono
           <input type="tel" name="telefono" required>
         </label>
-        <label>Codice fiscale
-          <input type="text" name="codice_fiscale" class="upper" required minlength="16" maxlength="16" pattern="[A-Za-z0-9]{16}" title="16 caratteri alfanumerici">
+      </div>
+
+      <h3>Dati di nascita (per Codice Fiscale)</h3>
+      <div class="grid">
+        <label>Sesso
+          <select name="sesso" id="sesso" required>
+            <option value="">Seleziona…</option>
+            <option value="M">Maschio</option>
+            <option value="F">Femmina</option>
+          </select>
+        </label>
+        <label>Data di nascita
+          <input type="date" name="data_nascita" id="data_nascita" required>
+        </label>
+        <label>Comune di nascita
+          <input type="text" name="comune_nascita" id="comune_nascita" list="comuni-list" placeholder="Es. Dorgali" required>
+          <datalist id="comuni-list"></datalist>
+          <div class="hint">Se non trovi il comune, inserisci il <b>codice catastale</b> qui sotto.</div>
+        </label>
+        <label>Provincia di nascita (2 lettere)
+          <input type="text" name="prov_nascita" id="prov_nascita" class="upper" maxlength="2" pattern="[A-Za-z]{2}" required>
+        </label>
+        <label>Codice catastale (Belfiore) — alternativa
+          <input type="text" name="cod_catastale_nascita" id="cod_catastale_nascita" class="upper" maxlength="4" pattern="[A-Za-z0-9]{4}" placeholder="Es. D345">
+        </label>
+
+        <label>Codice Fiscale (auto-calcolato)
+          <input type="text" name="codice_fiscale" id="codice_fiscale" class="upper" minlength="16" maxlength="16" readonly required>
+          <div id="cf_status" class="hint"></div>
         </label>
       </div>
 
@@ -87,7 +117,7 @@
       </div>
 
       <h3>Documento d’identità</h3>
-      <p class="muted">Carica foto nitide. Formati accettati: JPG/PNG/PDF. (Consigliato &lt; 10 MB per file)</p>
+      <p class="muted">Carica foto nitide. Formati: JPG/PNG/PDF. (Consigliato &lt; 10 MB per file)</p>
       <div class="grid">
         <label>Tipo documento
           <select name="doc_tipo" id="doc_tipo" required>
