@@ -13,6 +13,7 @@
     <nav>
       <a href="/index.html" class="active">Home</a>
       <a href="/prenota.html" class="btn">Prenota</a>
+      <a href="/annunci.html">Annunci</a>
       <a href="/partner.html">Diventa partner</a>
     </nav>
   </header>
@@ -29,15 +30,23 @@
   <section class="features container">
     <div class="card"><h3>1. Inserisci indirizzo e m²</h3><p>Calcoliamo durata consigliata e il partner più vicino.</p></div>
     <div class="card"><h3>2. Stima trasparente</h3><p>Totale = tariffa × ore + rimborso km. Acconto 10% ora.</p></div>
-    <div class="card"><h3>3. Paghi online</h3><p>Checkout Stripe sicuro per l'acconto. Il resto al partner.</p></div>
+    <div class="card"><h3>3. Paghi online</h3><p>Checkout Stripe sicuro per l'acconto.</p></div>
   </section>
 
   <footer class="container footer">
-    <div>&copy; B&B Clean {year}</div>
+    <div>&copy; B&B Clean <span id="y"></span></div>
     <div class="small">MVP demo — Netlify Forms + Functions</div>
   </footer>
-  <script>
-    document.querySelector('footer').innerHTML = document.querySelector('footer').innerHTML.replace('{year}', new Date().getFullYear());
-  </script>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+
+  <!-- Stub form per registrare il FORM "offerta" su Netlify (non visibile) -->
+  <form name="offerta" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="offerta">
+    <input type="text" name="prenota_id">
+    <input type="email" name="partner_email">
+    <input type="number" name="rate_eur_h">
+    <input type="text" name="note">
+  </form>
 </body>
 </html>
