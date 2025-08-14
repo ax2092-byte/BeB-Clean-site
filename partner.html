@@ -22,12 +22,15 @@
 
   <main class="container form-wrap">
     <h1>Collabora con noi</h1>
-    <p class="lead">Guadagna offrendo servizi di pulizia nella tua zona. Imposta il tuo raggio di lavoro.</p>
+    <p class="lead">Per attivare il tuo profilo raccogliamo i dati base e il documento d’identità.</p>
 
-    <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html">
+    <!-- Importante: enctype per file upload -->
+    <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+          action="/success.html" enctype="multipart/form-data">
       <input type="hidden" name="form-name" value="partner">
       <p class="hidden"><label>Non compilare: <input name="bot-field"></label></p>
 
+      <h3>Dati personali</h3>
       <div class="grid">
         <label>Nome
           <input type="text" name="nome" required>
@@ -41,7 +44,13 @@
         <label>Telefono
           <input type="tel" name="telefono" required>
         </label>
+        <label>Codice fiscale
+          <input type="text" name="codice_fiscale" class="upper" required minlength="16" maxlength="16" pattern="[A-Za-z0-9]{16}" title="16 caratteri alfanumerici">
+        </label>
+      </div>
 
+      <h3>Domicilio (per raggio di lavoro)</h3>
+      <div class="grid">
         <label>Via / Piazza
           <input type="text" name="via" required placeholder="Es. Via dei Rosmarini">
         </label>
@@ -75,12 +84,28 @@
         <label>Tariffa oraria (≥ 8€/h)
           <input type="number" name="tariffa" min="8" step="0.5" value="12" required>
         </label>
-
-        <label class="full">Note
-          <textarea name="note" rows="4"></textarea>
-        </label>
-        <label class="full chk"><input type="checkbox" name="consenso" required> Accetto il trattamento dei dati personali</label>
       </div>
+
+      <h3>Documento d’identità</h3>
+      <p class="muted">Carica foto nitide. Formati accettati: JPG/PNG/PDF. (Consigliato &lt; 10 MB per file)</p>
+      <div class="grid">
+        <label>Fronte documento (CIE/Patente/Passaporto)
+          <input type="file" name="doc_fronte" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+        </label>
+        <label>Retro documento
+          <input type="file" name="doc_retro" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+        </label>
+        <label>Selfie con documento in mano
+          <input type="file" name="selfie_doc" accept=".jpg,.jpeg,.png,image/*" required>
+        </label>
+        <label>Scadenza documento
+          <input type="date" name="doc_scadenza" required>
+        </label>
+      </div>
+
+      <h3>Consensi</h3>
+      <label class="full chk"><input type="checkbox" name="consenso_privacy" required> Dichiaro di aver letto l’informativa privacy e acconsento al trattamento per finalità di verifica identità e attivazione del profilo partner.</label>
+      <label class="full chk"><input type="checkbox" name="dichiarazione_veridicita" required> Dichiaro che i dati e i documenti caricati sono veri e corretti.</label>
 
       <div class="actions">
         <button type="submit" class="btn primary">Invia candidatura</button>
