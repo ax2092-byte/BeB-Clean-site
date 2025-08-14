@@ -3,6 +3,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const form = document.querySelector('form[name="partner"]');
   if (!form) return;
 
+  // placeholder dinamico per il numero documento
+  const tipo = document.getElementById('doc_tipo');
+  const num  = document.getElementById('doc_numero');
+  if (tipo && num){
+    const hints = {
+      CARTA_IDENTITA: 'Es. CA1234567',
+      PASSAPORTO: 'Es. YA1234567',
+      PATENTE: 'Es. B12345678'
+    };
+    const upd = ()=>{ num.placeholder = hints[tipo.value] || 'Es. AA12345'; };
+    tipo.addEventListener('change', upd);
+    upd();
+  }
+
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
@@ -12,8 +26,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       // 1) invia la candidatura a Netlify Forms in multipart (inclusi i file)
       const fd = new FormData(form);
       if (!fd.get('form-name')) fd.set('form-name','partner');
-      const res = await fetch('/', { method:'POST', body: fd });
-      // Netlify risponde con redirect, ma fetch segue: ok se status 200-303
+      await fetch('/', { method:'POST', body: fd });
 
       // 2) notifica via funzione (solo dati testuali principali, senza file)
       try{
@@ -31,6 +44,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
           regione: fd.get('regione'),
           raggio_km: fd.get('raggio'),
           tariffa_eur_h: fd.get('tariffa'),
+          doc_tipo: fd.get('doc_tipo'),
+          doc_numero: fd.get('doc_numero'),
           doc_scadenza: fd.get('doc_scadenza')
         };
         await fetch('/.netlify/functions/notify', {
