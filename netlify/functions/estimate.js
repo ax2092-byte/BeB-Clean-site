@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const path = require('path');
 const fetch = global.fetch;
@@ -24,7 +23,7 @@ exports.handler = async (event) => {
     const key = process.env.ORS_API_KEY;
     if (!key) return { statusCode: 500, body: JSON.stringify({ error: "Missing ORS_API_KEY" }) };
 
-    // geocode client
+    // Geocode cliente
     const geoUrl = `https://api.openrouteservice.org/geocode/search?api_key=${encodeURIComponent(key)}&text=${encodeURIComponent(address)}&boundary.country=IT&size=1`;
     const gres = await fetch(geoUrl);
     const gjs = await gres.json();
@@ -33,25 +32,25 @@ exports.handler = async (event) => {
     const [clon, clat] = feature.geometry.coordinates;
     const client = { lat: clat, lon: clon };
 
-    // load partners
+    // Carica partner
     const pPath = path.join(process.cwd(), 'partners.json');
     let partners = [];
     try{
       const raw = fs.readFileSync(pPath, 'utf-8');
       const js = JSON.parse(raw);
-      partners = js.items || [];
+      partners = (js.items || []).filter(p => p && p.active !== false);
     }catch(_){}
 
-    partners = partners.filter(p => p && p.active !== false);
     if (partners.length === 0){
       return { statusCode: 200, headers: { "Access-Control-Allow-Origin": "*" }, body: JSON.stringify({
-        note: "Nessun partner configurato. Aggiungi partner in partners.json",
+        note: "Nessun partner configurato.",
         partner_rate_eur_h: 12,
-        distance_km: 0
+        distance_km: 0,
+        client
       })};
     }
 
-    // geocode partner if missing
+    // Geocode partner mancanti
     for (const p of partners){
       if ((!p.lat || !p.lon) && p.address){
         try{
@@ -65,33 +64,34 @@ exports.handler = async (event) => {
       }
     }
 
-    // prefilter by haversine within radius
+    // Prefiltro: entro raggio con Haversine
     const candidates = partners.map(p => {
       if (!p.lat || !p.lon) return null;
-      const dist = haversineKm(client, {lat: p.lat, lon: p.lon});
+      const hav = haversineKm(client, { lat: p.lat, lon: p.lon });
       const radius = Number(p.radius_km || 25);
-      return { p, hav_km: dist, within: dist <= radius };
+      return { p, hav_km: hav, within: hav <= radius };
     }).filter(x => x && x.within);
 
     if (candidates.length === 0){
       return { statusCode: 200, headers: { "Access-Control-Allow-Origin": "*" }, body: JSON.stringify({
         note: "Nessun partner nel raggio selezionato.",
         partner_rate_eur_h: 12,
-        distance_km: 0
+        distance_km: 0,
+        client
       })};
     }
 
-    // 3 nearest by haversine -> compute routing
+    // Prendi le 3 più vicine con Haversine, poi routing reale
     candidates.sort((a,b)=>a.hav_km - b.hav_km);
     const top = candidates.slice(0, Math.min(3, candidates.length));
 
-    async function routeKm(p){
+    async function routeKm(from, to){
       try{
         const url = `https://api.openrouteservice.org/v2/directions/driving-car`;
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": key },
-          body: JSON.stringify({ coordinates: [[p.lon, p.lat], [client.lon, client.lat]] })
+          body: JSON.stringify({ coordinates: [[from.lon, from.lat], [to.lon, to.lat]] })
         });
         const data = await res.json();
         const sum = data.routes && data.routes[0] && data.routes[0].summary;
@@ -101,13 +101,24 @@ exports.handler = async (event) => {
 
     const routes = [];
     for (const t of top){
-      const km = await routeKm(t.p);
-      routes.push({ partner: t.p, km });
+      const km = await routeKm({lat:t.p.lat, lon:t.p.lon}, client);
+      if (km <= (Number(t.p.radius_km || 25) + 0.1)) {
+        routes.push({ partner: t.p, km });
+      }
     }
+    if (routes.length === 0){
+      return { statusCode: 200, headers: { "Access-Control-Allow-Origin": "*" }, body: JSON.stringify({
+        note: "Nessun partner nel raggio (su strada).",
+        partner_rate_eur_h: 12,
+        distance_km: 0,
+        client
+      })};
+    }
+
     routes.sort((a,b)=>a.km - b.km);
     const best = routes[0];
-
     const rate = Math.max(8, Number(best.partner.rate_eur_h || 12));
+
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },
@@ -115,7 +126,8 @@ exports.handler = async (event) => {
         partner_id: best.partner.id || null,
         partner_rate_eur_h: rate,
         distance_km: best.km,
-        note: `Partner selezionato entro il raggio: ${Math.round(best.km)} km`
+        note: `Partner selezionato: ~${Math.round(best.km)} km`,
+        client
       })
     };
   } catch (e) {
