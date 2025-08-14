@@ -1,9 +1,9 @@
-// assets/js/partner.js — CF auto, dataset comuni "leggero" auto-costruito, upload file, notifica email
+// assets/js/partner.js — CF auto SENZA codice catastale manuale, usa dataset comuni, upload file, notifica email
 document.addEventListener('DOMContentLoaded', ()=>{
   const form = document.querySelector('form[name="partner"]');
   if (!form) return;
 
-  // ---------------- Hints numero documento ----------------
+  // --------- Hints numero documento ---------
   const tipo = document.getElementById('doc_tipo');
   const num  = document.getElementById('doc_numero');
   if (tipo && num){
@@ -16,12 +16,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     tipo.addEventListener('change', upd); upd();
   }
 
-  // ---------------- Dataset Comuni (leggero) ----------------
-  // Struttura voluta: [{ nome:"DORGALI", provincia:"NU", codice:"D345" }, ...]
+  // --------- Dataset Comuni (leggero) ---------
+  // Struttura: [{ nome:"DORGALI", provincia:"NU", codice:"D345" }, ...]
   let COMUNI = [];
 
   async function loadComuni(){
-    // 1) cache locale (se recente)
+    // cache locale
     try{
       const cache = JSON.parse(localStorage.getItem('COMUNI_MIN') || '{}');
       if (cache && Array.isArray(cache.items) && cache.items.length > 0) {
@@ -30,13 +30,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }
     }catch(_){}
 
-    // 2) prova file locale del sito (se un giorno carichi assets/data/comuni.json)
+    // 1) file locale assets/data/comuni.json (preferito)
     try{
       const r = await fetch('/assets/data/comuni.json', { cache:'no-store' });
       if (r.ok){
-        COMUNI = await r.json();
-        // normalizza maiuscolo
-        COMUNI = (COMUNI||[]).map(c=>({
+        const js = await r.json();
+        COMUNI = (js||[]).map(c=>({
           nome: String(c.nome||'').toUpperCase(),
           provincia: String(c.provincia||'').toUpperCase(),
           codice: String(c.codice||'').toUpperCase()
@@ -46,16 +45,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }
     }catch(_){}
 
-    // 3) fallback: scarica dataset pubblico (comuni-json, 2020) e riduci ai campi minimi
+    // 2) fallback pubblico (se manca il file locale)
     try{
       const r = await fetch('https://raw.githubusercontent.com/matteocontrini/comuni-json/master/comuni.json', { cache:'no-store' });
-      const big = await r.json(); // contiene: nome, sigla (prov), codiceCatastale, ecc.
+      const big = await r.json();
       const map = Object.create(null);
       (big||[]).forEach(x=>{
         const nome = String(x.nome||'').toUpperCase();
         const provincia = String(x.sigla||'').toUpperCase();
         const codice = String(x.codiceCatastale||'').toUpperCase();
-        if (nome && provincia && codice) map[codice] = { nome, provincia, codice }; // de-duplica per codice
+        if (nome && provincia && codice) map[codice] = { nome, provincia, codice };
       });
       COMUNI = Object.values(map);
       localStorage.setItem('COMUNI_MIN', JSON.stringify({ ts: Date.now(), items: COMUNI }));
@@ -64,11 +63,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   }
 
-  // datalist per l’autocomplete del comune di nascita
+  // --------- Autocomplete comune di nascita ---------
   const dl = document.getElementById('comuni-list');
   const comN = document.getElementById('comune_nascita');
   const provN = document.getElementById('prov_nascita');
-  const codCat = document.getElementById('cod_catastale_nascita');
 
   function populateDatalist(query){
     if (!dl) return;
@@ -87,17 +85,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if (comN){
     comN.addEventListener('input', ()=>{
       populateDatalist(comN.value);
+      // se match esatto di nome, compila provincia automaticamente (se esiste una sola occorrenza)
       const q = (comN.value||'').toUpperCase().trim();
-      const hit = COMUNI.find(c => c.nome === q);
-      if (hit){
-        provN.value = hit.provincia;
-        codCat.value = hit.codice;
+      const matches = COMUNI.filter(c => c.nome === q);
+      if (matches.length === 1){
+        provN.value = matches[0].provincia;
       }
       computeCF();
     });
   }
 
-  // ---------------- Calcolo Codice Fiscale ----------------
+  // --------- Calcolo Codice Fiscale ---------
   const nome = document.getElementById('nome');
   const cognome = document.getElementById('cognome');
   const sesso = document.getElementById('sesso');
@@ -105,7 +103,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const cf = document.getElementById('codice_fiscale');
   const cfStatus = document.getElementById('cf_status');
 
-  [nome, cognome, sesso, dataN, provN, codCat].forEach(el=>{
+  [nome, cognome, sesso, dataN, provN].forEach(el=>{
     if (el) el.addEventListener('input', computeCF);
   });
 
@@ -164,37 +162,44 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const C = (cognome.value||'').trim();
     const S = (sesso.value||'').trim();
     const D = (dataN.value||'').trim();
-    let CAT = (codCat.value||'').toUpperCase().trim();
+    const comune = (comN.value||'').toUpperCase().trim();
+    const prov = (provN.value||'').toUpperCase().trim();
 
-    if (!N || !C || !S || !D || (!CAT && !(comN.value && provN.value))) {
+    if (!N || !C || !S || !D || !comune || !prov) {
       cf.value = '';
       return;
     }
 
-    // se non c'è catastale ma c'è Comune+Provincia, ricava dal dataset
-    if (!CAT && COMUNI.length){
-      const q = (comN.value||'').toUpperCase().trim();
-      const hit = COMUNI.find(c => c.nome === q && c.provincia === (provN.value||'').toUpperCase().trim());
-      if (hit) CAT = hit.codice;
-    }
-    if (!CAT || CAT.length !== 4){
+    if (!COMUNI || COMUNI.length === 0){
       cf.value = '';
-      cfStatus.innerHTML = '<span class="status-err">Inserisci il codice catastale (4 caratteri) o scegli il comune dalla lista.</span>';
+      cfStatus.innerHTML = '<span class="status-err">Caricamento comuni… riprova tra un attimo.</span>';
       return;
     }
 
-    const c15 = (codeSurname(C) + codeName(N) + codeDate(D,S) + CAT).toUpperCase();
+    // Cerca per (comune, provincia); se non trovato, prova comune unico senza provincia.
+    let hit = COMUNI.find(c => c.nome === comune && c.provincia === prov);
+    if (!hit){
+      const sameName = COMUNI.filter(c => c.nome === comune);
+      if (sameName.length === 1) hit = sameName[0];
+    }
+    if (!hit){
+      cf.value = '';
+      cfStatus.innerHTML = '<span class="status-err">Seleziona un comune valido (e provincia corretta) dalla lista.</span>';
+      return;
+    }
+
+    const c15 = (codeSurname(C) + codeName(N) + codeDate(D,S) + hit.codice).toUpperCase();
     const ctrl = cfControl(c15);
     if (!ctrl){
       cf.value = '';
-      cfStatus.innerHTML = '<span class="status-err">Dati insufficienti o non validi.</span>';
+      cfStatus.innerHTML = '<span class="status-err">Dati non validi per il CF.</span>';
       return;
     }
     cf.value = c15 + ctrl;
     cfStatus.innerHTML = '<span class="status-ok">Codice Fiscale generato.</span>';
   }
 
-  // ---------------- INVIO FORM (multipart a Netlify + notifica) ----------------
+  // --------- INVIO FORM (multipart a Netlify + notifica via funzione) ---------
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
@@ -202,7 +207,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     computeCF();
     if (!cf.value || cf.value.length !== 16){
-      alert('Completa i dati di nascita e seleziona il comune (o inserisci il codice catastale) per generare il Codice Fiscale.');
+      alert('Completa i dati di nascita e seleziona un comune valido per generare il Codice Fiscale.');
       if (btn){ btn.disabled = false; btn.textContent = 'Invia candidatura'; }
       return;
     }
@@ -251,6 +256,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   });
 
-  // kick-off: carica dataset e poi attiva autocomplete/CF
-  loadComuni().then(()=>{ /* pronto */ });
+  // avvia caricamento comuni
+  loadComuni().then(()=>{/* ok */});
 });
