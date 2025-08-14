@@ -62,15 +62,12 @@
           <input type="date" name="data_nascita" id="data_nascita" required>
         </label>
         <label>Comune di nascita
-          <input type="text" name="comune_nascita" id="comune_nascita" list="comuni-list" placeholder="Es. Dorgali" required>
+          <input type="text" name="comune_nascita" id="comune_nascita" list="comuni-list" placeholder="Es. DORGALI" required>
           <datalist id="comuni-list"></datalist>
-          <div class="hint">Se non trovi il comune, inserisci il <b>codice catastale</b> qui sotto.</div>
+          <div class="hint">Seleziona il comune dall’elenco a discesa.</div>
         </label>
         <label>Provincia di nascita (2 lettere)
           <input type="text" name="prov_nascita" id="prov_nascita" class="upper" maxlength="2" pattern="[A-Za-z]{2}" required>
-        </label>
-        <label>Codice catastale (Belfiore) — alternativa
-          <input type="text" name="cod_catastale_nascita" id="cod_catastale_nascita" class="upper" maxlength="4" pattern="[A-Za-z0-9]{4}" placeholder="Es. D345">
         </label>
 
         <label>Codice Fiscale (auto-calcolato)
