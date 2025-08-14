@@ -41,7 +41,7 @@
 
   <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 
-  <!-- Stub form per registrare "offerta" (Netlify Forms) -->
+  <!-- Stub: offerta -->
   <form name="offerta" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
     <input type="hidden" name="form-name" value="offerta">
     <input type="text" name="prenota_id">
@@ -50,7 +50,7 @@
     <input type="text" name="note">
   </form>
 
-  <!-- Stub form per registrare "assegnazione" (Netlify Forms) -->
+  <!-- Stub: assegnazione -->
   <form name="assegnazione" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
     <input type="hidden" name="form-name" value="assegnazione">
     <input type="text" name="prenota_id">
@@ -59,6 +59,16 @@
     <input type="text" name="customer_name">
     <input type="text" name="address">
     <input type="text" name="data_ora">
+  </form>
+
+  <!-- Stub: decisione KYC -->
+  <form name="kyc_decision" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="kyc_decision">
+    <input type="email" name="email">
+    <input type="text" name="name">
+    <input type="text" name="decision">
+    <input type="text" name="reasons">
+    <input type="text" name="note">
   </form>
 </body>
 </html>
