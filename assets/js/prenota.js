@@ -1,4 +1,4 @@
-// assets/js/prenota.js — stima + mappa + redirect Stripe
+// assets/js/prenota.js — stima + mappa + notify email + redirect Stripe
 const euro = v => (v===null||isNaN(v)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v);
 
 // valori caricati da settings.json (fallback se non disponibile)
@@ -22,7 +22,7 @@ function indirizzoCompleto(){
   const cap = (document.getElementById('cap').value || '').trim();
   const ind = (document.getElementById('indirizzo').value || '').trim();
   if (!reg || !cit || !ind || !/^\d{5}$/.test(cap)) return null;
-  return `${ind}, ${cit} ${cap}, ${reg}, Italia`; // ordine preferito ORS
+  return `${ind}, ${cit} ${cap}, ${reg}, Italia`;
 }
 let debounceId = null;
 const debounce = (fn, ms=450) => { clearTimeout(debounceId); debounceId = setTimeout(fn, ms); };
@@ -116,10 +116,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if (!est){ alert('Completa i campi per calcolare la stima.'); if (btn){ btn.disabled=false; btn.textContent='Conferma & paga acconto'; } return; }
 
     try{
+      // 1) registra la submission su Netlify Forms
       const fd = new FormData(form);
-      const body = new URLSearchParams(fd).toString();
-      await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
+      const formObj = Object.fromEntries(fd.entries());
+      const bodyEncoded = new URLSearchParams(fd).toString();
+      await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: bodyEncoded });
 
+      // 2) manda email di notifica via funzione notify (non blocca il flusso se fallisce)
+      try{
+        await fetch('/.netlify/functions/notify', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ type:'booking', data: formObj, estimate: est })
+        });
+      }catch(_){}
+
+      // 3) crea sessione Stripe e vai al checkout
       const r = await fetch('/.netlify/functions/checkout', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
