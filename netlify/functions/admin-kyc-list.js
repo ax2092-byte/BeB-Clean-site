@@ -29,7 +29,6 @@ exports.handler = async (event) => {
       .filter(s => new Date(s.created_at).getTime() >= cutoff)
       .map(s=>{
         const d = s.data || {};
-        // file upload: Netlify API espone spesso s.files (array con url) — fallback ai campi modulo.
         const files = [];
         if (Array.isArray(s.files)) {
           s.files.forEach(f => { if (f && f.url) files.push({ name: f.name || 'file', url: f.url }); });
@@ -49,6 +48,8 @@ exports.handler = async (event) => {
           address: `${d['via']||''} ${d['civico']||''}, ${d['cap']||''} ${d['citta']||''} (${d['provincia']||''}), ${d['regione']||''}`,
           raggio_km: d['raggio'] || '',
           tariffa: d['tariffa'] || '',
+          doc_tipo: d['doc_tipo'] || '',
+          doc_numero: d['doc_numero'] || '',
           doc_scadenza: d['doc_scadenza'] || '',
           files
         };
