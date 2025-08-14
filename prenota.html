@@ -9,9 +9,7 @@
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <style>
-    #map { height: 220px; border-radius: 12px; margin: 10px 0 18px; }
-  </style>
+  <style>#map{height:220px;border-radius:12px;margin:10px 0 18px}</style>
 </head>
 <body>
   <header class="container nav">
@@ -38,9 +36,7 @@
 
     <form name="prenota" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html" id="bookForm">
       <input type="hidden" name="form-name" value="prenota">
-      <p class="hidden">
-        <label>Non compilare: <input name="bot-field"></label>
-      </p>
+      <p class="hidden"><label>Non compilare: <input name="bot-field"></label></p>
 
       <div class="grid">
         <label>Nome e Cognome
@@ -74,7 +70,7 @@
           <input type="text" name="citta" id="citta" required>
         </label>
         <label>CAP
-          <input type="text" name="cap" id="cap" required pattern="\\d{5}" title="5 cifre">
+          <input type="text" name="cap" id="cap" required inputmode="numeric" maxlength="5" pattern="[0-9]{5}" title="5 cifre (es. 08022)">
         </label>
         <label>Via e numero civico
           <input type="text" name="indirizzo" id="indirizzo" required placeholder="Es. Via Roma 10">
