@@ -10,26 +10,43 @@ collections:
     label: "Impostazioni"
     files:
       - file: "settings.json"
-        label: "Impostazioni sito"
+        label: "Impostazioni generali"
         name: "settings"
         fields:
-          - {label: "Telefono WhatsApp (internazionale, es. 39345...)", name: "whatsapp_phone", widget: "string", default: "" }
-          - {label: "Tariffa partner €/h", name: "partner_hourly", widget: "number", value_type: "float", step: 0.1, default: 14.2}
-          - {label: "Tariffa cliente €/h", name: "client_hourly", widget: "number", value_type: "float", step: 0.1, default: 22}
-  - name: "houses"
-    label: "Case"
+          - { label: "Tariffa standard (€/h)", name: "base_hourly_default", widget: "number", value_type: "float", min: 8, step: 0.5, default: 12 }
+          - { label: "m² per 1 ora", name: "m2_per_hour", widget: "number", value_type: "int", min: 10, max: 200, step: 1, default: 35 }
+          - { label: "Finestra offerte (ore)", name: "bid_window_hours", widget: "number", value_type: "int", min: 1, max: 72, step: 1, default: 12 }
+          - { label: "Max offerte", name: "max_offers", widget: "number", value_type: "int", min: 1, max: 20, step: 1, default: 5 }
+          - { label: "Email notifiche (prenotazioni/partner)", name: "notify_email", widget: "string", default: "alessandrospanu92@gmail.com" }
+
+  - name: "partners"
+    label: "Partner"
     files:
-      - file: "houses.json"
-        label: "Elenco Case"
-        name: "houses"
+      - file: "partners.json"
+        label: "Elenco Partner"
+        name: "partners"
         fields:
-          - label: "Case"
+          - label: "Partner"
             name: "items"
             widget: "list"
-            summary: "{{fields.code}} — {{fields.city}} (M: {{fields.median_hours}}h)"
+            summary: "{{fields.name}} — {{fields.address.city}} (raggio {{fields.radius_km}} km, €{{fields.rate_eur_h}}/h)"
             fields:
-              - {label: "Codice casa", name: "code", widget: "string"}
-              - {label: "Indirizzo", name: "address", widget: "string"}
-              - {label: "Città", name: "city", widget: "string"}
-              - {label: "CAP", name: "zip", widget: "string"}
-              - {label: "Mediana ore (M)", name: "median_hours", widget: "number", value_type: "float", step: 0.25, default: 1}
+              - { label: "ID (facoltativo)", name: "id", widget: "string", required: false }
+              - { label: "Nome e cognome", name: "name", widget: "string", required: true }
+              - { label: "Email", name: "email", widget: "string", required: true }
+              - { label: "Telefono", name: "phone", widget: "string", required: true }
+              - label: "Indirizzo (domicilio)"
+                name: "address"
+                widget: "object"
+                fields:
+                  - { label: "Via/Piazza", name: "street", widget: "string", required: true }
+                  - { label: "Civico", name: "number", widget: "string", required: true }
+                  - { label: "CAP", name: "zip", widget: "string", required: true, pattern: ["^\\d{5}$", "Inserisci 5 cifre"] }
+                  - { label: "Città", name: "city", widget: "string", required: true }
+                  - { label: "Provincia (2 lettere)", name: "province", widget: "string", required: true }
+                  - { label: "Regione", name: "region", widget: "string", required: true }
+              - { label: "Raggio di lavoro (km)", name: "radius_km", widget: "number", value_type: "int", min: 5, max: 200, step: 1, default: 25 }
+              - { label: "Tariffa oraria (€/h, min 8)", name: "rate_eur_h", widget: "number", value_type: "float", min: 8, step: 0.5, default: 12 }
+              - { label: "Attivo", name: "active", widget: "boolean", default: true }
+              - { label: "Latitudine (auto)", name: "lat", widget: "number", required: false }
+              - { label: "Longitudine (auto)", name: "lon", widget: "number", required: false }
