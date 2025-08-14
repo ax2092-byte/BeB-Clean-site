@@ -18,6 +18,8 @@
     .offer{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{border:1px solid #2b3a5f;border-radius:999px;padding:4px 10px;font-size:12px;color:#9fb0ca}
     .warn{color:#fca5a5}
+    .h2like{margin-top:28px;margin-bottom:10px;font-size:18px;font-weight:700}
+    .files a{display:inline-block;margin-right:8px}
   </style>
 </head>
 <body>
@@ -32,7 +34,7 @@
 
   <main class="container form-wrap">
     <h1>Dashboard amministratore</h1>
-    <p class="lead">Vedi prenotazioni, offerte e assegna il partner.</p>
+    <p class="lead">Vedi prenotazioni, offerte e gestisci le candidature partner.</p>
 
     <div class="adminbar">
       <input type="password" id="adm" placeholder="Admin key">
@@ -41,7 +43,11 @@
       <span class="muted" id="stat">—</span>
     </div>
 
+    <div class="h2like">Prenotazioni & Offerte</div>
     <div class="cards" id="cards"></div>
+
+    <div class="h2like">Candidature partner (con documenti)</div>
+    <div class="cards" id="kyc"></div>
   </main>
 
   <footer class="container footer">
