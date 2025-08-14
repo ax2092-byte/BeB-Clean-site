@@ -14,6 +14,7 @@
       <a href="/index.html" class="active">Home</a>
       <a href="/prenota.html" class="btn">Prenota</a>
       <a href="/annunci.html">Annunci</a>
+      <a href="/dashboard.html">Dashboard</a>
       <a href="/partner.html">Diventa partner</a>
     </nav>
   </header>
@@ -40,13 +41,24 @@
 
   <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 
-  <!-- Stub form per registrare il FORM "offerta" su Netlify (non visibile) -->
+  <!-- Stub form per registrare "offerta" (Netlify Forms) -->
   <form name="offerta" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
     <input type="hidden" name="form-name" value="offerta">
     <input type="text" name="prenota_id">
     <input type="email" name="partner_email">
     <input type="number" name="rate_eur_h">
     <input type="text" name="note">
+  </form>
+
+  <!-- Stub form per registrare "assegnazione" (Netlify Forms) -->
+  <form name="assegnazione" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="assegnazione">
+    <input type="text" name="prenota_id">
+    <input type="email" name="partner_email">
+    <input type="text" name="partner_name">
+    <input type="text" name="customer_name">
+    <input type="text" name="address">
+    <input type="text" name="data_ora">
   </form>
 </body>
 </html>
