@@ -21,7 +21,7 @@ function indirizzoCompleto(){
   const cit = (document.getElementById('citta').value || '').trim();
   const cap = (document.getElementById('cap').value || '').trim();
   const ind = (document.getElementById('indirizzo').value || '').trim();
-  if (!reg || !cit || !ind || !/^\d{5}$/.test(cap)) return null;
+  if (!reg || !cit || !ind || !/^[0-9]{5}$/.test(cap)) return null;
   return `${ind}, ${cit} ${cap}, ${reg}, Italia`;
 }
 let debounceId = null;
@@ -88,19 +88,21 @@ async function stimaTotale(){
 document.addEventListener('DOMContentLoaded', ()=>{
   const mqEl = document.getElementById('mq');
   const durataEl = document.getElementById('durata');
-  let durataModificata = false;
 
+  // Aggiorna SEMPRE la durata quando cambiano i m²
   mqEl.addEventListener('input', ()=>{
     const m = numVal('mq') ?? 0;
-    if (!durataModificata){
-      const d = durataConsigliata(m);
-      if (Number.isFinite(d)) durataEl.value = d;
-    }
+    const d = durataConsigliata(m);
+    if (Number.isFinite(d)) durataEl.value = d;
     debounce(stimaTotale);
   });
+
+  // Se cambi le ore manualmente, ricalcolo comunque la stima
   ['input','change'].forEach(evt=>{
-    durataEl.addEventListener(evt, ()=>{ durataModificata = true; debounce(stimaTotale); });
+    durataEl.addEventListener(evt, ()=>{ debounce(stimaTotale); });
   });
+
+  // ricalcolo quando compili indirizzo / CAP / città / regione
   ['regione','citta','cap','indirizzo'].forEach(id=>{
     const el = document.getElementById(id);
     ['input','change'].forEach(evt=> el.addEventListener(evt, ()=>debounce(stimaTotale)));
@@ -122,7 +124,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const bodyEncoded = new URLSearchParams(fd).toString();
       await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: bodyEncoded });
 
-      // 2) manda email di notifica via funzione notify (non blocca il flusso se fallisce)
+      // 2) notifica via funzione (non blocca se fallisce)
       try{
         await fetch('/.netlify/functions/notify', {
           method:'POST',
