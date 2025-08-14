@@ -1,1 +1,7 @@
-{ "whatsapp_phone": "", "partner_hourly": 14.2, "client_hourly": 22 }
+{
+  "base_hourly_default": 12,
+  "m2_per_hour": 35,
+  "bid_window_hours": 12,
+  "max_offers": 5,
+  "notify_email": "alessandrospanu92@gmail.com"
+}
