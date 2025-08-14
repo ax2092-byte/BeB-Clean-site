@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test notify</title>
+  <style>
+    body { font-family: system-ui, Arial; padding: 24px; }
+    button { padding: 10px 16px; font-size: 16px; }
+    pre { background:#f6f8fa; padding:12px; border-radius:8px; white-space:pre-wrap }
+  </style>
+</head>
+<body>
+  <h1>Test invio email (Resend)</h1>
+  <p>Clicca il bottone: chiamerà <code>/.netlify/functions/notify</code> e mostrerà la risposta.</p>
+
+  <button id="btn">Invia email di prova</button>
+  <pre id="out">In attesa…</pre>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const out = document.getElementById('out');
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; out.textContent = 'Invio…';
+      try {
+        const res = await fetch('/.netlify/functions/notify', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            type:'partner',
+            data:{ nome:'TEST', email:'test@example.com', messaggio:'prova' }
+          })
+        });
+        const text = await res.text();
+        out.textContent = `HTTP ${res.status}:\n${text}`;
+      } catch (e) {
+        out.textContent = 'Errore: ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
