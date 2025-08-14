@@ -14,7 +14,7 @@
       },
       "lat": null,
       "lon": null,
-      "radius_km": 25,
+      "radius_km": 250,
       "rate_eur_h": 12,
       "active": true
     }
