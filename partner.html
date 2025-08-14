@@ -6,6 +6,9 @@
   <title>Diventa partner — B&B Clean</title>
   <link rel="icon" href="/favicon.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    input.upper { text-transform: uppercase; }
+  </style>
 </head>
 <body>
   <header class="container nav">
@@ -23,9 +26,7 @@
 
     <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html">
       <input type="hidden" name="form-name" value="partner">
-      <p class="hidden">
-        <label>Non compilare: <input name="bot-field"></label>
-      </p>
+      <p class="hidden"><label>Non compilare: <input name="bot-field"></label></p>
 
       <div class="grid">
         <label>Nome
@@ -41,9 +42,32 @@
           <input type="tel" name="telefono" required>
         </label>
 
-        <label>Indirizzo domicilio
-          <input type="text" name="domicilio" placeholder="Via e numero civico, CAP, città, provincia" required>
+        <label>Via / Piazza
+          <input type="text" name="via" required placeholder="Es. Via dei Rosmarini">
         </label>
+        <label>Numero civico
+          <input type="text" name="civico" required placeholder="Es. 17">
+        </label>
+        <label>CAP
+          <input type="text" name="cap" required inputmode="numeric" maxlength="5" pattern="[0-9]{5}" title="Inserisci 5 cifre (es. 08022)" placeholder="Es. 08022">
+        </label>
+        <label>Città
+          <input type="text" name="citta" required>
+        </label>
+        <label>Provincia (2 lettere)
+          <input type="text" name="provincia" class="upper" required maxlength="2" pattern="[A-Za-z]{2}" title="Es. NU">
+        </label>
+        <label>Regione
+          <select name="regione" required>
+            <option value="">Seleziona…</option>
+            <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
+            <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
+            <option>Lombardia</option><option>Marche</option><option>Molise</option><option>Piemonte</option>
+            <option>Puglia</option><option>Sardegna</option><option>Sicilia</option><option>Toscana</option>
+            <option>Trentino-Alto Adige</option><option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
+          </select>
+        </label>
+
         <label>Raggio di lavoro (km)
           <input type="range" name="raggio" min="5" max="200" value="25" oninput="raggioOut.textContent=this.value">
           <div>Raggio selezionato: <strong id="raggioOut">25</strong> km</div>
@@ -67,5 +91,7 @@
   <footer class="container footer">
     <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
   </footer>
+
+  <script src="/assets/js/partner.js"></script>
 </body>
 </html>
