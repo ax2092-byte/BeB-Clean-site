@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Annunci — B&B Clean</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    .filter {display:flex; gap:8px; align-items:center; margin:10px 0 18px}
+    .list {display:grid; gap:12px}
+    .ann {background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px}
+    .row {display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+    .muted {color:#93a0b4}
+    .bid {display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px}
+    input, select, textarea {background:#0b1526; border:1px solid #1f2a44; border-radius:10px; padding:10px; color:#e2e8f0;}
+    .btn{display:inline-block;padding:10px 16px;border-radius:10px;border:1px solid #263248;text-decoration:none;color:#e2e8f0;}
+    .btn.primary{background:#22c55e;color:#05121f;border-color:transparent;font-weight:700}
+  </style>
+</head>
+<body>
+  <header class="container nav">
+    <div class="logo">B&amp;B <span>Clean</span></div>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/prenota.html">Prenota</a>
+      <a href="/annunci.html" class="active">Annunci</a>
+      <a href="/partner.html">Diventa partner</a>
+    </nav>
+  </header>
+
+  <main class="container form-wrap">
+    <h1>Annunci disponibili</h1>
+    <p class="lead">Inserisci la tua email (quella usata in partner) per vedere gli annunci nel tuo raggio.</p>
+
+    <div class="filter">
+      <input type="email" id="email" placeholder="la-tua-email@esempio.it" style="min-width:280px">
+      <button class="btn primary" id="carica">Carica annunci</button>
+      <span class="muted" id="info"></span>
+    </div>
+
+    <div class="list" id="lista"></div>
+  </main>
+
+  <footer class="container footer">
+    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
+  </footer>
+
+  <script src="/assets/js/annunci.js"></script>
+</body>
+</html>
