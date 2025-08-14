@@ -73,7 +73,7 @@ async function loadBookings(key, days){
               partner_name: of.partner_name || ''
             });
             alert('Assegnazione registrata e email inviate.');
-            loadAll(); // ricarica tutto
+            loadAll();
           }catch(e){
             alert(e.message);
             btn.disabled = false; btn.textContent = 'Assegna';
@@ -99,6 +99,10 @@ async function loadKyc(key, days){
       const card = document.createElement('div');
       card.className = 'cardx';
       const files = (p.files||[]).map(f=> `<a href="${f.url}" target="_blank" rel="noopener">${f.name||'file'}</a>`).join(' ');
+      let humanTipo = p.doc_tipo || '';
+      if (humanTipo === 'CARTA_IDENTITA') humanTipo = "Carta d'identità";
+      if (humanTipo === 'PASSAPORTO') humanTipo = "Passaporto";
+      if (humanTipo === 'PATENTE') humanTipo = "Patente";
       card.innerHTML = `
         <div class="row">
           <div><b>${p.nome || '(nome mancante)'}</b> — ${p.email || ''}<br>
@@ -106,10 +110,12 @@ async function loadKyc(key, days){
           <div><span class="pill">Raggio: ${p.raggio_km||'?'} km</span> <span class="pill">Tariffa: € ${Number(p.tariffa||0).toFixed(2)}/h</span></div>
         </div>
         <div class="row" style="margin-top:6px">
-          <div class="pill">CF ${p.codice_fiscale || ''}</div>
-          <div class="pill">Doc scadenza ${p.doc_scadenza || ''}</div>
-          <div class="files">${files || '<span class="muted">Nessun file allegato.</span>'}</div>
+          <div class="pill">Doc: ${humanTipo || '—'}</div>
+          <div class="pill">N°: ${p.doc_numero || '—'}</div>
+          <div class="pill">Scadenza: ${p.doc_scadenza || '—'}</div>
+          <div class="pill">CF: ${p.codice_fiscale || '—'}</div>
         </div>
+        <div class="row files" style="margin-top:6px">${files || '<span class="muted">Nessun file allegato.</span>'}</div>
         <div class="muted" style="margin-top:6px">Ricevuta il ${new Date(p.created_at).toLocaleString('it-IT')}</div>
         <div class="muted" style="margin-top:6px">Dopo verifica, attiva il partner in <b>/admin → Partner</b> (campo <i>Attivo</i>).</div>
       `;
