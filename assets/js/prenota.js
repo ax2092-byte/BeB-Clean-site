@@ -111,4 +111,36 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const form = document.getElementById('bookForm');
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    const btn = document.getElementByI
+    const btn = document.getElementById('payBtn');
+    if (btn){ btn.disabled = true; btn.textContent = 'Attendi…'; }
+
+    const est = window.__lastEstimate;
+    if (!est){ alert('Completa i campi per calcolare la stima.'); if (btn){ btn.disabled=false; btn.textContent='Conferma & paga acconto'; } return; }
+
+    try{
+      // registra la submission su Netlify Forms
+      const fd = new FormData(form);
+      const body = new URLSearchParams(fd).toString();
+      await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
+
+      // crea sessione Stripe e vai al checkout
+      const r = await fetch('/.netlify/functions/checkout', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          acconto_eur: est.acconto,
+          meta: { durata_ore: est.durata, km: est.km, address: est.address }
+        })
+      });
+      const js = await r.json();
+      if (!r.ok || !js.url) throw new Error((js && js.error) || 'Errore checkout');
+      window.location.href = js.url;
+    }catch(err){
+      alert('Pagamento non avviato. Riprova.');
+      if (btn){ btn.disabled=false; btn.textContent='Conferma & paga acconto'; }
+    }
+  });
+
+  // prima stima (se già compilati)
+  debounce(stimaTotale, 0);
+});
