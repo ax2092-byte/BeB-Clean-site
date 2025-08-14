@@ -52,7 +52,7 @@
       <h3>Domicilio (per raggio di lavoro)</h3>
       <div class="grid">
         <label>Via / Piazza
-          <input type="text" name="via" required placeholder="Es. Via dei Rosmarini">
+          <input type="text" name="via" required placeholder="Es. VIA DEI ROSMARINI">
         </label>
         <label>Numero civico
           <input type="text" name="civico" required placeholder="Es. 17">
@@ -89,6 +89,24 @@
       <h3>Documento d’identità</h3>
       <p class="muted">Carica foto nitide. Formati accettati: JPG/PNG/PDF. (Consigliato &lt; 10 MB per file)</p>
       <div class="grid">
+        <label>Tipo documento
+          <select name="doc_tipo" id="doc_tipo" required>
+            <option value="">Seleziona…</option>
+            <option value="CARTA_IDENTITA">Carta d'identità (CIE)</option>
+            <option value="PASSAPORTO">Passaporto</option>
+            <option value="PATENTE">Patente</option>
+            <option value="ALTRO">Altro</option>
+          </select>
+        </label>
+        <label>Numero documento
+          <input type="text" name="doc_numero" id="doc_numero" class="upper" required
+                 pattern="[A-Za-z0-9]{5,20}" maxlength="20"
+                 title="Inserisci 5–20 caratteri alfanumerici">
+        </label>
+        <label>Scadenza documento
+          <input type="date" name="doc_scadenza" required>
+        </label>
+
         <label>Fronte documento (CIE/Patente/Passaporto)
           <input type="file" name="doc_fronte" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
         </label>
@@ -97,9 +115,6 @@
         </label>
         <label>Selfie con documento in mano
           <input type="file" name="selfie_doc" accept=".jpg,.jpeg,.png,image/*" required>
-        </label>
-        <label>Scadenza documento
-          <input type="date" name="doc_scadenza" required>
         </label>
       </div>
 
