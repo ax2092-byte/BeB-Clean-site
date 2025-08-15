@@ -1,10 +1,11 @@
-[build]
-  publish = "."
-  functions = "netlify/functions"
+# Forza la home sulla root del sito
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
 
-[build.environment]
-  NODE_VERSION = "18"
-
-[functions]
-  node_bundler = "esbuild"
-  included_files = ["partners.json", "settings.json"]
+# (facoltativo) se vuoi che /home vada comunque alla home
+[[redirects]]
+  from = "/home"
+  to = "/index.html"
+  status = 301
