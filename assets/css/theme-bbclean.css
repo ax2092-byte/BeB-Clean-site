@@ -1,0 +1,144 @@
+/* B&B Clean – Theme (non invasivo)
+   - SOLO ritocchi visivi: palette, pulsanti, form, piccole ombre
+   - Nessuna modifica a HTML/JS esistenti
+   - Per disattivare su un blocco: aggiungi la classe .no-theme al contenitore
+*/
+
+/* ========= Palette ========= */
+:root{
+  --bb-teal: #14b8a6;         /* accento principale */
+  --bb-teal-600: #0d9488;     /* hover */
+  --bb-teal-ring: rgba(20,184,166,.22);
+  --bb-text: #1f2937;         /* gray-800 */
+  --bb-text-strong: #111827;  /* gray-900 */
+  --bb-muted: #6b7280;        /* gray-500 */
+  --bb-border: #e5e7eb;       /* gray-200 */
+  --bb-bg: #f9fafb;           /* gray-50 */
+  --bb-white: #ffffff;
+  --bb-dark: #0b0f10;
+}
+
+/* ========= Base ========= */
+html{ scroll-behavior:smooth; }
+body{
+  color:var(--bb-text);
+  background: var(--bb-bg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.6;
+}
+.no-theme * { all: revert; }
+
+/* Headings: solo colore e piccoli margini, senza forzare dimensioni */
+h1,h2,h3,h4,h5,h6{ color:var(--bb-text-strong); letter-spacing:-0.01em; }
+h1{ margin:0.3em 0 0.2em; }
+h2,h3{ margin:0.8em 0 0.4em; }
+
+/* Link */
+a{ color:var(--bb-teal); text-decoration:none; }
+a:hover{ color:var(--bb-teal-600); }
+
+/* Immagini fluid */
+img{ max-width:100%; height:auto; }
+
+/* ========= Pulsanti (button + submit + classi comuni) ========= */
+button,
+input[type="submit"],
+input[type="button"],
+[class*="btn"],
+[role="button"]{
+  background: var(--bb-teal);
+  color: var(--bb-white);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: .65rem 1.05rem;
+  line-height:1.2;
+  cursor:pointer;
+  transition: background .2s ease, box-shadow .2s ease, transform .04s ease;
+  box-shadow: 0 10px 24px rgba(20,184,166,.18);
+}
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+[class*="btn"]:hover,
+[role="button"]:hover{
+  background: var(--bb-teal-600);
+  box-shadow: 0 12px 28px rgba(20,184,166,.26);
+}
+button:active,
+input[type="submit"]:active,
+input[type="button"]:active,
+[class*="btn"]:active,
+[role="button"]:active{
+  transform: translateY(1px);
+}
+
+/* Variante contorno, se presente come classe comune */
+.btn-outline, .button-outline, .outline{
+  background: var(--bb-white) !important;
+  color: var(--bb-teal) !important;
+  border-color: var(--bb-teal) !important;
+  box-shadow:none !important;
+}
+.btn-outline:hover, .button-outline:hover, .outline:hover{
+  background: rgba(20,184,166,.06) !important;
+}
+
+/* ========= Form (input, select, textarea) ========= */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="number"],
+input[type="file"],
+select,
+textarea{
+  background: var(--bb-white);
+  border:1px solid var(--bb-border);
+  border-radius:12px;
+  padding:.6rem .8rem;
+  color:var(--bb-text);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+input:focus,
+select:focus,
+textarea:focus{
+  outline:0;
+  border-color: var(--bb-teal);
+  box-shadow: 0 0 0 3px var(--bb-teal-ring);
+}
+label{ color:var(--bb-text-strong); font-weight:600; font-size:.92rem; }
+
+/* Checkbox/Radio accent (dove supportato) */
+input[type="checkbox"], input[type="radio"]{
+  accent-color: var(--bb-teal);
+}
+
+/* ========= Card / pannelli ========= */
+.card, .panel, .box, .tile, .widget,
+.section-card, .content-block{
+  background: var(--bb-white);
+  border:1px solid var(--bb-border);
+  border-radius:16px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.06);
+}
+
+/* ========= Tabelle (admin/dashboard) ========= */
+table{ border-collapse: separate; border-spacing:0; width:100%; }
+th{ text-align:left; color:#4b5563; font-weight:600; background:#f8fafc; }
+th, td{ padding:.9rem; border-bottom:1px solid var(--bb-border); }
+tr:hover td{ background: #fdfefe; }
+
+/* ========= Sezioni chiare alternate (usale solo se già esistono come <section>) ========= */
+section.alt, .section-alt{ background:#f0fdfa; } /* tenue teal-50 */
+
+/* ========= Footer leggero ========= */
+footer{ color:#d1d5db; }
+footer a{ color:#e5e7eb; }
+footer a:hover{ color:#ffffff; }
+
+/* ========= Focus visibile generale (accessibilità) ========= */
+:focus-visible{
+  outline: 3px solid var(--bb-teal);
+  outline-offset: 2px;
+}
