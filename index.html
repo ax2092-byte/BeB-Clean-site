@@ -3,74 +3,105 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B&B Clean — Pulizie facili e veloci</title>
+  <title>Prenota — B&B Clean</title>
   <link rel="icon" href="/favicon.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
-  <!-- Aggiunta sicura: tema grafico (non cambia le funzioni) -->
-  <link rel="stylesheet" href="/assets/css/bbclean-theme.css">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>#map{height:220px;border-radius:12px;margin:10px 0 18px}</style>
 </head>
 <body>
   <header class="container nav">
     <div class="logo">B&amp;B <span>Clean</span></div>
     <nav>
-      <a href="/index.html" class="active">Home</a>
-      <a href="/prenota.html" class="btn">Prenota</a>
-      <a href="/annunci.html">Annunci</a>
-      <a href="/dashboard.html">Dashboard</a>
+      <a href="/index.html">Home</a>
+      <a href="/prenota.html" class="active">Prenota</a>
       <a href="/partner.html">Diventa partner</a>
     </nav>
   </header>
 
-  <section class="hero container">
-    <h1>La tua pulizia di casa, in pochi click</h1>
-    <p>Prenota un professionista vicino a te. Pagamenti online, zero pensieri.</p>
-    <div class="cta">
-      <a class="btn primary" href="/prenota.html">Prenota ora</a>
-      <a class="btn ghost" href="/partner.html">Diventa partner</a>
-    </div>
-  </section>
+  <main class="container form-wrap">
+    <h1>Prenota una pulizia</h1>
+    <p class="lead">Inserisci i dettagli. Ti mostriamo una stima in tempo reale.</p>
 
-  <section class="features container">
-    <div class="card"><h3>1. Inserisci indirizzo e m²</h3><p>Calcoliamo durata consigliata e il partner più vicino.</p></div>
-    <div class="card"><h3>2. Stima trasparente</h3><p>Totale = tariffa × ore + rimborso km. Acconto 10% ora.</p></div>
-    <div class="card"><h3>3. Paghi online</h3><p>Checkout Stripe sicuro per l'acconto.</p></div>
-  </section>
+    <div class="est-box" id="estBox">
+      <div><strong>Stima totale:</strong> <span id="stimaTot">—</span></div>
+      <div class="muted">Acconto (10% del compenso partner): <span id="stimaAcconto">—</span></div>
+      <div class="muted">Rimborso distanza (0,25 €/km): <span id="stimaRimb">—</span></div>
+      <div class="muted small" id="stimaNote">Compila via/civico, città, CAP (5 cifre) e regione per calcolare distanza su strada.</div>
+    </div>
+
+    <div id="map"></div>
+
+    <form name="prenota" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html" id="bookForm">
+      <input type="hidden" name="form-name" value="prenota">
+      <p class="hidden"><label>Non compilare: <input name="bot-field"></label></p>
+
+      <div class="grid">
+        <label>Nome e Cognome
+          <input type="text" name="nome" required>
+        </label>
+        <label>Email
+          <input type="email" name="email" required>
+        </label>
+        <label>Telefono
+          <input type="tel" name="telefono" required>
+        </label>
+
+        <label>m² dell'immobile
+          <input type="number" name="mq" id="mq" required min="10" max="1000" step="1" placeholder="Es. 70">
+        </label>
+        <label>Durata (ore) — consigliata
+          <input type="number" name="durata" id="durata" required min="1" max="8" step="0.5">
+        </label>
+
+        <label>Regione
+          <select name="regione" id="regione" required>
+            <option value="">Seleziona…</option>
+            <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
+            <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
+            <option>Lombardia</option><option>Marche</option><option>Molise</option><option>Piemonte</option>
+            <option>Puglia</option><option>Sardegna</option><option>Sicilia</option><option>Toscana</option>
+            <option>Trentino-Alto Adige</option><option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
+          </select>
+        </label>
+        <label>Città
+          <input type="text" name="citta" id="citta" required>
+        </label>
+        <label>CAP
+          <input type="text" name="cap" id="cap" required inputmode="numeric" maxlength="5" pattern="[0-9]{5}" title="5 cifre (es. 08022)">
+        </label>
+        <label>Via e numero civico
+          <input type="text" name="indirizzo" id="indirizzo" required placeholder="Es. Via Roma 10">
+        </label>
+
+        <label>Data
+          <input type="date" name="data" required>
+        </label>
+        <label>Ora
+          <input type="time" name="ora" required>
+        </label>
+
+        <label class="full chk">
+          <input type="checkbox" id="annunci" name="annunci"> (Fase 2) Richiedi offerte dai partner entro 12h
+        </label>
+
+        <label class="full">Note aggiuntive
+          <textarea name="note" rows="4" placeholder="Es. presenza animali, richiesta prodotti specifici…"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn primary" id="payBtn">Conferma & paga acconto</button>
+      </div>
+    </form>
+  </main>
 
   <footer class="container footer">
-    <div>&copy; B&B Clean <span id="y"></span></div>
-    <div class="small">MVP demo — Netlify Forms + Functions</div>
+    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
   </footer>
 
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
-
-  <!-- Stub: offerta -->
-  <form name="offerta" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="offerta">
-    <input type="text" name="prenota_id">
-    <input type="email" name="partner_email">
-    <input type="number" name="rate_eur_h">
-    <input type="text" name="note">
-  </form>
-
-  <!-- Stub: assegnazione -->
-  <form name="assegnazione" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="assegnazione">
-    <input type="text" name="prenota_id">
-    <input type="email" name="partner_email">
-    <input type="text" name="partner_name">
-    <input type="text" name="customer_name">
-    <input type="text" name="address">
-    <input type="text" name="data_ora">
-  </form>
-
-  <!-- Stub: decisione KYC -->
-  <form name="kyc_decision" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="kyc_decision">
-    <input type="email" name="email">
-    <input type="text" name="name">
-    <input type="text" name="decision">
-    <input type="text" name="reasons">
-    <input type="text" name="note">
-  </form>
+  <script src="/assets/js/prenota.js"></script>
 </body>
 </html>
