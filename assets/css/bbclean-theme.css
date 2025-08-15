@@ -1,24 +1,30 @@
-/* B&B Clean — tema leggero (solo estetica, nessun cambio funzionale)
-   Palette A: teal + grigio scuro
+/* B&B Clean — TEMA SCURO (contrasto alto)
+   - Non tocca HTML/JS
+   - Torna al look scuro “di prima”
 */
 
 :root{
-  --bb-teal: #14b8a6;
-  --bb-teal-600: #0d9488;
-  --bb-text: #1f2937;      /* grigio scuro */
-  --bb-strong: #111827;    /* quasi nero */
-  --bb-muted: #6b7280;     /* grigio medio */
-  --bb-border: #e5e7eb;    /* grigio chiaro */
-  --bb-bg: #f9fafb;        /* sfondo chiaro */
+  --bb-bg: #0b0f10;          /* sfondo principale (quasi nero) */
+  --bb-card: #0f1418;        /* pannelli/box */
+  --bb-border: #1f2937;      /* bordo scuro */
+  --bb-text: #e5e7eb;        /* testo chiaro */
+  --bb-strong: #f9fafb;      /* titoli/logo molto chiari */
+  --bb-muted: #9ca3af;       /* testo secondario */
   --bb-white: #ffffff;
+
+  --bb-teal: #14b8a6;        /* accento */
+  --bb-teal-600: #0d9488;    /* hover */
+  --bb-ring: rgba(20,184,166,.28);
 }
 
+/* Base */
 html{scroll-behavior:smooth;}
 body{
   background: var(--bb-bg);
   color: var(--bb-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height:1.6;
 }
 
 /* Titoli e link */
@@ -29,7 +35,18 @@ a:hover{ color: var(--bb-teal-600); }
 /* Immagini fluide */
 img{ max-width:100%; height:auto; }
 
-/* Pulsanti comuni */
+/* ===== NAVBAR / LOGO ===== */
+.nav{ color: var(--bb-strong); }
+.nav a{
+  color: var(--bb-text);
+  font-weight:600;
+}
+.nav a:hover{ color: var(--bb-teal); }
+.nav a.active{ color: var(--bb-teal); }
+.logo{ color: var(--bb-strong); font-weight:800; }
+.logo span{ color: var(--bb-teal); }
+
+/* ===== BOTTONI ===== */
 button,
 input[type="submit"],
 input[type="button"],
@@ -37,13 +54,13 @@ input[type="button"],
 .btn{
   background: var(--bb-teal);
   color: var(--bb-white);
-  border: 1px solid transparent;
+  border: 2px solid var(--bb-teal);
   border-radius: 12px;
   padding: .65rem 1rem;
   line-height:1.2;
   cursor:pointer;
-  transition: background .2s, box-shadow .2s, transform .04s;
-  box-shadow: 0 10px 24px rgba(20,184,166,.18);
+  transition: background .2s, box-shadow .2s, transform .04s, color .2s, border-color .2s;
+  box-shadow: 0 10px 24px rgba(20,184,166,.22);
 }
 button:hover,
 input[type="submit"]:hover,
@@ -51,7 +68,8 @@ input[type="button"]:hover,
 .button:hover,
 .btn:hover{
   background: var(--bb-teal-600);
-  box-shadow: 0 12px 28px rgba(20,184,166,.26);
+  border-color: var(--bb-teal-600);
+  box-shadow: 0 12px 28px rgba(20,184,166,.3);
 }
 button:active,
 input[type="submit"]:active,
@@ -59,38 +77,80 @@ input[type="button"]:active,
 .button:active,
 .btn:active{ transform: translateY(1px); }
 
-/* Campi form */
+/* Varianti usate nel sito */
+.btn.primary{
+  background: var(--bb-teal);
+  color: var(--bb-white);
+  border-color: var(--bb-teal);
+}
+.btn.primary:hover{
+  background: var(--bb-teal-600);
+  border-color: var(--bb-teal-600);
+}
+.btn.ghost{
+  background: transparent !important;
+  color: var(--bb-teal) !important;
+  border: 2px solid var(--bb-teal) !important;
+  box-shadow: none !important;
+}
+.btn.ghost:hover{
+  color: var(--bb-white) !important;
+  background: var(--bb-teal) !important;
+  border-color: var(--bb-teal-600) !important;
+}
+
+/* ===== SEZIONI ===== */
+.hero.container h1{ color: var(--bb-strong); }
+.hero.container p{ color: var(--bb-muted); }
+
+.features.container .card{
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+.features.container h3{ color: var(--bb-strong); }
+.features.container p{ color: var(--bb-text); }
+
+/* ===== FORM (prenota/partner) ===== */
 input[type="text"], input[type="email"], input[type="tel"],
 input[type="date"], input[type="number"], input[type="file"],
 select, textarea{
-  background: var(--bb-white);
-  border:1px solid var(--bb-border);
+  background: #0d1317;
+  color: var(--bb-text);
+  border:1.5px solid var(--bb-border);
   border-radius:12px;
   padding:.6rem .8rem;
-  transition: border-color .2s, box-shadow .2s;
+  transition: border-color .2s, box-shadow .2s, background .2s;
 }
+input::placeholder, textarea::placeholder{ color:#94a3b8; }
 input:focus, select:focus, textarea:focus{
   outline:0;
   border-color: var(--bb-teal);
-  box-shadow: 0 0 0 3px rgba(20,184,166,.22);
+  box-shadow: 0 0 0 3px var(--bb-ring);
+  background: #0f161b;
 }
-label{ color:var(--bb-strong); font-weight:600; font-size:.92rem; }
+label{ color: var(--bb-strong); font-weight:600; font-size:.95rem; }
 
-/* Tabelle leggere (dashboard) */
-table{ border-collapse: separate; border-spacing:0; width:100%; }
-th{ text-align:left; color:#4b5563; font-weight:600; background:#f8fafc; }
+/* ===== TABELLE (dashboard) ===== */
+table{ border-collapse: separate; border-spacing:0; width:100%; color:var(--bb-text); }
+th{
+  text-align:left;
+  color:#cbd5e1;
+  font-weight:700;
+  background:#0f1418;
+}
 th, td{ padding:.9rem; border-bottom:1px solid var(--bb-border); }
-tr:hover td{ background:#fdfefe; }
+tr:hover td{ background:#0e1317; }
 
-/* Card / pannelli */
-.card,.panel,.box,.tile,.widget{
-  background: var(--bb-white);
-  border:1px solid var(--bb-border);
-  border-radius:16px;
-  box-shadow: 0 8px 28px rgba(0,0,0,.06);
-}
+/* ===== FOOTER ===== */
+.footer{ color:#cbd5e1; }
+.footer .small{ color:#94a3b8; }
+.footer a{ color: var(--bb-teal); }
+.footer a:hover{ color: var(--bb-teal-600); }
 
-/* Accessibilità: focus visibile */
+/* ===== Accessibilità ===== */
 :focus-visible{
   outline: 3px solid var(--bb-teal);
   outline-offset: 2px;
