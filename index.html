@@ -1,74 +1,145 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B&B Clean — Pulizie facili e veloci</title>
-  <link rel="icon" href="/favicon.png">
-  <link rel="stylesheet" href="/assets/css/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B&B Clean — Pulizie per case, uffici e strutture</title>
+  <meta name="description" content="Dedicati ad altro, alle pulizie ci pensiamo noi. Pulizie professionali per case, uffici e strutture ricettive. Preventivi chiari e tempi rapidi." />
+  <meta name="theme-color" content="#0b0f10" />
+  <!-- Favicons / PWA -->
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header class="container nav">
-    <div class="logo">B&amp;B <span>Clean</span></div>
-    <nav>
-      <a href="/index.html" class="active">Home</a>
-      <a href="/prenota.html" class="btn">Prenota</a>
-      <a href="/annunci.html">Annunci</a>
-      <a href="/dashboard.html">Dashboard</a>
-      <a href="/partner.html">Diventa partner</a>
-    </nav>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+  <!-- Header / Navbar -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/assets/img/bbclean-logo-256.png" alt="B&B Clean" class="h-9 w-auto" />
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm">
+          <a href="#servizi" class="hover:text-teal-600">Servizi</a>
+          <a href="#perche" class="hover:text-teal-600">Perché noi</a>
+          <a href="/partner.html" class="hover:text-teal-600">Diventa partner</a>
+          <a href="/contatti.html" class="inline-flex items-center px-4 py-2 rounded-xl bg-teal-600 text-white hover:bg-teal-700">Contatti</a>
+        </nav>
+        <button id="navToggle" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200">
+          <span class="sr-only">Apri menu</span> ☰
+        </button>
+      </div>
+      <div id="mobileNav" class="md:hidden hidden pb-4">
+        <nav class="flex flex-col gap-3 text-sm">
+          <a href="#servizi" class="py-2 border-b border-gray-100">Servizi</a>
+          <a href="#perche" class="py-2 border-b border-gray-100">Perché noi</a>
+          <a href="/partner.html" class="py-2 border-b border-gray-100">Diventa partner</a>
+          <a href="/contatti.html" class="py-2">Contatti</a>
+        </nav>
+      </div>
+    </div>
   </header>
 
-  <section class="hero container">
-    <h1>La tua pulizia di casa, in pochi click</h1>
-    <p>Prenota un professionista vicino a te. Pagamenti online, zero pensieri.</p>
-    <div class="cta">
-      <a class="btn primary" href="/prenota.html">Prenota ora</a>
-      <a class="btn ghost" href="/partner.html">Diventa partner</a>
+  <!-- Hero -->
+  <section class="bg-white">
+    <div class="max-w-7xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">
+          Dedicati ad altro,<br class="hidden sm:block"> alle pulizie ci pensiamo noi ✨
+        </h1>
+        <p class="mt-4 text-gray-600 text-lg">
+          Pulizie professionali per case, uffici e strutture ricettive. Team affidabile, prodotti eco, preventivi chiari.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/contatti.html" class="inline-flex items-center px-5 py-3 rounded-xl bg-teal-600 text-white hover:bg-teal-700">Richiedi un preventivo</a>
+          <a href="#servizi" class="inline-flex items-center px-5 py-3 rounded-xl border border-gray-300 hover:border-teal-600 hover:text-teal-700">Scopri i servizi</a>
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <img src="/assets/img/bbclean-logo-512.png" alt="B&B Clean logo" class="w-64 drop-shadow" />
+      </div>
     </div>
   </section>
 
-  <section class="features container">
-    <div class="card"><h3>1. Inserisci indirizzo e m²</h3><p>Calcoliamo durata consigliata e il partner più vicino.</p></div>
-    <div class="card"><h3>2. Stima trasparente</h3><p>Totale = tariffa × ore + rimborso km. Acconto 10% ora.</p></div>
-    <div class="card"><h3>3. Paghi online</h3><p>Checkout Stripe sicuro per l'acconto.</p></div>
+  <!-- Servizi -->
+  <section id="servizi" class="py-16">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="text-2xl font-bold mb-8">Servizi</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article class="bg-white rounded-2xl shadow p-6">
+          <div class="text-4xl">🏠</div>
+          <h3 class="mt-4 font-semibold text-lg">Pulizie domestiche</h3>
+          <p class="mt-2 text-gray-600">Case, appartamenti e case vacanza, anche con check-in/out.</p>
+        </article>
+        <article class="bg-white rounded-2xl shadow p-6">
+          <div class="text-4xl">🏢</div>
+          <h3 class="mt-4 font-semibold text-lg">Uffici e negozi</h3>
+          <p class="mt-2 text-gray-600">Ambienti di lavoro curati e igienizzati, orari flessibili.</p>
+        </article>
+        <article class="bg-white rounded-2xl shadow p-6">
+          <div class="text-4xl">🧽</div>
+          <h3 class="mt-4 font-semibold text-lg">Servizi extra</h3>
+          <p class="mt-2 text-gray-600">Vetrate, post-cantiere, igienizzazioni, trattamenti specifici.</p>
+        </article>
+      </div>
+    </div>
   </section>
 
-  <footer class="container footer">
-    <div>&copy; B&B Clean <span id="y"></span></div>
-    <div class="small">MVP demo — Netlify Forms + Functions</div>
+  <!-- Perché sceglierci -->
+  <section id="perche" class="py-16 bg-teal-50">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="text-2xl font-bold mb-8">Perché scegliere B&amp;B Clean</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm">
+          <div class="text-3xl">✅</div>
+          <h3 class="mt-3 font-semibold">Affidabilità</h3>
+          <p class="mt-1 text-gray-600">Team selezionato, tempi rispettati, risultato garantito.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm">
+          <div class="text-3xl">🌿</div>
+          <h3 class="mt-3 font-semibold">Prodotti eco</h3>
+          <p class="mt-1 text-gray-600">Detergenti sostenibili, più sicurezza per tutti.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm">
+          <div class="text-3xl">💬</div>
+          <h3 class="mt-3 font-semibold">Preventivi chiari</h3>
+          <p class="mt-1 text-gray-600">Zero sorprese: costi trasparenti e su misura.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 text-center">
+    <h2 class="text-3xl font-extrabold">Vuoi più tempo per te?</h2>
+    <p class="mt-2 text-gray-600">Scrivici e ti rispondiamo con una proposta entro 24h.</p>
+    <a href="/contatti.html" class="mt-6 inline-flex px-6 py-3 rounded-2xl bg-teal-600 text-white hover:bg-teal-700">Contattaci</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-300">
+    <div class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-6 items-center">
+      <div class="flex items-center gap-3">
+        <img src="/assets/img/bbclean-logo-256.png" alt="B&B Clean" class="h-8 w-auto" />
+        <span class="text-sm">© B&B Clean</span>
+      </div>
+      <div class="text-sm text-center">Pulizie professionali in Sardegna orientale.</div>
+      <div class="md:text-right text-sm">
+        📧 <a class="hover:underline" href="mailto:no-reply@bebclean.com">no-reply@bebclean.com</a> ·
+        📞 <a class="hover:underline" href="tel:+393792027572">+39 379 2027572</a>
+      </div>
+    </div>
   </footer>
 
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
-
-  <!-- Stub: offerta -->
-  <form name="offerta" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="offerta">
-    <input type="text" name="prenota_id">
-    <input type="email" name="partner_email">
-    <input type="number" name="rate_eur_h">
-    <input type="text" name="note">
-  </form>
-
-  <!-- Stub: assegnazione -->
-  <form name="assegnazione" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="assegnazione">
-    <input type="text" name="prenota_id">
-    <input type="email" name="partner_email">
-    <input type="text" name="partner_name">
-    <input type="text" name="customer_name">
-    <input type="text" name="address">
-    <input type="text" name="data_ora">
-  </form>
-
-  <!-- Stub: decisione KYC -->
-  <form name="kyc_decision" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="kyc_decision">
-    <input type="email" name="email">
-    <input type="text" name="name">
-    <input type="text" name="decision">
-    <input type="text" name="reasons">
-    <input type="text" name="note">
-  </form>
+  <script>
+    const btn = document.getElementById('navToggle');
+    const menu = document.getElementById('mobileNav');
+    if (btn) btn.addEventListener('click', ()=> menu.classList.toggle('hidden'));
+  </script>
 </body>
 </html>
