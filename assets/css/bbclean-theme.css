@@ -1,0 +1,97 @@
+/* B&B Clean — tema leggero (solo estetica, nessun cambio funzionale)
+   Palette A: teal + grigio scuro
+*/
+
+:root{
+  --bb-teal: #14b8a6;
+  --bb-teal-600: #0d9488;
+  --bb-text: #1f2937;      /* grigio scuro */
+  --bb-strong: #111827;    /* quasi nero */
+  --bb-muted: #6b7280;     /* grigio medio */
+  --bb-border: #e5e7eb;    /* grigio chiaro */
+  --bb-bg: #f9fafb;        /* sfondo chiaro */
+  --bb-white: #ffffff;
+}
+
+html{scroll-behavior:smooth;}
+body{
+  background: var(--bb-bg);
+  color: var(--bb-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Titoli e link */
+h1,h2,h3,h4,h5,h6{ color: var(--bb-strong); letter-spacing:-0.01em; }
+a{ color: var(--bb-teal); text-decoration:none; }
+a:hover{ color: var(--bb-teal-600); }
+
+/* Immagini fluide */
+img{ max-width:100%; height:auto; }
+
+/* Pulsanti comuni */
+button,
+input[type="submit"],
+input[type="button"],
+.button,
+.btn{
+  background: var(--bb-teal);
+  color: var(--bb-white);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: .65rem 1rem;
+  line-height:1.2;
+  cursor:pointer;
+  transition: background .2s, box-shadow .2s, transform .04s;
+  box-shadow: 0 10px 24px rgba(20,184,166,.18);
+}
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.button:hover,
+.btn:hover{
+  background: var(--bb-teal-600);
+  box-shadow: 0 12px 28px rgba(20,184,166,.26);
+}
+button:active,
+input[type="submit"]:active,
+input[type="button"]:active,
+.button:active,
+.btn:active{ transform: translateY(1px); }
+
+/* Campi form */
+input[type="text"], input[type="email"], input[type="tel"],
+input[type="date"], input[type="number"], input[type="file"],
+select, textarea{
+  background: var(--bb-white);
+  border:1px solid var(--bb-border);
+  border-radius:12px;
+  padding:.6rem .8rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus, select:focus, textarea:focus{
+  outline:0;
+  border-color: var(--bb-teal);
+  box-shadow: 0 0 0 3px rgba(20,184,166,.22);
+}
+label{ color:var(--bb-strong); font-weight:600; font-size:.92rem; }
+
+/* Tabelle leggere (dashboard) */
+table{ border-collapse: separate; border-spacing:0; width:100%; }
+th{ text-align:left; color:#4b5563; font-weight:600; background:#f8fafc; }
+th, td{ padding:.9rem; border-bottom:1px solid var(--bb-border); }
+tr:hover td{ background:#fdfefe; }
+
+/* Card / pannelli */
+.card,.panel,.box,.tile,.widget{
+  background: var(--bb-white);
+  border:1px solid var(--bb-border);
+  border-radius:16px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.06);
+}
+
+/* Accessibilità: focus visibile */
+:focus-visible{
+  outline: 3px solid var(--bb-teal);
+  outline-offset: 2px;
+}
