@@ -1,24 +1,74 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Admin — B&B Clean</title>
-    <link rel="icon" type="image/png" href="../favicon.png">
-  </head>
- <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script>
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", user => {
-      if (!user) {
-        window.netlifyIdentity.on("signup", () => document.location.href = "/admin/");
-        window.netlifyIdentity.on("login",  () => document.location.href = "/admin/");
-      }
-    });
-  }
-</script>
- <body>
-    <!-- Decap CMS -->
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-  </body>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B&B Clean — Pulizie facili e veloci</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <header class="container nav">
+    <div class="logo">B&amp;B <span>Clean</span></div>
+    <nav>
+      <a href="/index.html" class="active">Home</a>
+      <a href="/prenota.html" class="btn">Prenota</a>
+      <a href="/annunci.html">Annunci</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/partner.html">Diventa partner</a>
+    </nav>
+  </header>
+
+  <section class="hero container">
+    <h1>La tua pulizia di casa, in pochi click</h1>
+    <p>Prenota un professionista vicino a te. Pagamenti online, zero pensieri.</p>
+    <div class="cta">
+      <a class="btn primary" href="/prenota.html">Prenota ora</a>
+      <a class="btn ghost" href="/partner.html">Diventa partner</a>
+    </div>
+  </section>
+
+  <section class="features container">
+    <div class="card"><h3>1. Inserisci indirizzo e m²</h3><p>Calcoliamo durata consigliata e il partner più vicino.</p></div>
+    <div class="card"><h3>2. Stima trasparente</h3><p>Totale = tariffa × ore + rimborso km. Acconto 10% ora.</p></div>
+    <div class="card"><h3>3. Paghi online</h3><p>Checkout Stripe sicuro per l'acconto.</p></div>
+  </section>
+
+  <footer class="container footer">
+    <div>&copy; B&B Clean <span id="y"></span></div>
+    <div class="small">MVP demo — Netlify Forms + Functions</div>
+  </footer>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+
+  <!-- Stub: offerta -->
+  <form name="offerta" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="offerta">
+    <input type="text" name="prenota_id">
+    <input type="email" name="partner_email">
+    <input type="number" name="rate_eur_h">
+    <input type="text" name="note">
+  </form>
+
+  <!-- Stub: assegnazione -->
+  <form name="assegnazione" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="assegnazione">
+    <input type="text" name="prenota_id">
+    <input type="email" name="partner_email">
+    <input type="text" name="partner_name">
+    <input type="text" name="customer_name">
+    <input type="text" name="address">
+    <input type="text" name="data_ora">
+  </form>
+
+  <!-- Stub: decisione KYC -->
+  <form name="kyc_decision" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="kyc_decision">
+    <input type="email" name="email">
+    <input type="text" name="name">
+    <input type="text" name="decision">
+    <input type="text" name="reasons">
+    <input type="text" name="note">
+  </form>
+</body>
 </html>
