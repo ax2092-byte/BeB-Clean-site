@@ -1,110 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>B&B Clean — Dashboard</title>
-  <meta name="theme-color" content="#0b0f10" />
-  <link rel="icon" href="/favicon.ico"/>
-  <link rel="manifest" href="/site.webmanifest">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — B&B Clean</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    .adminbar{display:flex;gap:8px;align-items:center;margin:10px 0 18px}
+    input,button{padding:10px 12px;border-radius:10px;border:1px solid #1f2a44;background:#0b1526;color:#e2e8f0}
+    button.primary{background:#22c55e;color:#05121f;border-color:transparent;font-weight:700}
+    .cards{display:grid;gap:14px}
+    .cardx{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+    .muted{color:#93a0b4}
+    .offers{margin-top:8px;border-top:1px dashed #23304d;padding-top:8px}
+    .offer{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{border:1px solid #2b3a5f;border-radius:999px;padding:4px 10px;font-size:12px;color:#9fb0ca}
+    .warn{color:#fca5a5}
+    .h2like{margin-top:28px;margin-bottom:10px;font-size:18px;font-weight:700}
+    .files a{display:inline-block;margin-right:8px}
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased">
-
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-center justify-between h-16">
-        <a href="/" class="flex items-center gap-3">
-          <img src="/assets/img/bbclean-logo-256.png" alt="B&B Clean" class="h-9 w-auto" />
-        </a>
-        <nav class="hidden md:flex items-center gap-6 text-sm">
-          <a href="/partner.html" class="hover:text-teal-600">Partner</a>
-          <a href="/contatti.html" class="hover:text-teal-600">Contatti</a>
-        </nav>
-        <button id="navToggle" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200">☰</button>
-      </div>
-      <div id="mobileNav" class="md:hidden hidden pb-4">
-        <nav class="flex flex-col gap-3 text-sm">
-          <a href="/partner.html" class="py-2 border-b border-gray-100">Partner</a>
-          <a href="/contatti.html" class="py-2">Contatti</a>
-        </nav>
-      </div>
-    </div>
+<body>
+  <header class="container nav">
+    <div class="logo">B&amp;B <span>Clean</span></div>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/annunci.html">Annunci</a>
+      <a href="/dashboard.html" class="active">Dashboard</a>
+    </nav>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-10">
-    <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+  <main class="container form-wrap">
+    <h1>Dashboard amministratore</h1>
+    <p class="lead">Vedi prenotazioni, offerte e gestisci le candidature partner.</p>
 
-    <div class="grid sm:grid-cols-3 gap-4 mb-8">
-      <div class="bg-white rounded-2xl p-5 shadow">
-        <div class="text-sm text-gray-500">Candidature totali</div>
-        <div id="statTotali" class="text-3xl font-extrabold mt-2">—</div>
-      </div>
-      <div class="bg-white rounded-2xl p-5 shadow">
-        <div class="text-sm text-gray-500">In attesa</div>
-        <div id="statAttesa" class="text-3xl font-extrabold mt-2">—</div>
-      </div>
-      <div class="bg-white rounded-2xl p-5 shadow">
-        <div class="text-sm text-gray-500">Approvate</div>
-        <div id="statOk" class="text-3xl font-extrabold mt-2">—</div>
-      </div>
+    <div class="adminbar">
+      <input type="password" id="adm" placeholder="Admin key">
+      <input type="number" id="days" value="30" min="1" max="90" title="Giorni da mostrare">
+      <button class="primary" id="load">Carica</button>
+      <span class="muted" id="stat">—</span>
     </div>
 
-    <div class="bg-white rounded-2xl shadow overflow-hidden">
-      <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 class="font-semibold">Candidature</h2>
-        <input id="search" type="search" placeholder="Cerca…" class="w-56 rounded-xl border-gray-300 focus:ring-teal-600 focus:border-teal-600" />
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600">
-            <tr>
-              <th class="text-left p-4">Nome</th>
-              <th class="text-left p-4">Email</th>
-              <th class="text-left p-4">Comune</th>
-              <th class="text-left p-4">Stato</th>
-              <th class="text-right p-4">Azioni</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-    </div>
+    <div class="h2like">Prenotazioni & Offerte</div>
+    <div class="cards" id="cards"></div>
+
+    <div class="h2like">Candidature partner (con documenti)</div>
+    <div class="cards" id="kyc"></div>
   </main>
 
-  <footer class="bg-gray-900 text-gray-300">
-    <div class="max-w-7xl mx-auto px-4 py-8 text-sm text-center">
-      © B&B Clean — area riservata
-    </div>
+  <footer class="container footer">
+    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
   </footer>
 
-  <script>
-    const btn = document.getElementById('navToggle');
-    const menu = document.getElementById('mobileNav');
-    if (btn) btn.addEventListener('click', ()=> menu.classList.toggle('hidden'));
-
-    // Collega qui le tue API / Netlify Functions
-    const data = []; // sostituisci con fetch(...)
-    const rows = document.getElementById('rows');
-    function render(items){
-      rows.innerHTML = items.map(x => `
-        <tr class="border-t border-gray-100">
-          <td class="p-4">${x.nome ?? '—'} ${x.cognome ?? ''}</td>
-          <td class="p-4">${x.email ?? '—'}</td>
-          <td class="p-4">${x.comune ?? '—'}</td>
-          <td class="p-4">
-            <span class="px-2 py-1 rounded-full text-xs ${x.stato==='OK'?'bg-teal-100 text-teal-700':'bg-yellow-100 text-yellow-700'}">
-              ${x.stato ?? 'In attesa'}
-            </span>
-          </td>
-          <td class="p-4 text-right">
-            <button class="px-3 py-1 rounded-lg border hover:bg-gray-50">Approva</button>
-            <button class="ml-2 px-3 py-1 rounded-lg border hover:bg-gray-50">Rifiuta</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-    render(data);
-  </script>
+  <script src="/assets/js/dashboard.js"></script>
 </body>
 </html>
