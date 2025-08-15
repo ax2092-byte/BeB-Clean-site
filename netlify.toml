@@ -1,5 +1,1 @@
-# (facoltativo) se vuoi che /home vada comunque alla home
-[[redirects]]
-  from = "/home"
-  to = "/index.html"
-  status = 301
+
