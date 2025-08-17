@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B&B Clean — Iscrizione Cliente</title>
+  <link rel="icon" href="/favicon.png">
+  <meta name="description" content="Iscriviti come Cliente a B&B Clean e inserisci i dati della tua abitazione.">
+  <style>
+    :root { --bg:#0b1220; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --brand:#14b8a6; --line:#1f2937; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; }
+    h1 { margin:0 0 8px; }
+    p.muted { color:var(--muted); margin:0 0 18px; }
+    form { display:grid; gap:14px; }
+    fieldset { border:1px solid var(--line); border-radius:12px; padding:14px; }
+    legend { padding:0 6px; color:var(--muted); }
+    .row { display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
+    .col-6 { grid-column: span 6; } .col-4 { grid-column: span 4; } .col-3 { grid-column: span 3; } .col-12 { grid-column: span 12; }
+    label { display:block; font-size:14px; margin-bottom:4px; color:#cbd5e1; }
+    input, select, textarea { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0f172a; color:var(--text); }
+    small.hint { color:var(--muted); display:block; margin-top:4px; }
+    .actions { display:flex; gap:10px; }
+    button, .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--text); cursor:pointer; text-decoration:none; }
+    .btn-primary { background:var(--brand); border-color:var(--brand); color:#071820; }
+    .center { text-align:center; }
+    .hidden { display:none !important; }
+    .ok { color:#86efac; font-size:12px; }
+    .err { color:#fca5a5; white-space:pre-wrap; }
+    @media (max-width:860px){ .col-6, .col-4, .col-3 { grid-column: span 12; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Iscrizione Cliente</h1>
+    <p class="muted">Crea/usa il tuo account e inserisci i dati personali e dell’appartamento.</p>
+
+    <!-- STEP 0: se non autenticato, mostra CTA per creare l'account -->
+    <div id="need-auth" class="card hidden">
+      <p>Per procedere, crea prima un account (o accedi se ne hai già uno).</p>
+      <div class="actions">
+        <a id="cta-signup" class="btn btn-primary" href="#">Crea account</a>
+        <a id="cta-login" class="btn" href="#">Ho già un account</a>
+      </div>
+      <p class="ok" id="diag"></p>
+      <p class="err" id="err"></p>
+    </div>
+
+    <!-- STEP 1: form iscrizione (Netlify Forms) -->
+    <form id="form-cliente" name="iscrizione-cliente" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="card hidden">
+      <!-- Netlify Forms: campi nascosti obbligatori -->
+      <input type="hidden" name="form-name" value="iscrizione-cliente">
+      <p class="hidden"><label>Non compilare <input name="bot-field"></label></p>
+
+      <!-- Dati utente da Auth0 -->
+      <input type="hidden" name="auth0_sub" id="auth0_sub">
+      <input type="hidden" name="auth0_email" id="auth0_email">
+
+      <fieldset>
+        <legend>Dati personali</legend>
+        <div class="row">
+          <div class="col-6">
+            <label for="nome">Nome *</label>
+            <input id="nome" name="nome" required autocomplete="given-name">
+          </div>
+          <div class="col-6">
+            <label for="cognome">Cognome *</label>
+            <input id="cognome" name="cognome" required autocomplete="family-name">
+          </div>
+          <div class="col-6">
+            <label for="cf">Codice Fiscale *</label>
+            <input id="cf" name="codice_fiscale" required maxlength="16" pattern="[A-Za-z0-9]{16}" inputmode="text">
+            <small class="hint">16 caratteri (es. RSSMRA85M01H501Z)</small>
+          </div>
+          <div class="col-6">
+            <label for="belfiore">Codice Belfiore (catastale) *</label>
+            <input id="belfiore" name="codice_belfiore" required maxlength="4" pattern="[A-Za-z]{4}" inputmode="text">
+            <small class="hint">4 lettere del comune (es. H501 = Roma → puoi inserire “H501” o “H501” senza numeri? Se usi solo lettere: “HROM” – in ogni caso lasciamo 4 char e lo normalizziamo).</small>
+          </div>
+          <div class="col-6">
+            <label for="doc">Carta d’identità / Documento *</label>
+            <input id="doc" name="documento_numero" required>
+            <small class="hint">Inserisci il numero del documento (niente upload per ora).</small>
+          </div>
+          <div class="col-6">
+            <label for="telefono">Telefono</label>
+            <input id="telefono" name="telefono" inputmode="tel" autocomplete="tel">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Indirizzo appartamento</legend>
+        <div class="row">
+          <div class="col-6">
+            <label for="indirizzo">Indirizzo *</label>
+            <input id="indirizzo" name="indirizzo" required autocomplete="address-line1">
+          </div>
+          <div class="col-3">
+            <label for="cap">CAP *</label>
+            <input id="cap" name="cap" required pattern="[0-9]{5}" inputmode="numeric" autocomplete="postal-code">
+          </div>
+          <div class="col-3">
+            <label for="citta">Città *</label>
+            <input id="citta" name="citta" required autocomplete="address-level2">
+          </div>
+          <div class="col-6">
+            <label for="provincia">Provincia *</label>
+            <input id="provincia" name="provincia" required maxlength="2" pattern="[A-Za-z]{2}" inputmode="text" placeholder="es. RM">
+          </div>
+          <div class="col-6">
+            <label for="belfiore_ind">Codice Belfiore (comune) *</label>
+            <input id="belfiore_ind" name="codice_belfiore_indirizzo" required maxlength="4" pattern="[A-Za-z0-9]{4}">
+            <small class="hint">Codice catastale del comune (4 caratteri).</small>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Dati dell’appartamento</legend>
+        <div class="row">
+          <div class="col-4">
+            <label for="mq">Metri quadri *</label>
+            <input id="mq" name="metri_quadri" type="number" min="10" max="1000" required>
+          </div>
+          <div class="col-4">
+            <label for="stanze">Stanze *</label>
+            <input id="stanze" name="stanze" type="number" min="0" max="50" required>
+          </div>
+          <div class="col-4">
+            <label for="bagni">Bagni *</label>
+            <input id="bagni" name="bagni" type="number" min="0" max="20" required>
+          </div>
+          <div class="col-4">
+            <label for="cucina">Cucina</label>
+            <select id="cucina" name="cucina"><option>Si</option><option>No</option></select>
+          </div>
+          <div class="col-4">
+            <label for="salotto">Salotto</label>
+            <input id="salotto" name="salotto" type="number" min="0" max="5" value="1">
+          </div>
+          <div class="col-4">
+            <label for="cam_singole">Camerette singole</label>
+            <input id="cam_singole" name="camerette_singole" type="number" min="0" max="10">
+          </div>
+          <div class="col-4">
+            <label for="cam_matr">Camere matrimoniali</label>
+            <input id="cam_matr" name="camere_matrimoniali" type="number" min="0" max="10">
+          </div>
+          <div class="col-4">
+            <label for="finestre">Finestre</label>
+            <input id="finestre" name="finestre" type="number" min="0" max="100">
+          </div>
+          <div class="col-12">
+            <label for="note">Note aggiuntive</label>
+            <textarea id="note" name="note" rows="3" placeholder="Es. presenza di animali, parquet delicato, ecc."></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Consensi</legend>
+        <label><input type="checkbox" name="privacy" required> Ho letto e accetto la privacy policy *</label>
+        <label><input type="checkbox" name="newsletter"> Voglio ricevere aggiornamenti e offerte</label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">Invia iscrizione</button>
+        <a class="btn" href="/">Annulla</a>
+      </div>
+      <div id="msg" class="center ok hidden">Invio riuscito! Ti reindirizziamo…</div>
+    </form>
+  </div>
+
+  <!-- Config (prova a caricare esterna, ma abbiamo anche fallback nello script sotto) -->
+  <script src="/assets/js/auth0-config.js" defer></script>
+  <!-- SDK Auth0 (v2) + fallback jsDelivr -->
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js" defer></script>
+  <script>
+    if (typeof auth0 === 'undefined') {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js';
+      s.defer = true; document.head.appendChild(s);
+    }
+  </script>
+
+  <!-- Logica pagina -->
+  <script>
+    (async function(){
+      const wait = ms => new Promise(r => setTimeout(r, ms));
+      // Fallback CONFIG se l’external non arriva
+      setTimeout(function(){
+        if (typeof window.AUTH0_CONFIG === 'undefined') {
+          const ORIGIN = window.location.origin;
+          window.AUTH0_CONFIG = {
+            domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
+            clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
+            authorizationParams: { redirect_uri: ORIGIN },
+            cacheLocation: "memory",
+            useRefreshTokens: false
+          };
+          window.AUTH0_LOGOUT_OPTIONS = { logoutParams: { returnTo: ORIGIN } };
+        }
+      }, 300);
+
+      // Attendi SDK + CONFIG
+      while (typeof auth0 === 'undefined' || typeof window.AUTH0_CONFIG === 'undefined') { await wait(30); }
+
+      const diag = document.getElementById('diag');
+      if (diag) diag.textContent = 'SDK: ' + typeof auth0 + ' · CONFIG: ' + typeof window.AUTH0_CONFIG;
+
+      const client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
+      const isAuth = await client.isAuthenticated();
+
+      const $need = document.getElementById('need-auth');
+      const $form = document.getElementById('form-cliente');
+
+      // se non autenticato → chiedi di creare account
+      if (!isAuth) {
+        $need.classList.remove('hidden');
+        document.getElementById('cta-signup').addEventListener('click', async (e) => {
+          e.preventDefault();
+          await client.loginWithRedirect({
+            authorizationParams: { screen_hint: 'signup' },
+            appState: { target: '/iscrizione-cliente.html' }
+          });
+        });
+        document.getElementById('cta-login').addEventListener('click', async (e) => {
+          e.preventDefault();
+          await client.loginWithRedirect({
+            appState: { target: '/iscrizione-cliente.html' }
+          });
+        });
+        return;
+      }
+
+      // autenticato → mostra form e precompila hidden con dati utente
+      $form.classList.remove('hidden');
+      const user = await client.getUser();
+      document.getElementById('auth0_sub').value = user?.sub || '';
+      document.getElementById('auth0_email').value = user?.email || '';
+
+      // normalizza CF e Belfiore in maiuscolo
+      const up = id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', ()=> el.value = el.value.toUpperCase());
+      };
+      up('cf'); up('belfiore'); up('provincia'); up('belfiore_ind');
+
+      // dopo submit, messaggio di conferma (Netlify Forms fa redirect a /?success=true, opz.)
+      $form.addEventListener('submit', () => {
+        const msg = document.getElementById('msg');
+        if (msg) msg.classList.remove('hidden');
+      });
+
+      // gestisci eventuale callback code/state (se torni qui dopo login)
+      if (location.search.includes('state=') && (location.search.includes('code=') || location.search.includes('error='))) {
+        try { await client.handleRedirectCallback(); } catch(e) {}
+        history.replaceState({}, document.title, location.pathname);
+      }
+    })();
+  </script>
+</body>
+</html>
