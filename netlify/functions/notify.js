@@ -2,12 +2,11 @@
 // Azioni supportate:
 // - request-otp    { email } -> { ok, token }
 // - verify-otp     { email, code, token } -> { ok }
-// - upload-docs    { email, meta, attachments[] } -> { ok }
+// - upload-docs    { email, meta, attachments[] } -> { ok }  (+ salva richiesta su Blobs)
 // - send-notification { subject, html, to? } -> { ok }
-//
-// Richiede ENV: RESEND_API_KEY, OTP_SECRET, NOTIFY_EMAIL
+
 const crypto = require('crypto');
-const fetch = global.fetch;
+const { getStore } = require('@netlify/blobs');
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const OTP_SECRET = process.env.OTP_SECRET || 'change-me';
@@ -33,7 +32,7 @@ exports.handler = async (event) => {
       const email = (body.email||'').trim();
       if (!email) return resp(400, { error:'Missing email' });
       const code = genCode6();
-      const exp = Date.now() + 15 * 60 * 1000; // 15 min
+      const exp = Date.now() + 15 * 60 * 1000;
       const token = signToken({ email, code, exp });
 
       await sendMail({
@@ -61,16 +60,18 @@ exports.handler = async (event) => {
     if (action === 'upload-docs') {
       const { email, meta, attachments } = body;
       if (!email || !attachments?.length) return resp(400, { error:'Missing email or attachments' });
-      const to = DEFAULT_TO || email; // se non configurato, manda a partner stesso
+
+      // 1) invia email allo staff
+      const to = DEFAULT_TO || email;
       await sendMail({
         to,
-        subject: `KYC upload — ${meta?.partner?.cognome||''} ${meta?.partner?.nome||''} (${email})`,
+        subject: `KYC upload — ${esc(meta?.partner?.cognome||'')} ${esc(meta?.partner?.nome||'')} (${email})`,
         html: `
           <h2>Nuovi documenti KYC</h2>
-          <p><b>Email:</b> ${escapeHtml(email)}</p>
-          <p><b>Partner:</b> ${escapeHtml(meta?.partner?.cognome||'')} ${escapeHtml(meta?.partner?.nome||'')}</p>
-          <p><b>CF:</b> ${escapeHtml(meta?.partner?.cf||'')}</p>
-          <p><b>Documento:</b> ${escapeHtml(meta?.tipo||'')} — ${escapeHtml(meta?.numero||'')} — Scad.: ${escapeHtml(meta?.scadenza||'')}</p>
+          <p><b>Email:</b> ${esc(email)}</p>
+          <p><b>Partner:</b> ${esc(meta?.partner?.cognome||'')} ${esc(meta?.partner?.nome||'')}</p>
+          <p><b>CF:</b> ${esc(meta?.partner?.cf||'')}</p>
+          <p><b>Documento:</b> ${esc(meta?.tipo||'')} — ${esc(meta?.numero||'')} — Scad.: ${esc(meta?.scadenza||'')}</p>
           <p>In allegato fronte, retro e selfie.</p>
         `,
         attachments: attachments.map(a => ({
@@ -80,6 +81,28 @@ exports.handler = async (event) => {
           type: a.mime_type || 'application/octet-stream'
         }))
       });
+
+      // 2) salva richiesta nel Blobs store (senza allegati)
+      try {
+        const store = getStore({ name: 'kyc' });
+        const now = new Date().toISOString();
+        const id = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+        const record = {
+          id,
+          email,
+          partner: meta?.partner || {},
+          doc: { tipo: meta?.tipo, numero: meta?.numero, scadenza: meta?.scadenza },
+          status: 'in_attesa',
+          reason: '',
+          created_at: now,
+          updated_at: now,
+          audit: [{ ts: now, action: 'Inviato documenti', by: email }]
+        };
+        await store.setJSON(`requests/${id}.json`, record);
+      } catch (e) {
+        console.log('Blobs save failed (non bloccante):', e.message);
+      }
+
       return resp(200, { ok:true });
     }
 
@@ -96,9 +119,7 @@ exports.handler = async (event) => {
 };
 
 // --- helpers
-function resp(status, obj){
-  return { statusCode: status, headers: corsHeaders(), body: JSON.stringify(obj) };
-}
+function resp(status, obj){ return { statusCode: status, headers: corsHeaders(), body: JSON.stringify(obj) }; }
 function genCode6(){ return String(Math.floor(100000 + Math.random()*900000)); }
 function signToken(payload){
   const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
@@ -110,11 +131,9 @@ function verifyToken(tok){
   if (!data || !sig) return null;
   const expected = crypto.createHmac('sha256', OTP_SECRET).update(data).digest('base64url');
   if (expected !== sig) return null;
-  try {
-    return JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
-  } catch { return null; }
+  try { return JSON.parse(Buffer.from(data, 'base64url').toString('utf8')); } catch { return null; }
 }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function esc(s){ return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
 async function sendMail({ to, subject, html, attachments }){
   if (!RESEND_API_KEY) throw new Error('Missing RESEND_API_KEY');
@@ -123,7 +142,7 @@ async function sendMail({ to, subject, html, attachments }){
     method:'POST',
     headers:{ 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type':'application/json' },
     body: JSON.stringify({
-      from: 'B&B Clean <no-reply@bnbclean.it>',
+      from: 'B&B Clean <no-reply@bebclean.it>',
       to: [to],
       subject,
       html,
