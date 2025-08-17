@@ -7,67 +7,42 @@
   <link rel="icon" href="/favicon.png">
   <meta name="description" content="Pulizie per casa e B&B, veloci e senza pensieri. Stima trasparente, paghi online in sicurezza. Il tuo tempo è il nostro lavoro!">
   <style>
-    :root {
-      --bg: #0b1220;        /* scuro */
-      --card: #111827;      /* grigio scuro */
-      --text: #e5e7eb;      /* testo chiaro */
-      --muted: #9ca3af;     /* testo secondario */
-      --brand: #14b8a6;     /* teal (palette A) */
-      --brand-2: #0d9488;   /* teal scuro */
-      --line: #1f2937;
-    }
+    :root { --bg:#0b1220; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --brand:#14b8a6; --brand-2:#0d9488; --line:#1f2937; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
     a { color: inherit; text-decoration: none; }
-    .container { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
-    header.nav { position: sticky; top:0; z-index:20; background: rgba(11,18,32,.8); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-    .nav-inner { display:flex; align-items:center; justify-content:space-between; height: 64px; }
+    .container { max-width:1080px; margin:0 auto; padding:0 16px; }
+    header.nav { position:sticky; top:0; z-index:20; background:rgba(11,18,32,.8); backdrop-filter: blur(8px); border-bottom:1px solid var(--line); }
+    .nav-inner { display:flex; align-items:center; justify-content:space-between; height:64px; }
     .logo { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; }
     .logo img { height:28px; width:auto; display:block; }
     nav { display:flex; align-items:center; gap:14px; }
-    .btn { padding:10px 14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; background: transparent; color: var(--text); }
-    .btn:hover{ border-color: var(--brand); color: #fff; }
-    .btn-primary { background: var(--brand); border-color: var(--brand); color:#071820; }
-    .btn-primary:hover { background: var(--brand-2); border-color: var(--brand-2); color:#fff; }
-    .btn-ghost { border-color: transparent; }
+    .btn { padding:10px 14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; background:transparent; color:var(--text); }
+    .btn:hover { border-color:var(--brand); color:#fff; }
+    .btn-primary { background:var(--brand); border-color:var(--brand); color:#071820; }
+    .btn-primary:hover { background:var(--brand-2); border-color:var(--brand-2); color:#fff; }
+    .btn-ghost { border-color:transparent; }
     .hidden { display:none !important; }
-
-    /* dropdown con <details> */
     details.menu { position:relative; }
     details.menu summary { list-style:none; padding:10px 14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; user-select:none; }
-    details.menu[open] summary { border-color: var(--brand); }
-    details.menu .dropdown {
-      position:absolute; right:0; top:110%;
-      min-width:220px; background: var(--card); border:1px solid var(--line); border-radius:12px; padding:8px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
-    }
+    details.menu[open] summary { border-color:var(--brand); }
+    details.menu .dropdown { position:absolute; right:0; top:110%; min-width:240px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px; box-shadow:0 12px 30px rgba(0,0,0,.35); }
     .menu a, .menu button { display:block; width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid transparent; background:transparent; color:var(--text); cursor:pointer; }
     .menu a:hover, .menu button:hover { background:#0f172a; border-color:#1f2937; }
     .sep { height:1px; background:var(--line); margin:6px 0; }
-
-    /* hero */
-    .hero { padding: 48px 0 28px; border-bottom:1px solid var(--line); }
+    .hero { padding:48px 0 28px; border-bottom:1px solid var(--line); }
     .hero h1 { font-size: clamp(28px, 4vw, 44px); line-height:1.1; margin:0 0 12px; }
-    .hero p.lead { color: var(--muted); font-size: 18px; margin:0 0 18px; }
+    .hero p.lead { color:var(--muted); font-size:18px; margin:0 0 18px; }
     .hero .cta { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
-
-    /* punti chiave */
-    .features { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; padding:28px 0 10px; }
-    .card { background: var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
+    .features { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; padding:28px 0 10px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
     .card h3 { margin:0 0 6px; font-size:18px; }
-    .card p { margin:0; color: var(--muted); }
-
-    /* sezioni */
-    section { padding: 32px 0; border-top:1px solid var(--line); }
-    h2 { margin: 0 0 12px; font-size:24px; }
-    ul.check { margin:0; padding-left:18px; color: var(--muted); }
-    footer { border-top:1px solid var(--line); padding:20px 0; color: var(--muted); font-size:14px; }
-
-    @media (max-width: 860px){
-      .features { grid-template-columns: 1fr; }
-      nav { gap:8px; }
-      details.menu summary { padding:10px 12px; }
-    }
+    .card p { margin:0; color:var(--muted); }
+    section { padding:32px 0; border-top:1px solid var(--line); }
+    h2 { margin:0 0 12px; font-size:24px; }
+    ul.check { margin:0; padding-left:18px; color:var(--muted); }
+    footer { border-top:1px solid var(--line); padding:20px 0; color:var(--muted); font-size:14px; }
+    .diag { font-size:12px; color:#9ca3af; margin-left:10px; }
   </style>
 </head>
 <body>
@@ -76,8 +51,9 @@
       <div class="logo">
         <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean">
         <span>B&amp;B <span style="color:var(--brand)">Clean</span></span>
+        <span id="diag-sdk" class="diag"></span>
       </div>
-      <!-- Menù: quando non autenticato -->
+      <!-- Menù: non autenticato -->
       <nav id="nav-guest">
         <a class="btn btn-ghost" href="#servizi">Servizi</a>
         <a class="btn btn-ghost" href="#come-funziona">Come funziona</a>
@@ -85,24 +61,25 @@
 
         <details class="menu">
           <summary>Accedi</summary>
-          <div class="dropdown">
-            <button id="login-client" type="button">Accedi come Cliente</button>
-            <button id="login-partner" type="button">Accedi come Partner</button>
+          <div class="dropdown menu">
+            <!-- Fallback: link sempre attivi verso /login.html -->
+            <a id="login-client"  href="/login.html?role=client&mode=login">Accedi come Cliente</a>
+            <a id="login-partner" href="/login.html?role=partner&mode=login">Accedi come Partner</a>
           </div>
         </details>
 
         <details class="menu">
           <summary>Iscriviti</summary>
-          <div class="dropdown">
-            <button id="signup-client" type="button">Iscriviti come Cliente</button>
+          <div class="dropdown menu">
+            <a id="signup-client"  href="/login.html?role=client&mode=signup">Iscriviti come Cliente</a>
             <div class="sep"></div>
             <a href="/partner.html" id="go-partner-page">Info per diventare Partner</a>
-            <button id="signup-partner" type="button">Iscriviti come Partner</button>
+            <a id="signup-partner" href="/login.html?role=partner&mode=signup">Iscriviti come Partner</a>
           </div>
         </details>
       </nav>
 
-      <!-- Menù: quando autenticato -->
+      <!-- Menù: autenticato -->
       <nav id="nav-auth" class="hidden">
         <a class="btn btn-ghost" href="/prenota.html">Prenota</a>
         <a class="btn btn-ghost" href="/dashboard.html">Dashboard</a>
@@ -115,7 +92,7 @@
   <main class="container">
     <section class="hero">
       <h1>Pulizie per casa e B&B, veloci e senza pensieri</h1>
-      <p class="lead">Trova un <strong>B&amp;B cleaner</strong> vicino a te. Stima trasparente, <strong>paghi online</strong> in sicurezza. <br> <em>Il tuo tempo è il nostro lavoro!</em></p>
+      <p class="lead">Trova un <strong>B&amp;B cleaner</strong> vicino a te. Stima trasparente, <strong>paghi online</strong> in sicurezza. <br><em>Il tuo tempo è il nostro lavoro!</em></p>
       <div class="cta">
         <a href="/prenota.html" class="btn btn-primary">Prenota ora</a>
         <a href="/partner.html" class="btn">Diventa partner</a>
@@ -125,18 +102,9 @@
     <section id="servizi">
       <h2>Perché scegliere B&amp;B Clean</h2>
       <div class="features">
-        <div class="card">
-          <h3>Vicini a te</h3>
-          <p>Selezioniamo B&amp;B cleaner nel tuo raggio: meno spostamenti, più puntualità.</p>
-        </div>
-        <div class="card">
-          <h3>Preventivo chiaro</h3>
-          <p>Stima immediata dei tempi e dei costi prima di confermare.</p>
-        </div>
-        <div class="card">
-          <h3>Pagamento sicuro</h3>
-          <p>Paghi online in sicurezza. Saldo al termine del lavoro con ricevuta.</p>
-        </div>
+        <div class="card"><h3>Vicini a te</h3><p>Selezioniamo B&amp;B cleaner nel tuo raggio: meno spostamenti, più puntualità.</p></div>
+        <div class="card"><h3>Preventivo chiaro</h3><p>Stima immediata dei tempi e dei costi prima di confermare.</p></div>
+        <div class="card"><h3>Pagamento sicuro</h3><p>Paghi online in sicurezza. Saldo al termine del lavoro con ricevuta.</p></div>
       </div>
     </section>
 
@@ -151,14 +119,21 @@
   </main>
 
   <footer>
-    <div class="container">
-      <p>© B&amp;B Clean — Tutti i diritti riservati</p>
-    </div>
+    <div class="container"><p>© B&amp;B Clean — Tutti i diritti riservati</p></div>
   </footer>
 
-  <!-- ORDINE DEGLI SCRIPT (importante): -->
+  <!-- Script order -->
   <script src="/assets/js/auth0-config.js" defer></script>
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.5/auth0-spa-js.production.js" defer></script>
   <script src="/assets/js/auth.js" defer></script>
+
+  <!-- Piccolo test SDK: mostra "SDK OK" a destra del logo -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('diag-sdk');
+      const ok = (typeof auth0 !== 'undefined') ? 'SDK OK' : 'SDK NON CARICATO';
+      el.textContent = '· ' + ok;
+    });
+  </script>
 </body>
 </html>
