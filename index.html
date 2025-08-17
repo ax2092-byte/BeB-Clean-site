@@ -3,48 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Home — B&B Clean</title>
+  <title>B&B Clean — Accesso</title>
   <link rel="icon" href="/favicon.png">
-  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    :root { --border:#e5e7eb; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:0; padding:24px; }
+    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+    .brand { font-weight:800; font-size:20px; letter-spacing:0.2px; }
+    .actions { display:flex; gap:12px; }
+    button { padding:10px 14px; border-radius:10px; border:1px solid var(--border); cursor:pointer; }
+    .hidden { display:none !important; }
+    #profile { display:none; margin-top:16px; padding:16px; border:1px solid var(--border); border-radius:12px; }
+    #profile img { width:48px; height:48px; border-radius:50%; vertical-align:middle; margin-left:8px; }
+    .card { padding:16px; border:1px solid var(--border); border-radius:12px; }
+    a { color: inherit; }
+  </style>
 </head>
 <body>
-  <header class="container nav">
-    <div class="logo">B&amp;B Clean</div>
-    <nav>
-      <a href="/" class="active">Home</a>
-      <a href="/prenota.html">Prenota</a>
-      <a href="/partner.html">Diventa partner</a>
-    </nav>
+  <header>
+    <div class="brand">B&B <span>Clean</span></div>
+    <div class="actions">
+      <a href="/login.html"><button type="button">Vai alla pagina Login</button></a>
+      <button id="login" type="button">Accedi</button>
+      <button id="logout" type="button" class="hidden">Esci</button>
+    </div>
   </header>
 
   <main>
-    <section class="hero container">
-      <h1>Pulizie per casa e B&amp;B, veloci e senza pensieri</h1>
-      <p class="lead">Trova un professionista vicino a te. Stima trasparente, paghi l’acconto online in sicurezza.</p>
-      <div class="cta">
-        <a class="btn primary" href="/prenota.html">Prenota ora</a>
-        <a class="btn ghost" href="/partner.html">Diventa partner</a>
-      </div>
-    </section>
-
-    <section class="container features">
-      <div class="card">
-        <h3>Professionisti verificati</h3>
-        <p>Documenti controllati, reputazione tracciata, prezzi chiari.</p>
-      </div>
-      <div class="card">
-        <h3>Vicini a te</h3>
-        <p>Selezioniamo partner nel tuo raggio: meno spostamenti, più puntualità.</p>
-      </div>
-      <div class="card">
-        <h3>Pagamento sicuro</h3>
-        <p>Acconto online, saldo al termine del lavoro.</p>
-      </div>
-    </section>
+    <div class="card">
+      <h1>Benvenuto 👋</h1>
+      <p>Effettua l’accesso per vedere il tuo profilo.</p>
+      <div id="profile"></div>
+    </div>
   </main>
 
-  <footer class="container footer">
-    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
-  </footer>
+  <!-- ORDINE DEGLI SCRIPT (importante): -->
+  <!-- 1) Config locale (dominio, clientId, redirect_uri) -->
+  <script src="/assets/js/auth0-config.js" defer></script>
+
+  <!-- 2) SDK Auth0 (copiato dal CDN ufficiale) -->
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.5/auth0-spa-js.production.js" defer></script>
+
+  <!-- 3) Il tuo codice che usa l’SDK -->
+  <script src="/assets/js/auth.js" defer></script>
 </body>
 </html>
