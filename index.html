@@ -53,7 +53,8 @@
         <span>B&amp;B <span style="color:var(--brand)">Clean</span></span>
         <span id="diag-sdk" class="diag"></span>
       </div>
-      <!-- Menù: non autenticato -->
+
+      <!-- Menù: NON autenticato -->
       <nav id="nav-guest">
         <a class="btn btn-ghost" href="#servizi">Servizi</a>
         <a class="btn btn-ghost" href="#come-funziona">Come funziona</a>
@@ -71,15 +72,17 @@
         <details class="menu">
           <summary>Iscriviti</summary>
           <div class="dropdown menu">
-            <a id="signup-client"  href="/login.html?role=client&mode=signup">Iscriviti come Cliente</a>
+            <!-- CLIENTE → nuova pagina di iscrizione -->
+            <a id="signup-client"  href="/iscrizione-cliente.html">Iscriviti come Cliente</a>
             <div class="sep"></div>
             <a href="/partner.html" id="go-partner-page">Info per diventare Partner</a>
+            <!-- PARTNER (per ora via Auth0 SignUp) -->
             <a id="signup-partner" href="/login.html?role=partner&mode=signup">Iscriviti come Partner</a>
           </div>
         </details>
       </nav>
 
-      <!-- Menù: autenticato -->
+      <!-- Menù: AUTENTICATO -->
       <nav id="nav-auth" class="hidden">
         <a class="btn btn-ghost" href="/prenota.html">Prenota</a>
         <a class="btn btn-ghost" href="/dashboard.html">Dashboard</a>
@@ -130,21 +133,21 @@
       s.src = src;
       s.defer = true;
       s.onload = ondone;
-      s.onerror = ondone; // in caso di errore, prosegue comunque
+      s.onerror = ondone; // prosegue anche se fallisce
       document.head.appendChild(s);
     }
     // 1) Config
     add('/assets/js/auth0-config.js', function(){
       // 2) SDK da CDN ufficiale (v2.0)
       add('https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js', function(){
-        // 2b) Se il CDN non ha caricato l'SDK, usa il fallback jsDelivr
+        // 2b) fallback jsDelivr se l’SDK non è comparso
         if (typeof auth0 === 'undefined') {
           add('https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js', function(){
-            // 3) Il tuo script
+            // 3) il tuo script
             add('/assets/js/auth.js');
           });
         } else {
-          // 3) Il tuo script
+          // 3) il tuo script
           add('/assets/js/auth.js');
         }
       });
@@ -152,7 +155,7 @@
   })();
   </script>
 
-  <!-- Piccolo test SDK: mostra "SDK OK" a destra del logo -->
+  <!-- Diagnostica mini: “SDK OK” vicino al logo -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       const el = document.getElementById('diag-sdk');
