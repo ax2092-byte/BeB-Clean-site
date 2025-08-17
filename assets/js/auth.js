@@ -1,6 +1,6 @@
 // /assets/js/auth.js
-// Gestione Auth0: login/signup via Auth0 SOLO per i bottoni che lo richiedono.
-// "Iscriviti come Cliente" NON viene intercettato: va alla pagina /iscrizione-cliente.html.
+// Gestione Auth0 per B&B Clean — v2
+// NOTE: NON leghiamo "signup-client" / "go-signup-client": il link va alla pagina locale.
 
 (async () => {
   // Fallback: se la config globale non è stata caricata, la definisco qui
@@ -17,7 +17,7 @@
   }
 
   // attende che l'SDK sia disponibile
-  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
   while (typeof auth0 === 'undefined') { await wait(30); }
 
   const auth0Client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
@@ -30,46 +30,48 @@
     await auth0Client.loginWithRedirect({ authorizationParams, appState });
   }
 
-  // intercetta SOLO i link/bottoni che devono usare Auth0
-  function wire(id, role, mode){
+  // lega SOLO i bottoni/link che devono usare Auth0
+  function wire(id, handler){
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener("click", async (e) => {
       try {
         e.preventDefault();
-        await goAuth(role, mode);
+        await handler();
       } catch (err) {
         console.warn("Auth fallback:", err);
         const href = el.getAttribute("href");
-        if (href) window.location.href = href;
+        if (href) window.location.assign(href);
       }
     });
   }
 
   // LOGIN via Auth0
-  wire("login-client",  "client",  "login");
-  wire("login-partner", "partner", "login");
+  wire("login-client",  () => goAuth("client",  "login"));
+  wire("login-partner", () => goAuth("partner", "login"));
 
   // SIGNUP via Auth0 SOLO per il Partner
-  wire("signup-partner", "partner", "signup");
+  wire("signup-partner", () => goAuth("partner", "signup"));
 
-  // ⚠️ NIENTE wire("signup-client"): lasciamo che il link vada alla pagina locale
+  // ⚠️ NIENTE wire("signup-client") / wire("go-signup-client")
+  // Il link "Iscriviti come Cliente" deve navigare a /iscrizione-cliente.html senza interferenze.
 
-  // callback dopo il login
-  if (location.search.includes("state=") && (location.search.includes("code=") || location.search.includes("error="))) {
+  // Gestione callback dopo il login (code/state in querystring)
+  if (location.search.includes("state=") &&
+     (location.search.includes("code=") || location.search.includes("error="))) {
     try {
       const res = await auth0Client.handleRedirectCallback();
       const target = res?.appState?.target || "/";
       window.history.replaceState({}, document.title, "/");
       window.location.assign(target);
-      return;
+      return; // interrompe perché sto cambiando pagina
     } catch (err) {
-      console.error("Errore callback:", err);
+      console.error("Errore callback Auth0:", err);
       window.history.replaceState({}, document.title, "/");
     }
   }
 
-  // gestione nav autenticato
+  // UI nav autenticato/non
   const $navGuest = document.getElementById("nav-guest");
   const $navAuth  = document.getElementById("nav-auth");
   const $username = document.getElementById("nav-username");
@@ -87,7 +89,11 @@
   if ($logout) {
     $logout.addEventListener("click", async (e) => {
       e.preventDefault();
-      await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS || { logoutParams: { returnTo: window.location.origin } });
+      try {
+        await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS || { logoutParams: { returnTo: window.location.origin } });
+      } catch (err) {
+        console.error("Errore logout:", err);
+      }
     });
   }
 })();
