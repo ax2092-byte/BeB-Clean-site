@@ -27,13 +27,33 @@
     <div id="error" class="err"></div>
   </div>
 
-  <!-- 1) Config della tua app (domain, clientId, redirect_uri) -->
+  <!-- 1) Provo a caricare la config esterna -->
   <script src="/assets/js/auth0-config.js" defer></script>
+
+  <!-- 1b) Fallback CONFIG: se la config non arriva, la definisco io -->
+  <script>
+    (function ensureConfig(){
+      var ORIGIN = window.location && window.location.origin;
+      // se tra 300ms non esiste ancora, la creo io
+      setTimeout(function(){
+        if (typeof window.AUTH0_CONFIG === 'undefined') {
+          window.AUTH0_CONFIG = {
+            domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
+            clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
+            authorizationParams: { redirect_uri: ORIGIN },
+            cacheLocation: "memory",
+            useRefreshTokens: false
+          };
+          window.AUTH0_LOGOUT_OPTIONS = { logoutParams: { returnTo: ORIGIN } };
+        }
+      }, 300);
+    })();
+  </script>
 
   <!-- 2) SDK Auth0 ufficiale (v2, percorso /2.0/) -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js" defer></script>
 
-  <!-- 2b) Fallback: se il CDN Auth0 fosse bloccato, carica da jsDelivr -->
+  <!-- 2b) Fallback SDK: se il CDN Auth0 fosse bloccato, carica da jsDelivr -->
   <script>
     if (typeof auth0 === 'undefined') {
       var s = document.createElement('script');
