@@ -3,5 +3,10 @@
   "m2_per_hour": 35,
   "bid_window_hours": 12,
   "max_offers": 5,
-  "notify_email": "alessandrospanu92@gmail.com"
+  "notify_email": "alessandrospanu92@gmail.com",
+
+  "commission_partner_percent": 0.12,
+  "fee_client_percent": 0.05,
+  "distance_refund_per_10km": 2.5,
+  "acconto_percent": 0.0
 }
