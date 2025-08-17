@@ -1,0 +1,9 @@
+{
+  "name": "bbclean-site",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@netlify/blobs": "^5.0.0"
+  }
+}
