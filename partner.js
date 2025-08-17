@@ -1,261 +1,385 @@
-// assets/js/partner.js — CF auto SENZA codice catastale manuale, usa dataset comuni, upload file, notifica email
-document.addEventListener('DOMContentLoaded', ()=>{
-  const form = document.querySelector('form[name="partner"]');
-  if (!form) return;
+// /partner.js — Area Partner MVP
+// - Login con OTP email (stateless, via Netlify Function notify.js)
+// - Tab UI + salvataggio locale profilo/tariffe/disponibilità/notifiche
+// - Calcolo Codice Fiscale IT (senza Belfiore manuale: usa /assets/data/comuni.json o /comuni.json)
+// - Upload documenti KYC via email (Resend attachments) -> admin
+// - Hooks pronti per Stripe Connect + route/geocode functions
 
-  // --------- Hints numero documento ---------
-  const tipo = document.getElementById('doc_tipo');
-  const num  = document.getElementById('doc_numero');
-  if (tipo && num){
-    const hints = {
-      CARTA_IDENTITA: "Es. CA1234567",
-      PASSAPORTO: "Es. YA1234567",
-      PATENTE: "Es. B12345678"
-    };
-    const upd = ()=>{ num.placeholder = hints[tipo.value] || "Es. AA12345"; };
-    tipo.addEventListener('change', upd); upd();
-  }
+(() => {
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const store = {
+    get(key, def = null){ try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch{ return def; } },
+    set(key, val){ localStorage.setItem(key, JSON.stringify(val)); },
+    del(key){ localStorage.removeItem(key); }
+  };
 
-  // --------- Dataset Comuni (leggero) ---------
-  // Struttura: [{ nome:"DORGALI", provincia:"NU", codice:"D345" }, ...]
-  let COMUNI = [];
+  // ---- Sessione (OTP)
+  let session = store.get('partnerSession') || null; // { email }
+  const otpBackdrop = $('#otpBackdrop');
+  const sessionEmailEl = $('#sessionEmail');
+  const secEmailEl = $('#secEmail');
 
-  async function loadComuni(){
-    // cache locale
-    try{
-      const cache = JSON.parse(localStorage.getItem('COMUNI_MIN') || '{}');
-      if (cache && Array.isArray(cache.items) && cache.items.length > 0) {
-        COMUNI = cache.items;
-        return;
-      }
-    }catch(_){}
-
-    // 1) file locale assets/data/comuni.json (preferito)
-    try{
-      const r = await fetch('/assets/data/comuni.json', { cache:'no-store' });
-      if (r.ok){
-        const js = await r.json();
-        COMUNI = (js||[]).map(c=>({
-          nome: String(c.nome||'').toUpperCase(),
-          provincia: String(c.provincia||'').toUpperCase(),
-          codice: String(c.codice||'').toUpperCase()
-        })).filter(c=>c.nome && c.provincia && c.codice);
-        localStorage.setItem('COMUNI_MIN', JSON.stringify({ ts: Date.now(), items: COMUNI }));
-        return;
-      }
-    }catch(_){}
-
-    // 2) fallback pubblico (se manca il file locale)
-    try{
-      const r = await fetch('https://raw.githubusercontent.com/matteocontrini/comuni-json/master/comuni.json', { cache:'no-store' });
-      const big = await r.json();
-      const map = Object.create(null);
-      (big||[]).forEach(x=>{
-        const nome = String(x.nome||'').toUpperCase();
-        const provincia = String(x.sigla||'').toUpperCase();
-        const codice = String(x.codiceCatastale||'').toUpperCase();
-        if (nome && provincia && codice) map[codice] = { nome, provincia, codice };
-      });
-      COMUNI = Object.values(map);
-      localStorage.setItem('COMUNI_MIN', JSON.stringify({ ts: Date.now(), items: COMUNI }));
-    }catch(_){
-      COMUNI = [];
+  function requireSession(){
+    if (!session || !session.email) {
+      otpBackdrop.style.display = 'flex';
+      $('#otpStep1').style.display = '';
+      $('#otpStep2').style.display = 'none';
+      return false;
     }
+    sessionEmailEl.textContent = session.email;
+    secEmailEl.textContent = session.email;
+    return true;
   }
 
-  // --------- Autocomplete comune di nascita ---------
-  const dl = document.getElementById('comuni-list');
-  const comN = document.getElementById('comune_nascita');
-  const provN = document.getElementById('prov_nascita');
-
-  function populateDatalist(query){
-    if (!dl) return;
-    dl.innerHTML = '';
-    if (!query || query.length < 2) return;
-    const q = query.toUpperCase().trim();
-    const found = COMUNI.filter(c => c.nome.includes(q)).slice(0, 30);
-    found.forEach(c=>{
-      const opt = document.createElement('option');
-      opt.value = c.nome;
-      opt.label = `${c.nome} (${c.provincia})`;
-      dl.appendChild(opt);
+  // OTP flow
+  let otpToken = null;  // token firmato restituito da backend
+  $('#btnSendOtp')?.addEventListener('click', async () => {
+    const email = $('#otpEmail').value.trim();
+    if (!email) return alert('Inserisci un email valida');
+    const res = await fetch('/.netlify/functions/notify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'request-otp', email })
     });
-  }
-
-  if (comN){
-    comN.addEventListener('input', ()=>{
-      populateDatalist(comN.value);
-      // se match esatto di nome, compila provincia automaticamente (se esiste una sola occorrenza)
-      const q = (comN.value||'').toUpperCase().trim();
-      const matches = COMUNI.filter(c => c.nome === q);
-      if (matches.length === 1){
-        provN.value = matches[0].provincia;
-      }
-      computeCF();
-    });
-  }
-
-  // --------- Calcolo Codice Fiscale ---------
-  const nome = document.getElementById('nome');
-  const cognome = document.getElementById('cognome');
-  const sesso = document.getElementById('sesso');
-  const dataN = document.getElementById('data_nascita');
-  const cf = document.getElementById('codice_fiscale');
-  const cfStatus = document.getElementById('cf_status');
-
-  [nome, cognome, sesso, dataN, provN].forEach(el=>{
-    if (el) el.addEventListener('input', computeCF);
+    const js = await res.json().catch(()=>({}));
+    if (!res.ok || !js.ok) return alert('Errore invio OTP: ' + (js.error||res.status));
+    otpToken = js.token;
+    $('#otpStep1').style.display='none';
+    $('#otpStep2').style.display='';
+    $('#otpInfo').textContent = `Abbiamo inviato un codice a ${email}. Valido 15 minuti.`;
   });
 
-  function onlyLetters(s){ return (s||'').toUpperCase().replace(/[^A-Z]/g,''); }
-  function consonants(s){ return onlyLetters(s).replace(/[AEIOU]/g,''); }
-  function vowels(s){ return onlyLetters(s).replace(/[^AEIOU]/g,''); }
+  $('#btnBackOtp')?.addEventListener('click', () => {
+    $('#otpStep1').style.display='';
+    $('#otpStep2').style.display='none';
+  });
 
-  function codeSurname(s){
-    let c = consonants(s) + vowels(s) + 'XXX';
-    return c.slice(0,3);
+  $('#btnVerifyOtp')?.addEventListener('click', async () => {
+    const code = $('#otpCode').value.trim();
+    const email = $('#otpEmail').value.trim();
+    if (!otpToken || !code || code.length !== 6) return alert('Codice non valido');
+    const res = await fetch('/.netlify/functions/notify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'verify-otp', email, code, token: otpToken })
+    });
+    const js = await res.json().catch(()=>({}));
+    if (!res.ok || !js.ok) return alert('OTP errato o scaduto');
+    session = { email };
+    store.set('partnerSession', session);
+    sessionEmailEl.textContent = email;
+    secEmailEl.textContent = email;
+    otpBackdrop.style.display='none';
+  });
+
+  // Apertura sessione al load
+  document.addEventListener('DOMContentLoaded', () => { requireSession(); });
+
+  // ---- Tabs
+  const tabs = $('#tabs');
+  const tabMap = {
+    overview: $('#tab-overview'),
+    profilo: $('#tab-profilo'),
+    kyc: $('#tab-kyc'),
+    tariffe: $('#tab-tariffe'),
+    disponibilita: $('#tab-disponibilita'),
+    payout: $('#tab-payout'),
+    notifiche: $('#tab-notifiche'),
+    sicurezza: $('#tab-sicurezza'),
+  };
+  tabs?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn'); if (!btn) return;
+    $$('.tab-btn', tabs).forEach(b => b.classList.toggle('active', b===btn));
+    Object.values(tabMap).forEach(x => x.style.display = 'none');
+    const id = btn.dataset.tab;
+    tabMap[id]?.style && (tabMap[id].style.display = '');
+  });
+
+  // ---- Dati e progress bar
+  const profile = store.get('partnerProfile', {
+    nome:'', cognome:'', sesso:'', data_nascita:'', comune_nascita:'', provincia_nascita:'',
+    cf:'', lingue:'', indirizzo:'', raggio_km:20, animali:'si', mezzo:'', attrezzatura:''
+  });
+  const tariffe = store.get('partnerTariffe', { tariffa: 12, prodotti:'', extra:'' });
+  const disp = store.get('partnerDisp', { lun:'', mar:'', mer:'', gio:'', ven:'', we:'', ferie:'', raggio_km2:20 });
+  const notif = store.get('partnerNotif', { alert_richieste:'on', digest:'off' });
+  const kycState = store.get('partnerKyc', { stato:'in_attesa', audit:[] });
+  const payouts = store.get('partnerPayout', { history:[] }); // solo mock
+
+  function profileCompletion(){
+    const keys = ['nome','cognome','sesso','data_nascita','comune_nascita','cf','indirizzo'];
+    const done = keys.filter(k => (profile[k]||'').toString().trim().length>0).length;
+    return Math.round(100*done/keys.length);
   }
-  function codeName(s){
-    const cons = consonants(s);
-    if (cons.length >= 4) return cons[0] + cons[2] + cons[3];
-    let c = cons + vowels(s) + 'XXX';
-    return c.slice(0,3);
+  function refreshOverview(){
+    const progress = profileCompletion();
+    $('#profileProgress').style.width = progress + '%';
+    $('#visibilityStatus').textContent = progress>=80 && kycState.stato==='approvato' ? 'Attivo' : 'Pausa';
+    const kycMap = { in_attesa:'In attesa', approvato:'Approvato', rifiutato:'Rifiutato' };
+    $('#kycStatus').textContent = kycMap[kycState.stato] || 'In attesa';
   }
-  const MONTH = {1:'A',2:'B',3:'C',4:'D',5:'E',6:'H',7:'L',8:'M',9:'P',10:'R',11:'S',12:'T'};
-  function codeDate(dISO, sex){
-    if (!dISO) return null;
-    const dt = new Date(dISO);
-    if (isNaN(dt)) return null;
-    const yy = String(dt.getFullYear()).slice(-2);
-    const mm = dt.getMonth()+1;
-    const mcode = MONTH[mm];
-    let dd = dt.getDate();
-    if (sex === 'F') dd += 40;
-    const dcode = String(dd).padStart(2,'0');
-    return yy + mcode + dcode;
+
+  // ---- Carica comuni (per CF & datalist)
+  let comuniIndex = null; // { "DORGALI|NU": "D345" }
+  async function loadComuni(){
+    if (comuniIndex) return comuniIndex;
+    const tryPaths = ['/assets/data/comuni.json', '/comuni.json'];
+    let data=null;
+    for (const p of tryPaths){
+      try {
+        const r = await fetch(p); if (r.ok) { data = await r.json(); break; }
+      } catch {}
+    }
+    if (!data) return {};
+    comuniIndex = {};
+    data.forEach(c => {
+      const key = (c.nome + '|' + c.provincia).toUpperCase();
+      comuniIndex[key] = c.codice; // Belfiore
+    });
+    // Datalist
+    const datalist = $('#comuniList');
+    if (datalist) {
+      const opts = data.slice(0, 5000).map(c => `<option value="${c.nome}">`);
+      datalist.innerHTML = opts.join('');
+    }
+    return comuniIndex;
   }
-  function cfControl(s15){
-    const ODD = {
+
+  // ---- Codice Fiscale
+  const CF = (() => {
+    const monthCode = ['A','B','C','D','E','H','L','M','P','R','S','T'];
+    const oddMap = {
       '0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
       'A':1,'B':0,'C':5,'D':7,'E':9,'F':13,'G':15,'H':17,'I':19,'J':21,
       'K':2,'L':4,'M':18,'N':20,'O':11,'P':3,'Q':6,'R':8,'S':12,'T':14,
       'U':16,'V':10,'W':22,'X':25,'Y':24,'Z':23
     };
-    const EVEN = {
+    const evenMap = {
       '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
       'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7,'I':8,'J':9,
       'K':10,'L':11,'M':12,'N':13,'O':14,'P':15,'Q':16,'R':17,'S':18,'T':19,
       'U':20,'V':21,'W':22,'X':23,'Y':24,'Z':25
     };
-    let sum = 0;
-    for (let i=0;i<15;i++){
-      const ch = s15[i]; const pos = i+1;
-      sum += (pos % 2 === 1) ? (ODD[ch] ?? 0) : (EVEN[ch] ?? 0);
+    function onlyLetters(s){ return (s||'').toUpperCase().replace(/[^A-Z]/g,''); }
+    function consonants(s){ return onlyLetters(s).replace(/[AEIOU]/g,''); }
+    function vowels(s){ return onlyLetters(s).replace(/[^AEIOU]/g,''); }
+    function pad3(s){ return (s + 'XXX').slice(0,3); }
+    function surnameCode(s){
+      const c = consonants(s), v = vowels(s);
+      return pad3((c + v).slice(0,3));
     }
-    const rem = sum % 26;
-    return String.fromCharCode('A'.charCodeAt(0) + rem);
+    function nameCode(s){
+      const c = consonants(s);
+      if (c.length >= 4) return (c[0] + c[2] + c[3]).toUpperCase();
+      const v = vowels(s);
+      return pad3((c + v).slice(0,3));
+    }
+    function dateCode(dISO, sesso){
+      if (!dISO) return '000A00';
+      const d = new Date(dISO);
+      const yy = String(d.getFullYear()).slice(-2);
+      const m = monthCode[d.getMonth()] || 'A';
+      let day = d.getDate();
+      if (sesso === 'F') day += 40;
+      return yy + m + String(day).padStart(2,'0');
+    }
+    function controlChar(code15){
+      const up = code15.toUpperCase();
+      let sum = 0;
+      for (let i=0; i<up.length; i++){
+        const ch = up[i];
+        sum += ( (i+1) % 2 === 0 ) ? (evenMap[ch] ?? 0) : (oddMap[ch] ?? 0);
+      }
+      const rem = sum % 26;
+      return String.fromCharCode('A'.charCodeAt(0) + rem);
+    }
+    function compute({ nome, cognome, sesso, data_nascita, comune_nascita, provincia_nascita, belfiore }){
+      const s = surnameCode(cognome||'');
+      const n = nameCode(nome||'');
+      const d = dateCode(data_nascita, sesso);
+      const bf = (belfiore || 'Z000').toUpperCase();
+      const base = (s + n + d + bf).toUpperCase();
+      return base + controlChar(base);
+    }
+    return { compute };
+  })();
+
+  async function computeCFIfPossible(){
+    await loadComuni();
+    const f = $('#formProfilo'); if (!f) return;
+    const nome = f.nome.value.trim();
+    const cognome = f.cognome.value.trim();
+    const sesso = f.sesso.value;
+    const data_nascita = f.data_nascita.value;
+    const comune = (f.comune_nascita.value||'').toUpperCase();
+    const prov = (f.provincia_nascita.value||'').toUpperCase();
+    let bf = null;
+    if (comuniIndex) {
+      bf = comuniIndex[`${comune}|${prov}`] || null;
+    }
+    if (nome && cognome && sesso && data_nascita && bf){
+      const code = CF.compute({ nome, cognome, sesso, data_nascita, comune_nascita:comune, provincia_nascita:prov, belfiore: bf });
+      $('#cf').value = code;
+    }
   }
 
-  function computeCF(){
-    cfStatus.textContent = '';
-    const N = (nome.value||'').trim();
-    const C = (cognome.value||'').trim();
-    const S = (sesso.value||'').trim();
-    const D = (dataN.value||'').trim();
-    const comune = (comN.value||'').toUpperCase().trim();
-    const prov = (provN.value||'').toUpperCase().trim();
-
-    if (!N || !C || !S || !D || !comune || !prov) {
-      cf.value = '';
-      return;
-    }
-
-    if (!COMUNI || COMUNI.length === 0){
-      cf.value = '';
-      cfStatus.innerHTML = '<span class="status-err">Caricamento comuni… riprova tra un attimo.</span>';
-      return;
-    }
-
-    // Cerca per (comune, provincia); se non trovato, prova comune unico senza provincia.
-    let hit = COMUNI.find(c => c.nome === comune && c.provincia === prov);
-    if (!hit){
-      const sameName = COMUNI.filter(c => c.nome === comune);
-      if (sameName.length === 1) hit = sameName[0];
-    }
-    if (!hit){
-      cf.value = '';
-      cfStatus.innerHTML = '<span class="status-err">Seleziona un comune valido (e provincia corretta) dalla lista.</span>';
-      return;
-    }
-
-    const c15 = (codeSurname(C) + codeName(N) + codeDate(D,S) + hit.codice).toUpperCase();
-    const ctrl = cfControl(c15);
-    if (!ctrl){
-      cf.value = '';
-      cfStatus.innerHTML = '<span class="status-err">Dati non validi per il CF.</span>';
-      return;
-    }
-    cf.value = c15 + ctrl;
-    cfStatus.innerHTML = '<span class="status-ok">Codice Fiscale generato.</span>';
+  // Bind form Profilo
+  const fP = $('#formProfilo');
+  if (fP){
+    // inizializza
+    Object.keys(profile).forEach(k => { if (fP[k]) fP[k].value = profile[k]; });
+    // ricalcolo CF on change
+    ['nome','cognome','sesso','data_nascita','comune_nascita','provincia_nascita'].forEach(nm => {
+      fP[nm]?.addEventListener('input', computeCFIfPossible);
+    });
+    fP.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!requireSession()) return;
+      Object.keys(profile).forEach(k => { if (fP[k]) profile[k] = fP[k].value; });
+      store.set('partnerProfile', profile);
+      refreshOverview();
+      alert('Profilo salvato.');
+    });
   }
 
-  // --------- INVIO FORM (multipart a Netlify + notifica via funzione) ---------
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    if (btn){ btn.disabled = true; btn.textContent = 'Invio…'; }
+  // Tariffe
+  const fT = $('#formTariffe');
+  const economyRulesEl = $('#economyRules');
+  let settingsCache = null;
+  async function loadSettings(){
+    if (settingsCache) return settingsCache;
+    try {
+      const r = await fetch('/settings.json'); if (r.ok) settingsCache = await r.json();
+    } catch {}
+    return settingsCache || {};
+  }
+  function printEconomyRules(s){
+    const fee = Math.round((s.fee_client_percent ?? 0.05)*100);
+    const comm = Math.round((s.commission_partner_percent ?? 0.12)*100);
+    const rim = s.distance_refund_per_10km ?? 2.5;
+    economyRulesEl.textContent =
+      `Commissione B&B Clean: ${comm}% sul prezzo partner. `+
+      `Costi del servizio al cliente: ${fee}% (solo sul lavoro). `+
+      `Rimborso distanza: € ${rim} ogni 10 km (arrotondato per eccesso).`;
+  }
+  (async () => { const s = await loadSettings(); printEconomyRules(s); })();
 
-    computeCF();
-    if (!cf.value || cf.value.length !== 16){
-      alert('Completa i dati di nascita e seleziona un comune valido per generare il Codice Fiscale.');
-      if (btn){ btn.disabled = false; btn.textContent = 'Invia candidatura'; }
-      return;
-    }
+  if (fT){
+    Object.keys(tariffe).forEach(k => { if (fT[k]) fT[k].value = tariffe[k]; });
+    fT.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!requireSession()) return;
+      Object.keys(tariffe).forEach(k => { if (fT[k]) tariffe[k] = fT[k].value; });
+      store.set('partnerTariffe', tariffe);
+      alert('Tariffe salvate.');
+    });
+  }
 
-    try{
-      // 1) invio a Netlify Forms (con file)
-      const fd = new FormData(form);
-      if (!fd.get('form-name')) fd.set('form-name','partner');
-      await fetch('/', { method:'POST', body: fd });
+  // Disponibilità
+  const fD = $('#formDisp');
+  if (fD){
+    Object.keys(disp).forEach(k => { if (fD[k]) fD[k].value = disp[k]; });
+    fD.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!requireSession()) return;
+      Object.keys(disp).forEach(k => { if (fD[k]) disp[k] = fD[k].value; });
+      // se raggio è stato indicato qui, aggiorno profilo
+      if (fD.raggio_km2?.value){ profile.raggio_km = Number(fD.raggio_km2.value||20); store.set('partnerProfile', profile); }
+      store.set('partnerDisp', disp);
+      alert('Disponibilità salvate.');
+    });
+  }
 
-      // 2) notifica email (senza allegati)
-      try{
-        const preview = {
-          nome: fd.get('nome'),
-          cognome: fd.get('cognome'),
-          email: fd.get('email'),
-          telefono: fd.get('telefono'),
-          codice_fiscale: fd.get('codice_fiscale'),
-          sesso: fd.get('sesso'),
-          data_nascita: fd.get('data_nascita'),
-          comune_nascita: fd.get('comune_nascita'),
-          prov_nascita: fd.get('prov_nascita'),
-          doc_tipo: fd.get('doc_tipo'),
-          doc_numero: fd.get('doc_numero'),
-          doc_scadenza: fd.get('doc_scadenza'),
-          via: fd.get('via'),
-          civico: fd.get('civico'),
-          cap: fd.get('cap'),
-          citta: fd.get('citta'),
-          provincia: fd.get('provincia'),
-          regione: fd.get('regione'),
-          raggio_km: fd.get('raggio'),
-          tariffa_eur_h: fd.get('tariffa')
-        };
-        await fetch('/.netlify/functions/notify', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ type:'partner', data: preview })
-        });
-      }catch(_){}
+  // Notifiche
+  const fN = $('#formNotif');
+  if (fN){
+    Object.keys(notif).forEach(k => { if (fN[k]) fN[k].value = notif[k]; });
+    fN.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!requireSession()) return;
+      Object.keys(notif).forEach(k => { if (fN[k]) notif[k] = fN[k].value; });
+      store.set('partnerNotif', notif);
+      alert('Preferenze salvate.');
+    });
+  }
 
-      window.location.href = '/success.html';
-    }catch(err){
-      alert('Invio non riuscito. Riprova.');
-      if (btn){ btn.disabled = false; btn.textContent = 'Invia candidatura'; }
-    }
+  // KYC upload (via email attachments)
+  const fK = $('#formKyc');
+  if (fK){
+    fK.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!requireSession()) return;
+
+      const fd = new FormData(fK);
+      const fields = Object.fromEntries(fd.entries());
+      async function fileToAttachment(file){
+        const buf = await file.arrayBuffer();
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        const mime = file.type || 'application/octet-stream';
+        return { filename: file.name, content: b64, mime_type: mime };
+      }
+      const doc_fronte = fd.get('doc_fronte'); const doc_retro = fd.get('doc_retro'); const selfie = fd.get('selfie');
+      if (!(doc_fronte && doc_retro && selfie)) return alert('Carica tutti i file richiesti.');
+
+      const attachments = [];
+      attachments.push(await fileToAttachment(doc_fronte));
+      attachments.push(await fileToAttachment(doc_retro));
+      attachments.push(await fileToAttachment(selfie));
+
+      const payload = {
+        action: 'upload-docs',
+        email: session.email,
+        meta: {
+          tipo: fields.doc_tipo,
+          numero: fields.doc_numero,
+          scadenza: fields.doc_scadenza,
+          partner: { nome: profile.nome, cognome: profile.cognome, cf: $('#cf').value }
+        },
+        attachments
+      };
+
+      const res = await fetch('/.netlify/functions/notify', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      const js = await res.json().catch(()=>({}));
+      if (!res.ok || !js.ok) return alert('Invio fallito: '+(js.error||res.status));
+
+      // aggiorna stato/audit locale
+      kycState.stato = 'in_attesa';
+      kycState.audit = kycState.audit || [];
+      kycState.audit.unshift({ ts: new Date().toISOString(), azione:'Inviato documenti', by: session.email });
+      store.set('partnerKyc', kycState);
+      renderKycAudit();
+      alert('Documenti inviati. Ti avviseremo via email dopo la verifica.');
+    });
+  }
+
+  function renderKycAudit(){
+    const ul = $('#kycAudit'); if (!ul) return;
+    if (!kycState.audit?.length) { ul.innerHTML = '<li>Nessuna decisione ancora.</li>'; return; }
+    ul.innerHTML = kycState.audit.map(a => `<li>[${new Date(a.ts).toLocaleString()}] ${a.azione} — ${a.by||'sistema'}</li>`).join('');
+  }
+  renderKycAudit();
+
+  // Payout mock
+  $('#btnStripe')?.addEventListener('click', () => {
+    alert('Collegamento Stripe Connect sarà attivato lato server (prossimo step).');
   });
 
-  // avvia caricamento comuni
-  loadComuni().then(()=>{/* ok */});
-});
+  // Sicurezza
+  $('#btnChangeEmail')?.addEventListener('click', () => {
+    store.del('partnerSession');
+    session = null;
+    requireSession(); // riapre modal
+  });
+  $('#btnLogout')?.addEventListener('click', () => {
+    store.del('partnerSession');
+    session = null;
+    location.reload();
+  });
+
+  // Avvio
+  refreshOverview();
+  computeCFIfPossible();
+})();
