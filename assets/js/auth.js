@@ -1,93 +1,75 @@
 // /assets/js/auth.js
-// Gestione Auth0 per B&B Clean: login/signup Cliente/Partner + UI menù
+// Se JS funziona, usiamo Auth0 direttamente. Altrimenti i link <a> portano a /login.html.
 
 (async () => {
-  // attende che config e SDK siano disponibili
+  // aspetta config + SDK
   const wait = ms => new Promise(r => setTimeout(r, ms));
-  while (typeof window.AUTH0_CONFIG === 'undefined' || typeof auth0 === 'undefined') {
-    await wait(30);
-  }
+  while (typeof window.AUTH0_CONFIG === 'undefined' || typeof auth0 === 'undefined') { await wait(30); }
 
   const auth0Client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
 
-  // utility: login con ruolo e modalità (login|signup)
+  // helper: login con ruolo e modalità
   async function goAuth(role = "client", mode = "login") {
-    const appState = {
-      role,
-      mode,
-      // dove andare dopo il login, puoi cambiare se vuoi:
-      target: role === "partner" ? "/dashboard.html" : "/prenota.html"
-    };
-
+    const appState = { role, mode, target: role === "partner" ? "/dashboard.html" : "/prenota.html" };
     const authorizationParams = {};
     if (mode === "signup") authorizationParams.screen_hint = "signup";
+    await auth0Client.loginWithRedirect({ authorizationParams, appState });
+  }
 
-    // se in futuro userai un'API:
-    // authorizationParams.audience = "https://api.bnbclean.com";
-
-    await auth0Client.loginWithRedirect({
-      authorizationParams,
-      appState
+  // intercetta i click (ma NON blocca il link se qualcosa va storto)
+  function wire(id, role, mode){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("click", async (e) => {
+      try {
+        e.preventDefault();
+        await goAuth(role, mode);
+      } catch (err) {
+        // in caso d'errore, lasciamo procedere il link di fallback (a /login.html)
+        console.warn("Auth fallback:", err);
+        window.location.href = el.getAttribute("href");
+      }
     });
   }
 
-  // DOM refs
+  wire("login-client",  "client",  "login");
+  wire("login-partner", "partner", "login");
+  wire("signup-client",  "client",  "signup");
+  wire("signup-partner", "partner", "signup");
+
+  // callback dopo il login
+  if (location.search.includes("state=") && (location.search.includes("code=") || location.search.includes("error="))) {
+    try {
+      const res = await auth0Client.handleRedirectCallback();
+      const target = res?.appState?.target || "/";
+      window.history.replaceState({}, document.title, "/");
+      window.location.assign(target);
+      return;
+    } catch (err) {
+      console.error("Errore callback:", err);
+      window.history.replaceState({}, document.title, "/");
+    }
+  }
+
+  // gestione nav autenticato
   const $navGuest = document.getElementById("nav-guest");
   const $navAuth  = document.getElementById("nav-auth");
   const $username = document.getElementById("nav-username");
+  const $logout   = document.getElementById("logout");
 
-  // Bottoni specifici
-  const $loginClient  = document.getElementById("login-client");
-  const $loginPartner = document.getElementById("login-partner");
-  const $signupClient  = document.getElementById("signup-client");
-  const $signupPartner = document.getElementById("signup-partner");
+  const isAuthenticated = await auth0Client.isAuthenticated();
+  if ($navGuest) $navGuest.classList.toggle("hidden", isAuthenticated);
+  if ($navAuth)  $navAuth.classList.toggle("hidden", !isAuthenticated);
 
-  // Fallback vecchi ID (se presenti)
-  const $loginGeneric = document.getElementById("login");
-  const $logout       = document.getElementById("logout");
-
-  if ($loginClient)  $loginClient.addEventListener("click", e => { e.preventDefault(); goAuth("client", "login"); });
-  if ($loginPartner) $loginPartner.addEventListener("click", e => { e.preventDefault(); goAuth("partner", "login"); });
-  if ($signupClient)  $signupClient.addEventListener("click", e => { e.preventDefault(); goAuth("client", "signup"); });
-  if ($signupPartner) $signupPartner.addEventListener("click", e => { e.preventDefault(); goAuth("partner", "signup"); });
-
-  if ($loginGeneric) $loginGeneric.addEventListener("click", e => { e.preventDefault(); goAuth("client", "login"); });
+  if (isAuthenticated && $username) {
+    const user = await auth0Client.getUser();
+    $username.textContent = `Ciao, ${user?.name || user?.email || "Utente"}`;
+  }
 
   if ($logout) {
     $logout.addEventListener("click", async (e) => {
       e.preventDefault();
       await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS);
     });
-  }
-
-  // Gestione callback dopo il login (code/state in querystring)
-  if (location.search.includes("state=") &&
-     (location.search.includes("code=") || location.search.includes("error="))) {
-    try {
-      const result = await auth0Client.handleRedirectCallback();
-      // se ho una destinazione preferita, ci vado
-      const target = result?.appState?.target || "/";
-      // pulisco l'URL e reindirizzo
-      window.history.replaceState({}, document.title, "/");
-      window.location.assign(target);
-      return; // interrompe qui perché sto cambiando pagina
-    } catch (err) {
-      console.error("Errore callback Auth0:", err);
-      window.history.replaceState({}, document.title, "/");
-    }
-  }
-
-  // Stato autenticazione
-  const isAuthenticated = await auth0Client.isAuthenticated();
-
-  // Mostra il menù corretto
-  if ($navGuest) $navGuest.classList.toggle("hidden", isAuthenticated);
-  if ($navAuth)  $navAuth.classList.toggle("hidden", !isAuthenticated);
-
-  // Nome utente in nav
-  if (isAuthenticated && $username) {
-    const user = await auth0Client.getUser();
-    const name = user?.name || user?.email || "Utente";
-    $username.textContent = `Ciao, ${name}`;
   }
 })();
