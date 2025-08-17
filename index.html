@@ -63,7 +63,6 @@
         <details class="menu">
           <summary>Accedi</summary>
           <div class="dropdown menu">
-            <!-- Fallback: link attivi verso /login.html -->
             <a id="login-client"  href="/login.html?role=client&mode=login">Accedi come Cliente</a>
             <a id="login-partner" href="/login.html?role=partner&mode=login">Accedi come Partner</a>
           </div>
@@ -72,11 +71,10 @@
         <details class="menu">
           <summary>Iscriviti</summary>
           <div class="dropdown menu">
-            <!-- CLIENTE → nuova pagina di iscrizione -->
-            <a id="signup-client"  href="/iscrizione-cliente.html">Iscriviti come Cliente</a>
+            <!-- NUOVO ID per evitare vecchi handler -->
+            <a id="go-signup-client" href="/iscrizione-cliente.html">Iscriviti come Cliente</a>
             <div class="sep"></div>
             <a href="/partner.html" id="go-partner-page">Info per diventare Partner</a>
-            <!-- PARTNER (per ora via Auth0 SignUp) -->
             <a id="signup-partner" href="/login.html?role=partner&mode=signup">Iscriviti come Partner</a>
           </div>
         </details>
@@ -125,7 +123,7 @@
     <div class="container"><p>© B&amp;B Clean — Tutti i diritti riservati</p></div>
   </footer>
 
-  <!-- Loader: config → SDK (CDN v2.0, fallback jsDelivr) → auth.js -->
+  <!-- Loader: config → SDK (CDN v2.0, fallback jsDelivr) → auth.js (cache-bust v=2) -->
   <script>
   (function(){
     function add(src, ondone){
@@ -133,34 +131,41 @@
       s.src = src;
       s.defer = true;
       s.onload = ondone;
-      s.onerror = ondone; // prosegue anche se fallisce
+      s.onerror = ondone;
       document.head.appendChild(s);
     }
     // 1) Config
     add('/assets/js/auth0-config.js', function(){
-      // 2) SDK da CDN ufficiale (v2.0)
+      // 2) SDK (v2.0)
       add('https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js', function(){
-        // 2b) fallback jsDelivr se l’SDK non è comparso
+        // 2b) fallback jsDelivr
         if (typeof auth0 === 'undefined') {
           add('https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js', function(){
-            // 3) il tuo script
-            add('/assets/js/auth.js');
+            // 3) tuo script (cache bust)
+            add('/assets/js/auth.js?v=2');
           });
         } else {
-          // 3) il tuo script
-          add('/assets/js/auth.js');
+          add('/assets/js/auth.js?v=2');
         }
       });
     });
   })();
   </script>
 
-  <!-- Diagnostica mini: “SDK OK” vicino al logo -->
+  <!-- Forza la navigazione per il link "Iscrizione Cliente" (nessun preventDefault potrà bloccarlo) -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      const el = document.getElementById('diag-sdk');
-      const ok = (typeof auth0 !== 'undefined') ? 'SDK OK' : 'SDK NON CARICATO';
-      el.textContent = '· ' + ok;
+      const el = document.getElementById('go-signup-client');
+      if (el) {
+        el.addEventListener('click', function(e){
+          // se per qualsiasi motivo qualche script esterno prova a bloccare, noi navighiamo comunque
+          window.location.assign('/iscrizione-cliente.html');
+        }, { capture: true });
+      }
+
+      // Diagnostica mini
+      const badge = document.getElementById('diag-sdk');
+      if (badge) badge.textContent = '· ' + (typeof auth0 !== 'undefined' ? 'SDK OK' : 'SDK NON CARICATO');
     });
   </script>
 </body>
