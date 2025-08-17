@@ -1,10 +1,22 @@
 // /assets/js/auth.js
-// Se JS funziona, usiamo Auth0 direttamente. Altrimenti i link <a> portano a /login.html.
-
+// Gestione Auth0 per B&B Clean: login/signup Cliente/Partner + UI menù
 (async () => {
-  // aspetta config + SDK
+  // Fallback: se la config globale non è stata caricata, la definisco qui
+  if (typeof window.AUTH0_CONFIG === 'undefined') {
+    const ORIGIN = window.location.origin;
+    window.AUTH0_CONFIG = {
+      domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
+      clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
+      authorizationParams: { redirect_uri: ORIGIN },
+      cacheLocation: "memory",
+      useRefreshTokens: false
+    };
+    window.AUTH0_LOGOUT_OPTIONS = { logoutParams: { returnTo: ORIGIN } };
+  }
+
+  // attende che l'SDK sia disponibile
   const wait = ms => new Promise(r => setTimeout(r, ms));
-  while (typeof window.AUTH0_CONFIG === 'undefined' || typeof auth0 === 'undefined') { await wait(30); }
+  while (typeof auth0 === 'undefined') { await wait(30); }
 
   const auth0Client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
 
@@ -16,7 +28,7 @@
     await auth0Client.loginWithRedirect({ authorizationParams, appState });
   }
 
-  // intercetta i click (ma NON blocca il link se qualcosa va storto)
+  // intercetta i click (senza rompere i link di fallback)
   function wire(id, role, mode){
     const el = document.getElementById(id);
     if (!el) return;
@@ -25,9 +37,9 @@
         e.preventDefault();
         await goAuth(role, mode);
       } catch (err) {
-        // in caso d'errore, lasciamo procedere il link di fallback (a /login.html)
         console.warn("Auth fallback:", err);
-        window.location.href = el.getAttribute("href");
+        const href = el.getAttribute("href");
+        if (href) window.location.href = href;
       }
     });
   }
@@ -69,7 +81,7 @@
   if ($logout) {
     $logout.addEventListener("click", async (e) => {
       e.preventDefault();
-      await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS);
+      await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS || { logoutParams: { returnTo: window.location.origin } });
     });
   }
 })();
