@@ -1,5 +1,7 @@
 // /assets/js/auth.js
-// Gestione Auth0 per B&B Clean: login/signup Cliente/Partner + UI menù
+// Gestione Auth0: login/signup via Auth0 SOLO per i bottoni che lo richiedono.
+// "Iscriviti come Cliente" NON viene intercettato: va alla pagina /iscrizione-cliente.html.
+
 (async () => {
   // Fallback: se la config globale non è stata caricata, la definisco qui
   if (typeof window.AUTH0_CONFIG === 'undefined') {
@@ -28,7 +30,7 @@
     await auth0Client.loginWithRedirect({ authorizationParams, appState });
   }
 
-  // intercetta i click (senza rompere i link di fallback)
+  // intercetta SOLO i link/bottoni che devono usare Auth0
   function wire(id, role, mode){
     const el = document.getElementById(id);
     if (!el) return;
@@ -44,10 +46,14 @@
     });
   }
 
+  // LOGIN via Auth0
   wire("login-client",  "client",  "login");
   wire("login-partner", "partner", "login");
-  wire("signup-client",  "client",  "signup");
+
+  // SIGNUP via Auth0 SOLO per il Partner
   wire("signup-partner", "partner", "signup");
+
+  // ⚠️ NIENTE wire("signup-client"): lasciamo che il link vada alla pagina locale
 
   // callback dopo il login
   if (location.search.includes("state=") && (location.search.includes("code=") || location.search.includes("error="))) {
