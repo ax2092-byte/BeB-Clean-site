@@ -72,7 +72,11 @@
           <summary>Iscriviti</summary>
           <div class="dropdown menu">
             <!-- NUOVO ID per evitare vecchi handler -->
-            <a id="go-signup-client" href="/iscrizione-cliente.html">Iscriviti come Cliente</a>
+            <a id="go-signup-client"
+   href="/iscrizione-cliente.html"
+   onclick="window.location.assign('/iscrizione-cliente.html'); return false;">
+  Iscriviti come Cliente
+</a>
             <div class="sep"></div>
             <a href="/partner.html" id="go-partner-page">Info per diventare Partner</a>
             <a id="signup-partner" href="/login.html?role=partner&mode=signup">Iscriviti come Partner</a>
