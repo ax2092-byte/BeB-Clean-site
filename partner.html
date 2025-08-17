@@ -20,12 +20,13 @@
       <a href="/index.html">Home</a>
       <a href="/prenota.html">Prenota</a>
       <a href="/partner.html" class="active">Diventa partner</a>
+      <a href="/partner-app.html">Area Partner</a>
     </nav>
   </header>
 
   <main class="container form-wrap">
     <h1>Collabora con noi</h1>
-    <p class="lead">Per attivare il tuo profilo raccogliamo i dati base, i dati di nascita (per il Codice Fiscale) e il documento d’identità.</p>
+    <p class="lead">Per attivare il tuo profilo raccogliamo i dati anagrafici, il luogo di nascita (per il Codice Fiscale) e il documento d’identità.</p>
 
     <!-- enctype multipart per i file -->
     <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field"
@@ -33,132 +34,108 @@
       <input type="hidden" name="form-name" value="partner">
       <p class="hidden"><label>Non compilare: <input name="bot-field"></label></p>
 
-      <h3>Dati personali</h3>
-      <div class="grid">
-        <label>Nome
-          <input type="text" name="nome" id="nome" required>
-        </label>
-        <label>Cognome
-          <input type="text" name="cognome" id="cognome" required>
-        </label>
-        <label>Email
-          <input type="email" name="email" required>
-        </label>
-        <label>Telefono
-          <input type="tel" name="telefono" required>
-        </label>
+      <h2>Dati personali</h2>
+      <div class="row">
+        <div>
+          <label>Nome</label>
+          <input name="nome" required>
+        </div>
+        <div>
+          <label>Cognome</label>
+          <input name="cognome" required>
+        </div>
       </div>
-
-      <h3>Dati di nascita (per Codice Fiscale)</h3>
-      <div class="grid">
-        <label>Sesso
-          <select name="sesso" id="sesso" required>
-            <option value="">Seleziona…</option>
+      <div class="row">
+        <div>
+          <label>Sesso</label>
+          <select name="sesso" required>
+            <option value="">—</option>
             <option value="M">Maschio</option>
             <option value="F">Femmina</option>
           </select>
-        </label>
-        <label>Data di nascita
-          <input type="date" name="data_nascita" id="data_nascita" required>
-        </label>
-        <label>Comune di nascita
-          <input type="text" name="comune_nascita" id="comune_nascita" list="comuni-list" placeholder="Es. DORGALI" required>
-          <datalist id="comuni-list"></datalist>
-          <div class="hint">Seleziona il comune dall’elenco a discesa.</div>
-        </label>
-        <label>Provincia di nascita (2 lettere)
-          <input type="text" name="prov_nascita" id="prov_nascita" class="upper" maxlength="2" pattern="[A-Za-z]{2}" required>
-        </label>
-
-        <label>Codice Fiscale (auto-calcolato)
-          <input type="text" name="codice_fiscale" id="codice_fiscale" class="upper" minlength="16" maxlength="16" readonly required>
-          <div id="cf_status" class="hint"></div>
-        </label>
+        </div>
+        <div>
+          <label>Data di nascita</label>
+          <input type="date" name="data_nascita" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Luogo di nascita (Comune)</label>
+          <input name="comune_nascita" list="comuniList" required>
+        </div>
+        <div>
+          <label>Provincia (sigla)</label>
+          <input name="provincia_nascita" maxlength="2" class="upper" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Codice Fiscale (auto)</label>
+          <input id="cf" name="cf" readonly class="upper">
+          <p class="hint">Viene calcolato automaticamente dai dati inseriti.</p>
+        </div>
+        <div>
+          <label>Lingue</label>
+          <input name="lingue" placeholder="IT, EN, FR">
+        </div>
       </div>
 
-      <h3>Domicilio (per raggio di lavoro)</h3>
-      <div class="grid">
-        <label>Via / Piazza
-          <input type="text" name="via" required placeholder="Es. VIA DEI ROSMARINI">
-        </label>
-        <label>Numero civico
-          <input type="text" name="civico" required placeholder="Es. 17">
-        </label>
-        <label>CAP
-          <input type="text" name="cap" required inputmode="numeric" maxlength="5" pattern="[0-9]{5}" title="Inserisci 5 cifre (es. 08022)" placeholder="Es. 08022">
-        </label>
-        <label>Città
-          <input type="text" name="citta" required>
-        </label>
-        <label>Provincia (2 lettere)
-          <input type="text" name="provincia" class="upper" required maxlength="2" pattern="[A-Za-z]{2}" title="Es. NU">
-        </label>
-        <label>Regione
-          <select name="regione" required>
-            <option value="">Seleziona…</option>
-            <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
-            <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
-            <option>Lombardia</option><option>Marche</option><option>Molise</option><option>Piemonte</option>
-            <option>Puglia</option><option>Sardegna</option><option>Sicilia</option><option>Toscana</option>
-            <option>Trentino-Alto Adige</option><option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
+      <h2>Residenza & Raggio</h2>
+      <div class="row">
+        <div>
+          <label>Indirizzo</label>
+          <input name="indirizzo" placeholder="Via/Piazza, n., Comune" required>
+        </div>
+        <div>
+          <label>Raggio operativo (km)</label>
+          <input type="number" name="raggio_km" min="1" max="50" value="20" required>
+        </div>
+      </div>
+
+      <h2>Documento</h2>
+      <div class="row">
+        <div>
+          <label>Tipo documento</label>
+          <select name="doc_tipo" required>
+            <option value="">—</option>
+            <option>CARTA_IDENTITA</option>
+            <option>PASSAPORTO</option>
+            <option>PATENTE</option>
           </select>
-        </label>
-
-        <label>Raggio di lavoro (km)
-          <input type="range" name="raggio" min="5" max="200" value="25" oninput="raggioOut.textContent=this.value">
-          <div>Raggio selezionato: <strong id="raggioOut">25</strong> km</div>
-        </label>
-        <label>Tariffa oraria (≥ 8€/h)
-          <input type="number" name="tariffa" min="8" step="0.5" value="12" required>
-        </label>
+        </div>
+        <div>
+          <label>Numero</label>
+          <input name="doc_numero" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Fronte (jpg/png/pdf)</label>
+          <input type="file" name="doc_fronte" accept=".jpg,.jpeg,.png,.pdf" required>
+        </div>
+        <div>
+          <label>Retro (jpg/png/pdf)</label>
+          <input type="file" name="doc_retro" accept=".jpg,.jpeg,.png,.pdf" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Selfie (jpg/png)</label>
+          <input type="file" name="selfie" accept=".jpg,.jpeg,.png" required>
+        </div>
+        <div>
+          <label>Note (opzionale)</label>
+          <input name="note">
+        </div>
       </div>
 
-      <h3>Documento d’identità</h3>
-      <p class="muted">Carica foto nitide. Formati: JPG/PNG/PDF. (Consigliato &lt; 10 MB per file)</p>
-      <div class="grid">
-        <label>Tipo documento
-          <select name="doc_tipo" id="doc_tipo" required>
-            <option value="">Seleziona…</option>
-            <option value="CARTA_IDENTITA">Carta d'identità (CIE)</option>
-            <option value="PASSAPORTO">Passaporto</option>
-            <option value="PATENTE">Patente</option>
-            <option value="ALTRO">Altro</option>
-          </select>
-        </label>
-        <label>Numero documento
-          <input type="text" name="doc_numero" id="doc_numero" class="upper" required
-                 pattern="[A-Za-z0-9]{5,20}" maxlength="20"
-                 title="Inserisci 5–20 caratteri alfanumerici">
-        </label>
-        <label>Scadenza documento
-          <input type="date" name="doc_scadenza" required>
-        </label>
-
-        <label>Fronte documento (CIE/Patente/Passaporto)
-          <input type="file" name="doc_fronte" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
-        </label>
-        <label>Retro documento
-          <input type="file" name="doc_retro" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
-        </label>
-        <label>Selfie con documento in mano
-          <input type="file" name="selfie_doc" accept=".jpg,.jpeg,.png,image/*" required>
-        </label>
-      </div>
-
-      <h3>Consensi</h3>
-      <label class="full chk"><input type="checkbox" name="consenso_privacy" required> Dichiaro di aver letto l’informativa privacy e acconsento al trattamento per finalità di verifica identità e attivazione del profilo partner.</label>
-      <label class="full chk"><input type="checkbox" name="dichiarazione_veridicita" required> Dichiaro che i dati e i documenti caricati sono veri e corretti.</label>
-
-      <div class="actions">
-        <button type="submit" class="btn primary">Invia candidatura</button>
-      </div>
+      <p class="hint">Spedendo il modulo, autorizzi il trattamento per verifica KYC e contatto (vedi Privacy).</p>
+      <p class="right"><button class="btn" type="submit">Invia candidatura</button></p>
+      <datalist id="comuniList"></datalist>
     </form>
   </main>
 
-  <footer class="container footer">
-    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
-  </footer>
-
-  <script src="/assets/js/partner.js"></script>
+  <script src="/partner.js"></script>
 </body>
 </html>
