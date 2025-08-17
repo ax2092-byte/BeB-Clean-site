@@ -123,7 +123,7 @@ async function sendMail({ to, subject, html, attachments }){
     method:'POST',
     headers:{ 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type':'application/json' },
     body: JSON.stringify({
-      from: 'B&B Clean <no-reply@resend.dev>',
+      from: 'B&B Clean <no-reply@bnbclean.it>',
       to: [to],
       subject,
       html,
