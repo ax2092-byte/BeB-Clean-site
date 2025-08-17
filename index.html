@@ -62,7 +62,7 @@
         <details class="menu">
           <summary>Accedi</summary>
           <div class="dropdown menu">
-            <!-- Fallback: link sempre attivi verso /login.html -->
+            <!-- Fallback: link attivi verso /login.html -->
             <a id="login-client"  href="/login.html?role=client&mode=login">Accedi come Cliente</a>
             <a id="login-partner" href="/login.html?role=partner&mode=login">Accedi come Partner</a>
           </div>
@@ -122,10 +122,35 @@
     <div class="container"><p>© B&amp;B Clean — Tutti i diritti riservati</p></div>
   </footer>
 
-  <!-- Script order -->
-  <script src="/assets/js/auth0-config.js" defer></script>
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js" defer></script>
-  <script src="/assets/js/auth.js" defer></script>
+  <!-- Loader: config → SDK (CDN v2.0, fallback jsDelivr) → auth.js -->
+  <script>
+  (function(){
+    function add(src, ondone){
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      s.onload = ondone;
+      s.onerror = ondone; // in caso di errore, prosegue comunque
+      document.head.appendChild(s);
+    }
+    // 1) Config
+    add('/assets/js/auth0-config.js', function(){
+      // 2) SDK da CDN ufficiale (v2.0)
+      add('https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js', function(){
+        // 2b) Se il CDN non ha caricato l'SDK, usa il fallback jsDelivr
+        if (typeof auth0 === 'undefined') {
+          add('https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js', function(){
+            // 3) Il tuo script
+            add('/assets/js/auth.js');
+          });
+        } else {
+          // 3) Il tuo script
+          add('/assets/js/auth.js');
+        }
+      });
+    });
+  })();
+  </script>
 
   <!-- Piccolo test SDK: mostra "SDK OK" a destra del logo -->
   <script>
