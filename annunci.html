@@ -24,8 +24,8 @@
     <nav>
       <a href="/index.html">Home</a>
       <a href="/prenota.html">Prenota</a>
-      <a href="/annunci.html" class="active">Annunci</a>
       <a href="/partner.html">Diventa partner</a>
+      <a href="/partner-app.html">Area Partner</a>
     </nav>
   </header>
 
@@ -34,18 +34,20 @@
     <p class="lead">Inserisci la tua email (quella usata in partner) per vedere gli annunci nel tuo raggio.</p>
 
     <div class="filter">
-      <input type="email" id="email" placeholder="la-tua-email@esempio.it" style="min-width:280px">
-      <button class="btn primary" id="carica">Carica annunci</button>
-      <span class="muted" id="info"></span>
+      <input id="email" type="email" placeholder="tua@email.it">
+      <input id="raggio" type="number" min="5" max="50" value="20" style="width:120px">
+      <select id="slot" style="width:220px">
+        <option value="">Qualsiasi fascia oraria</option>
+        <option>Mattina (08:00–12:00)</option>
+        <option>Pomeriggio (14:00–18:00)</option>
+        <option>Serale (18:00–22:00)</option>
+      </select>
+      <button class="btn primary" id="btnCerca">Cerca</button>
     </div>
 
-    <div class="list" id="lista"></div>
+    <div class="list" id="list"></div>
   </main>
 
-  <footer class="container footer">
-    <div>&copy; B&B Clean — Tutti i diritti riservati.</div>
-  </footer>
-
-  <script src="/assets/js/annunci.js"></script>
+  <script src="/announce-list.js"></script>
 </body>
 </html>
