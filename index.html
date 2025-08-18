@@ -3,163 +3,92 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B&B Clean — Pulizie facili e veloci</title>
+  <title>B&B Clean — Pulizie per casa e B&B, veloci e senza pensieri</title>
+  <meta name="description" content="Pulizie per casa e B&B: stima trasparente, paghi online in sicurezza. Trova un B&B cleaner vicino a te. Il tuo tempo è il nostro lavoro!">
   <link rel="icon" href="/favicon.png">
-  <meta name="description" content="Pulizie per casa e B&B, veloci e senza pensieri. Stima trasparente, paghi online in sicurezza. Il tuo tempo è il nostro lavoro!">
-  <style>
-    :root { --bg:#0b1220; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --brand:#14b8a6; --brand-2:#0d9488; --line:#1f2937; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
-    a { color: inherit; text-decoration: none; }
-    .container { max-width:1080px; margin:0 auto; padding:0 16px; }
-    header.nav { position:sticky; top:0; z-index:20; background:rgba(11,18,32,.8); backdrop-filter: blur(8px); border-bottom:1px solid var(--line); }
-    .nav-inner { display:flex; align-items:center; justify-content:space-between; height:64px; }
-    .logo { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; }
-    .logo img { height:28px; width:auto; display:block; }
-    nav { display:flex; align-items:center; gap:14px; }
-    .btn { padding:10px 14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; background:transparent; color:var(--text); }
-    .btn:hover { border-color:var(--brand); color:#fff; }
-    .btn-primary { background:var(--brand); border-color:var(--brand); color:#071820; }
-    .btn-primary:hover { background:var(--brand-2); border-color:var(--brand-2); color:#fff; }
-    .btn-ghost { border-color:transparent; }
-    .hidden { display:none !important; }
-    details.menu { position:relative; }
-    details.menu summary { list-style:none; padding:10px 14px; border:1px solid var(--line); border-radius:12px; cursor:pointer; user-select:none; }
-    details.menu[open] summary { border-color:var(--brand); }
-    details.menu .dropdown { position:absolute; right:0; top:110%; min-width:240px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px; box-shadow:0 12px 30px rgba(0,0,0,.35); }
-    .menu a, .menu button { display:block; width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid transparent; background:transparent; color:var(--text); cursor:pointer; }
-    .menu a:hover, .menu button:hover { background:#0f172a; border-color:#1f2937; }
-    .sep { height:1px; background:var(--line); margin:6px 0; }
-    .hero { padding:48px 0 28px; border-bottom:1px solid var(--line); }
-    .hero h1 { font-size: clamp(28px, 4vw, 44px); line-height:1.1; margin:0 0 12px; }
-    .hero p.lead { color:var(--muted); font-size:18px; margin:0 0 18px; }
-    .hero .cta { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
-    .features { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; padding:28px 0 10px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
-    .card h3 { margin:0 0 6px; font-size:18px; }
-    .card p { margin:0; color:var(--muted); }
-    section { padding:32px 0; border-top:1px solid var(--line); }
-    h2 { margin:0 0 12px; font-size:24px; }
-    ul.check { margin:0; padding-left:18px; color:var(--muted); }
-    footer { border-top:1px solid var(--line); padding:20px 0; color:var(--muted); font-size:14px; }
-    .diag { font-size:12px; color:#9ca3af; margin-left:10px; }
-  </style>
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body>
-  <header class="nav">
-    <div class="container nav-inner">
-      <div class="logo">
-        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean">
-        <span>B&amp;B <span style="color:var(--brand)">Clean</span></span>
-        <span id="diag-sdk" class="diag"></span>
-      </div>
-
-      <!-- Menù: NON autenticato (tolto Prenota) -->
-      <nav id="nav-guest">
-        <a class="btn btn-ghost" href="#servizi">Servizi</a>
-        <a class="btn btn-ghost" href="#come-funziona">Come funziona</a>
-
-        <details class="menu">
-          <summary>Accedi</summary>
-          <div class="dropdown menu">
-            <a id="login-client"  href="#">Accedi come Cliente</a>
-            <a id="login-partner" href="/login.html?role=partner&mode=login">Accedi come Partner</a>
-          </div>
-        </details>
-
-        <details class="menu">
-          <summary>Iscriviti</summary>
-          <div class="dropdown menu">
-            <a id="go-signup-client"
-               href="/iscrizione-cliente.html"
-               onclick="window.location.assign('/iscrizione-cliente.html'); return false;">
-              Iscriviti come Cliente
-            </a>
-            <div class="sep"></div>
-            <a id="signup-partner" href="/login.html?role=partner&mode=signup">Iscriviti come Partner</a>
-          </div>
-        </details>
-      </nav>
-
-      <!-- Menù: AUTENTICATO (Prenota rimane qui) -->
-      <nav id="nav-auth" class="hidden">
-        <a class="btn btn-ghost" href="/prenota.html">Prenota</a>
-        <a class="btn btn-ghost" href="/dashboard.html">Dashboard</a>
-        <span id="nav-username" class="btn btn-ghost" title="Profilo"></span>
-        <button id="logout" class="btn" type="button">Esci</button>
-      </nav>
-    </div>
+<body class="light">
+  <!-- Header / Navbar -->
+  <header class="container nav">
+    <a class="brand" href="/index.html" aria-label="Home">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+      <span class="brand-text">B&B <strong>Clean</strong></span>
+    </a>
+    <nav>
+      <a href="/servizi.html">Servizi</a>
+      <a href="/login.html">Accedi</a>
+      <a href="/signup.html" class="btn">Iscriviti</a>
+    </nav>
   </header>
 
-  <main class="container">
-    <section class="hero">
-      <h1>Pulizie per casa e B&B, veloci e senza pensieri</h1>
-      <p class="lead">Trova un <strong>B&amp;B cleaner</strong> vicino a te. Stima trasparente, <strong>paghi online</strong> in sicurezza.</p>
+  <!-- Hero -->
+  <section class="hero container">
+    <div class="hero-text">
+      <h1>Pulizie per casa e B&amp;B, veloci e senza pensieri</h1>
+      <p class="subtitle">Il tuo tempo è il nostro lavoro!</p>
       <div class="cta">
-        <!-- Tolto il bottone Prenota dalla home -->
-        <a href="/iscrizione-cliente.html" class="btn btn-primary"
-           onclick="window.location.assign('/iscrizione-cliente.html'); return false;">
-          Iscriviti ora
-        </a>
-        <a href="/partner.html" class="btn">Diventa partner</a>
+        <a class="btn btn-primary" href="/prenota.html">Prenota ora</a>
+        <a class="btn btn-outline" href="/partner.html">Diventa B&amp;B cleaner</a>
       </div>
-    </section>
+      <p class="micro muted">Stima trasparente prima della conferma. Paghi online in sicurezza.</p>
+    </div>
+    <div class="hero-art">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean logo" class="hero-logo">
+    </div>
+  </section>
 
-    <section id="servizi">
-      <h2>Perché scegliere B&amp;B Clean</h2>
-      <div class="features">
-        <div class="card"><h3>Vicini a te</h3><p>Selezioniamo B&amp;B cleaner nel tuo raggio: meno spostamenti, più puntualità.</p></div>
-        <div class="card"><h3>Preventivo chiaro</h3><p>Stima immediata dei tempi e dei costi prima di confermare.</p></div>
-        <div class="card"><h3>Pagamento sicuro</h3><p>Paghi online in sicurezza. Saldo al termine del lavoro con ricevuta.</p></div>
+  <!-- Valori -->
+  <section class="container section">
+    <div class="grid-3">
+      <div class="card">
+        <h3>Stima trasparente</h3>
+        <p>Vedi tempi e costi stimati prima di prenotare, con eventuali extra selezionabili.</p>
       </div>
-    </section>
+      <div class="card">
+        <h3>Vicini a te</h3>
+        <p>Selezioniamo B&amp;B cleaner nel tuo raggio per puntualità e meno spostamenti.</p>
+      </div>
+      <div class="card">
+        <h3>Pagamento sicuro</h3>
+        <p>Paghi online in sicurezza. Ricevuta digitale e cronologia interventi.</p>
+      </div>
+    </div>
+  </section>
 
-    <section id="come-funziona">
-      <h2>Come funziona</h2>
-      <ul class="check">
-        <li>Crea un account o accedi.</li>
-        <li>Inserisci i dati della tua casa.</li>
-        <li>Conferma e ricevi il servizio.</li>
-      </ul>
-    </section>
-  </main>
+  <!-- Banner CTA -->
+  <section class="container section">
+    <div class="cta-band">
+      <div class="cta-band-text">
+        <h2>Pronto a prenotare?</h2>
+        <p class="muted">Descrivi l’alloggio, scegli gli extra e conferma: al resto pensiamo noi.</p>
+      </div>
+      <div class="cta-band-actions">
+        <a class="btn btn-primary" href="/prenota.html">Vai alla prenotazione</a>
+        <a class="btn btn-outline" href="/servizi.html">Scopri i servizi</a>
+      </div>
+    </div>
+  </section>
 
-  <footer>
-    <div class="container"><p>© B&amp;B Clean — Tutti i diritti riservati</p></div>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
+      </div>
+      <nav class="footer-links">
+        <a href="/servizi.html">Servizi</a>
+        <a href="/prenota.html">Prenota</a>
+        <a href="/partner.html">Diventa partner</a>
+        <a href="/dashboard.html">Dashboard</a>
+      </nav>
+      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
+    </div>
   </footer>
 
-  <!-- Loader: config → SDK → auth.js (cache-bust v=3) -->
   <script>
-  (function(){
-    function add(src, ondone){
-      var s = document.createElement('script');
-      s.src = src;
-      s.defer = true;
-      s.onload = ondone;
-      s.onerror = ondone;
-      document.head.appendChild(s);
-    }
-    add('/assets/js/auth0-config.js', function(){
-      add('https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js', function(){
-        if (typeof auth0 === 'undefined') {
-          add('https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js', function(){
-            add('/assets/js/auth.js?v=3');
-          });
-        } else {
-          add('/assets/js/auth.js?v=3');
-        }
-      });
-    });
-  })();
-  </script>
-
-  <!-- Diagnostica mini -->
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const el = document.getElementById('diag-sdk');
-      const ok = (typeof auth0 !== 'undefined') ? 'SDK OK' : 'SDK NON CARICATO';
-      el.textContent = '· ' + ok;
-    });
+    document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
