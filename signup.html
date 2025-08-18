@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iscriviti — B&B Clean</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/bbclean-mark-32.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body class="light">
+  <header class="container nav">
+    <a class="brand" href="/index.html" aria-label="Home">
+      <img src="/assets/img/bbclean-mark-64.png" alt="B&B Clean" class="logo">
+      <span class="brand-text">B&B <strong>Clean</strong></span>
+    </a>
+    <nav>
+      <a href="/servizi.html">Servizi</a>
+      <a href="/login.html">Accedi</a>
+      <a href="/signup.html" class="btn">Iscriviti</a>
+    </nav>
+  </header>
+
+  <main class="container section">
+    <h1>Reindirizzamento…</h1>
+    <p class="muted">Ti stiamo portando alla pagina di iscrizione.</p>
+  </main>
+
+  <script>
+    (function(){
+      const qs = new URLSearchParams(location.search);
+      const ret = qs.get('return') || '/prenota.html';
+      const to = '/login.html?mode=signup&return=' + encodeURIComponent(ret);
+      location.replace(to);
+    })();
+  </script>
+</body>
+</html>
