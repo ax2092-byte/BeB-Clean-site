@@ -240,7 +240,10 @@
       const byCode  = new Set();  // "H501"
 
       for (const c of comuni) {
-        const name = U(c.nome), prov = U(c.provincia||''), code = U(c.belfiore||'');
+        const name = U(c.nome);
+        const prov = U(c.provincia || '');
+        const codeRaw = c.belfiore ?? c.codice ?? c.codice_belfiore ?? c.codiceCatastale ?? c.codice_catastale ?? '';
+        const code = U(codeRaw).slice(0, 4); // es. "H501" o "A001";
         const label = prov ? `${name} (${prov})` : name;
 
         const opt = document.createElement('option'); opt.value = label; $list.appendChild(opt);
