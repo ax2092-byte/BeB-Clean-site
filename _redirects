@@ -1,11 +1,14 @@
-# Pagine statiche servite “as is”
-/profilo.html               /profilo.html               200
-/iscrizione-cliente.html    /iscrizione-cliente.html    200
-/grazie.html                /grazie.html                200
-/login.html                 /login.html                 200
-/partner.html               /partner.html               200
-/prenota.html               /prenota.html               200
-/dashboard.html             /dashboard.html             200
+# Vecchi percorsi → percorsi canonici
+/signup.html                 /login.html?mode=signup                                301
+/iscrizione-cliente.html     /login.html?mode=signup                                301
+/signin.html                 /login.html                                            301
+/register.html               /login.html?mode=signup                                301
+/come-funziona.html          /servizi.html                                          301
+/servizi_v2.html             /servizi.html                                          301
+/partner-app.html            /partner.html                                          301
+/index-old.html              /                                                      301
+/home                        /                                                      301
+/prenota_v1.html             /prenota.html                                          301
 
-# Fallback SPA: tienilo per ultimo
-/*                         /index.html                 200
+# Importante: non toccare /admin (Netlify CMS)
+/admin/*                     /admin/index.html                                      200
