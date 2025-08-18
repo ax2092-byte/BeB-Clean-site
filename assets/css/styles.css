@@ -61,7 +61,7 @@ a{color:inherit}
 .btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary)}
 .btn-outline:hover{background:var(--ring)}
 
-/* **Fix leggibilità navbar**: bottoni in nav sempre teal */
+/* **Navbar readability** */
 .nav .btn{
   background:var(--primary) !important;
   border-color:var(--primary) !important;
