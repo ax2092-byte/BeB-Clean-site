@@ -19,9 +19,10 @@
     label { display:block; font-size:14px; margin-bottom:4px; color:#cbd5e1; }
     input, select { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0f172a; color:var(--text); }
     .hint { color:var(--muted); font-size:12px; margin-top:4px; }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
     button, .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--text); cursor:pointer; text-decoration:none; }
     .btn-primary { background:var(--brand); border-color:var(--brand); color:#071820; }
+    .btn-primary[disabled] { opacity:.6; cursor:not-allowed; }
     .ok { color:#86efac; font-size:12px; }
     .err { color:#fca5a5; white-space:pre-wrap; }
     .hidden { display:none !important; }
@@ -30,6 +31,7 @@
     .status .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
     .status.ok .dot { background:#22c55e; } .status.ko .dot{ background:#ef4444; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .need { color:#fca5a5; font-size:12px; }
   </style>
 </head>
 <body>
@@ -87,20 +89,21 @@
         </div>
         <div class="col-12">
           <label for="comune">Comune di nascita *</label>
-          <input id="comune" list="comuni-list" placeholder="Es. ROMA (RM)" required autocomplete="off">
+          <input id="comune" list="comuni-list" placeholder="Es. ROMA (RM) o ROMA o H501" required autocomplete="off">
           <datalist id="comuni-list"></datalist>
-          <div class="hint">Digita e scegli dall’elenco. Il Codice Belfiore viene inserito automaticamente (nascosto).</div>
+          <div class="hint">Digita e scegli dall’elenco (o inserisci direttamente il codice catastale, es. H501). Il Belfiore è inserito in automatico.</div>
           <input id="belfiore" type="hidden">
         </div>
         <div class="col-6">
           <label for="codice_fiscale">Codice Fiscale (auto)</label>
           <input id="codice_fiscale" class="mono" readonly>
           <div class="hint">Viene calcolato da Nome, Cognome, Sesso, Data e Comune.</div>
+          <div id="cf_need" class="need hidden"></div>
         </div>
       </div>
 
       <div class="actions">
-        <button id="save" class="btn btn-primary">Salva</button>
+        <button id="save" class="btn btn-primary" disabled>Salva</button>
         <span id="save_msg" class="ok"></span>
         <span id="save_err" class="err"></span>
       </div>
@@ -113,59 +116,42 @@
   <script>if(typeof auth0==='undefined'){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js';s.defer=true;document.head.appendChild(s);}</script>
 
   <script>
-    // Normalizzazione stringhe
-    const slug = s => (s||'').toUpperCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').trim();
-    // Codice Fiscale utilities
-    const CF = (()=> {
-      const VOW = c => 'AEIOU'.includes(c);
-      const CONS = s => s.replace(/[^A-Z]/g,'').split('').filter(c=>!VOW(c)).join('');
-      const VOWS = s => s.replace(/[^A-Z]/g,'').split('').filter(VOW).join('');
-      const MONTH = {1:'A',2:'B',3:'C',4:'D',5:'E',6:'H',7:'L',8:'M',9:'P',10:'R',11:'S',12:'T'};
-      const ODD = {'0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
-                   'A':1,'B':0,'C':5,'D':7,'E':9,'F':13,'G':15,'H':17,'I':19,'J':21,
-                   'K':2,'L':4,'M':18,'N':20,'O':11,'P':3,'Q':6,'R':8,'S':12,'T':14,
-                   'U':16,'V':10,'W':22,'X':25,'Y':24,'Z':23};
-      const EVEN = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
-                    'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7,'I':8,'J':9,
-                    'K':10,'L':11,'M':12,'N':13,'O':14,'P':15,'Q':16,'R':17,'S':18,'T':19,
-                    'U':20,'V':21,'W':22,'X':23,'Y':24,'Z':25};
-      const CIN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      function nameCode(s, isSurname){
-        const S = slug(s);
-        const c = CONS(S), v = VOWS(S);
-        if (isSurname) return (c + v + 'XXX').slice(0,3);
-        // nome: se ci sono >=4 consonanti prendi 1a, 3a, 4a
-        if (c.length >= 4) return (c[0] + c[2] + c[3]);
-        return (c + v + 'XXX').slice(0,3);
-      }
-      function dateCode(d, sex){
-        const dt = new Date(d);
-        if (isNaN(dt)) return 'YYMDD';
-        const yy = String(dt.getFullYear()).slice(-2);
-        const mm = MONTH[dt.getMonth()+1];
-        let dd = dt.getDate();
-        if (sex === 'F') dd += 40;
-        return yy + mm + String(dd).padStart(2,'0');
-      }
-      function control(code15){
-        let sum = 0;
-        for (let i=0;i<15;i++){
-          const ch = code15[i];
-          sum += (i%2===0) ? ODD[ch] : EVEN[ch];
-        }
-        return CIN[sum % 26];
-      }
-      function build({ name, surname, birthDate, sex, belfiore }){
-        if (!name || !surname || !birthDate || !sex || !belfiore) return '';
-        const A = nameCode(surname, true);
-        const B = nameCode(name, false);
-        const C = dateCode(birthDate, sex);
-        const D = (belfiore || '').toUpperCase();
-        const base = A + B + C + D;
-        return base + control(base);
-      }
-      return { build };
-    })();
+    // --- utils base ---
+    const _deburr = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const U = s => _deburr(String(s)).toUpperCase().trim().replace(/\s+/g,' ');
+
+    // ===== Codice Fiscale (Italia) =====
+    const MONTH = {1:'A',2:'B',3:'C',4:'D',5:'E',6:'H',7:'L',8:'M',9:'P',10:'R',11:'S',12:'T'};
+    const ODD = {'0':1,'1':0,'2':5,'3':7,'4':9,'5':13,'6':15,'7':17,'8':19,'9':21,
+                 'A':1,'B':0,'C':5,'D':7,'E':9,'F':13,'G':15,'H':17,'I':19,'J':21,
+                 'K':2,'L':4,'M':18,'N':20,'O':11,'P':3,'Q':6,'R':8,'S':12,'T':14,
+                 'U':16,'V':10,'W':22,'X':25,'Y':24,'Z':23};
+    const EVEN = {'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
+                  'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7,'I':8,'J':9,
+                  'K':10,'L':11,'M':12,'N':13,'O':14,'P':15,'Q':16,'R':17,'S':18,'T':19,
+                  'U':20,'V':21,'W':22,'X':23,'Y':24,'Z':25};
+    const CIN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    function _isVowel(c){ return 'AEIOU'.includes(c); }
+    function _cons(s){ return U(s).replace(/[^A-Z]/g,'').split('').filter(c => !_isVowel(c)).join(''); }
+    function _vows(s){ return U(s).replace(/[^A-Z]/g,'').split('').filter(_isVowel).join(''); }
+    function _codeSurname(s){ const c=_cons(s), v=_vows(s); return (c + v + 'XXX').slice(0,3); }
+    function _codeName(s){ const c=_cons(s), v=_vows(s); return (c.length>=4) ? (c[0]+c[2]+c[3]) : (c + v + 'XXX').slice(0,3); }
+    function _codeDate(birthDate, sex){
+      const dt = new Date(birthDate); if (isNaN(dt)) return null;
+      const yy = String(dt.getFullYear()).slice(-2), mm = MONTH[dt.getMonth()+1]; let dd = dt.getDate();
+      if (sex === 'F') dd += 40; return yy + mm + String(dd).padStart(2,'0');
+    }
+    function _controlChar(code15){
+      let sum = 0; for (let i=0;i<15;i++){ const ch=code15[i]; sum += (i%2===0) ? ODD[ch] : EVEN[ch]; }
+      return CIN[sum % 26];
+    }
+    function buildCodiceFiscale({ name, surname, birthDate, sex, belfiore }){
+      const S = U(surname), N = U(name), SEX=(sex||'').toUpperCase(), BF=(belfiore||'').toUpperCase();
+      if (!S || !N || !birthDate || !SEX || !BF || BF.length !== 4) return '';
+      const base = _codeSurname(S) + _codeName(N) + _codeDate(birthDate, SEX) + BF;
+      if (!base || base.length !== 15) return '';
+      return base + _controlChar(base);
+    }
 
     (async function(){
       const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -201,12 +187,8 @@
       if (!isAuth) {
         document.getElementById('cta-login')?.addEventListener('click', async (e)=>{
           e.preventDefault();
-          try {
-            await client.loginWithPopup();
-            location.reload();
-          } catch (e) {
-            $err.textContent = e.message || String(e);
-          }
+          try { await client.loginWithPopup(); location.reload(); }
+          catch (e) { $err.textContent = e.message || String(e); }
         });
         return;
       }
@@ -221,86 +203,125 @@
       const user = await client.getUser();
       const emailVerified = !!user?.email_verified;
       const email = user?.email || '';
-      // prova a separare nome/cognome
       const firstName = user?.given_name || (user?.name||'').split(' ')[0] || '';
       const lastName  = user?.family_name || (user?.name||'').split(' ').slice(1).join(' ') || '';
 
       // riempi campi readonly
-      document.getElementById('first_name').value = firstName;
-      document.getElementById('last_name').value  = lastName;
-      document.getElementById('email').value      = email;
+      const $fn = document.getElementById('first_name');
+      const $ln = document.getElementById('last_name');
+      document.getElementById('email').value = email;
+      $fn.value = firstName; $ln.value = lastName;
 
       const emailStatus = document.getElementById('email_status');
       emailStatus.classList.add(emailVerified ? 'ok' : 'ko');
       emailStatus.querySelector('span:last-child').textContent = emailVerified ? 'Email verificata' : 'Email NON verificata';
 
-      // carica profilo da Supabase (per telefono verificato)
+      // carica profilo da Supabase (per telefono verificato, ecc.)
       let prof = null;
       try {
         const r = await fetch('/.netlify/functions/profile-load', {
           headers: { 'authorization': 'Bearer ' + token }
         });
         prof = await r.json();
-      } catch(e) {
-        console.warn('profile-load error', e);
-      }
+      } catch(e) { console.warn('profile-load error', e); }
+
       const phone = prof?.phone || '';
       const phoneVerified = !!prof?.phone_verified_at;
-
       document.getElementById('phone').value = phone || '(non impostato)';
       const phoneStatus = document.getElementById('phone_status');
       phoneStatus.classList.add(phoneVerified ? 'ok' : 'ko');
       phoneStatus.querySelector('span:last-child').textContent = phoneVerified ? 'Telefono verificato' : 'Telefono NON verificato';
 
-      // carica comuni.json e popola datalist
+      // --- Comuni: indici e datalist ---
       const comuni = await fetch('/assets/data/comuni.json').then(r=>r.json()).catch(()=>[]);
       const $list = document.getElementById('comuni-list');
-      const map = new Map();
+      const byLabel = new Map();  // "ROMA (RM)" -> H501
+      const byName  = new Map();  // "ROMA" -> [{code:'H501',prov:'RM'}, ...]
+      const byCode  = new Set();  // "H501"
+
       for (const c of comuni) {
-        const label = `${(c.nome||'').toUpperCase()} (${(c.provincia||'').toUpperCase()})`;
-        const opt = document.createElement('option');
-        opt.value = label;
-        $list.appendChild(opt);
-        map.set(label, (c.belfiore||'').toUpperCase());
+        const name = U(c.nome), prov = U(c.provincia||''), code = U(c.belfiore||'');
+        const label = prov ? `${name} (${prov})` : name;
+
+        const opt = document.createElement('option'); opt.value = label; $list.appendChild(opt);
+
+        byLabel.set(label, code);
+        if (!byName.has(name)) byName.set(name, []);
+        byName.get(name).push({ code, prov });
+        if (code) byCode.add(code);
       }
 
-      // calcolo CF on-change
+      // --- Ricalcolo CF & abilitazione SALVA ---
       const $sex = document.getElementById('sex');
-      const $birth = document.getElementById('birth_date');
-      const $comune = document.getElementById('comune');
-      const $belfiore = document.getElementById('belfiore');
-      const $cf = document.getElementById('codice_fiscale');
+      const $dob = document.getElementById('birth_date');
+      const $com = document.getElementById('comune');
+      const $bf  = document.getElementById('belfiore');
+      const $cf  = document.getElementById('codice_fiscale');
+      const $cfNeed = document.getElementById('cf_need');
+      const $save = document.getElementById('save');
+
+      function findBelfiore(raw){
+        const q = U(raw);
+        if (byLabel.has(q)) return byLabel.get(q);
+        if (byCode.has(q))  return q; // inserito direttamente H501
+        const arr = byName.get(q);
+        if (arr && arr.length === 1) return arr[0].code; // nome univoco
+        return '';
+      }
+
+      function updateSaveState(){
+        const missing = [];
+        if (!U($fn.value)) missing.push('Nome');
+        if (!U($ln.value)) missing.push('Cognome');
+        if (!$sex.value)   missing.push('Sesso');
+        if (!$dob.value)   missing.push('Data di nascita');
+        if (!$bf.value)    missing.push('Comune valido');
+        if (!U($cf.value)) missing.push('Codice Fiscale');
+
+        $cfNeed.classList.toggle('hidden', missing.length === 0);
+        $cfNeed.textContent = missing.length ? ('Completa: ' + missing.join(', ')) : '';
+        $save.disabled = missing.length > 0;
+      }
 
       function recalcCF(){
-        const bf = map.get(($comune.value||'').toUpperCase());
-        if (bf) $belfiore.value = bf;
-        $cf.value = CF.build({
-          name: firstName,
-          surname: lastName,
-          birthDate: $birth.value,
-          sex: $sex.value,
-          belfiore: $belfiore.value
-        }) || '';
+        if (!$bf.value && $com.value) {
+          const bf = findBelfiore($com.value);
+          if (bf) $bf.value = bf;
+        }
+        const cf = buildCodiceFiscale({
+          name: $fn.value, surname: $ln.value,
+          birthDate: $dob.value, sex: $sex.value,
+          belfiore: $bf.value
+        });
+        $cf.value = cf || '';
+        updateSaveState();
       }
-      [$sex,$birth,$comune].forEach(el => el.addEventListener('change', recalcCF));
-      $comune.addEventListener('input', recalcCF);
 
-      // salva
+      [$sex,$dob,$com].forEach(el => {
+        el.addEventListener('change', recalcCF);
+        el.addEventListener('input',  recalcCF);
+      });
+
+      // se nome/cognome arrivano in ritardo dai claims, prova qualche volta
+      let tries = 0; const ts = setInterval(() => {
+        tries++; recalcCF(); if (tries > 10 || (U($fn.value) && U($ln.value))) clearInterval(ts);
+      }, 300);
+
+      recalcCF();
+
+      // --- Salva su Supabase via Function ---
       document.getElementById('save').addEventListener('click', async ()=>{
         document.getElementById('save_msg').textContent = '';
         document.getElementById('save_err').textContent = '';
-        // validazione minima
-        if (!$sex.value || !$birth.value || !$belfiore.value || !$cf.value) {
-          document.getElementById('save_err').textContent = 'Compila Sesso, Data e seleziona un Comune valido.';
-          return;
-        }
+        if ($save.disabled) return;
+
         try {
           const res = await fetch('/.netlify/functions/profile-save', {
             method: 'POST',
             headers: { 'content-type':'application/json', 'authorization':'Bearer '+token },
             body: JSON.stringify({
-              birth_date: $birth.value,
-              birth_place_code: $belfiore.value,
+              birth_date: $dob.value,
+              birth_place_code: $bf.value,
               codice_fiscale: $cf.value
             })
           });
