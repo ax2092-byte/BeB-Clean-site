@@ -63,13 +63,12 @@
     document.getElementById('y').textContent = new Date().getFullYear();
 
     // 1) Config — SOSTITUISCI con i tuoi valori quando pronti (Auth0 by Okta Netlify extension)
-    const AUTH0_CFG = {
-      domain:  window.AUTH0_DOMAIN  || 'YOUR_AUTH0_DOMAIN',
-      clientId:window.AUTH0_CLIENT_ID|| 'YOUR_AUTH0_CLIENT_ID',
-      audience:window.AUTH0_AUDIENCE || '', // opzionale
-      redirectUri: window.location.origin + '/login.html'
-    };
-
+   const AUTH0_CFG = {
+  domain: 'dev-nmvv4fpc7jmiw1pw.eu.auth0.com',
+  clientId: 'Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq',
+  audience: '', // se non usi API, lascia vuoto
+  redirectUri: window.location.origin + '/login.html'
+ };
     // Utility
     function qs(name, def){ const v=new URLSearchParams(location.search).get(name); return v || def; }
     const RETURN_TO = qs('return', '/prenota.html');
