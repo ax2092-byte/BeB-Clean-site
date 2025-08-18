@@ -6,9 +6,31 @@
   <title>Accedi — B&B Clean</title>
   <meta name="description" content="Accedi o iscriviti per prenotare con B&B Clean.">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/bbclean-mark-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/bbclean-logo-256.png">
+  <meta property="og:image" content="/assets/img/bbclean-logo-256.png">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="stylesheet" href="/assets/css/styles.css">
-  <!-- SDK Auth0 -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2/auth0-spa-js.production.js" defer></script>
+
+  <!-- Loader robusto dell'SDK Auth0 con fallback -->
+  <script>
+  (function loadAuth0(){
+    function add(src, onload){
+      var s=document.createElement('script');
+      s.src=src; s.defer=true; s.referrerPolicy="no-referrer-when-downgrade";
+      s.onload=function(){ onload && onload(false); };
+      s.onerror=function(){ onload && onload(true); };
+      document.head.appendChild(s);
+    }
+    add('https://cdn.auth0.com/js/auth0-spa-js/2/auth0-spa-js.production.js', function(err1){
+      if (!err1 && typeof window.createAuth0Client==='function') return;
+      add('https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js', function(err2){
+        if (err2 || typeof window.createAuth0Client!=='function') {
+          console.error('Auth0 SDK non disponibile');
+        }
+      });
+    });
+  })();
+  </script>
 </head>
 <body class="light">
   <!-- Header -->
@@ -34,7 +56,7 @@
       <p class="muted">Se non succede nulla entro pochi secondi, aggiorna la pagina.</p>
     </section>
 
-    <!-- Fallback visibile SOLO se l’SDK non carica o c’è un errore inatteso -->
+    <!-- Fallback mostrato SOLO se l’SDK non è disponibile o si verifica un errore imprevisto -->
     <section id="auth-fallback" class="card" style="display:none">
       <h2 class="section-title">Accesso non disponibile</h2>
       <p class="muted">Non riesco ad avviare l’accesso. Verifica connessione e riprova.</p>
@@ -62,51 +84,46 @@
     </div>
   </footer>
 
+  <!-- App script -->
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // ===== CONFIG AUTH0 (TUO TENANT) =====
+    // ===== CONFIG AUTH0 (tenant tuo) =====
     const AUTH0_CFG = {
       domain:   'dev-nmvv4fpc7jmiw1pw.eu.auth0.com',
       clientId: 'Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq',
-      audience: '', // opzionale
+      audience: '', // opzionale: lascialo vuoto se non usi API custom
       redirectUri: window.location.origin + '/login.html'
     };
 
     // ===== UTILS =====
     const qs = (k, d='') => new URLSearchParams(location.search).get(k) || d;
     const RETURN_TO = qs('return','/prenota.html');
-    const MODE = (qs('mode','login') === 'signup') ? 'signup' : 'login';
+    const MODE      = (qs('mode','login') === 'signup') ? 'signup' : 'login';
 
     const $auto = document.getElementById('auth-auto');
     const $fb   = document.getElementById('auth-fallback');
 
     const showFallback = () => { $auto.style.display='none'; $fb.style.display=''; };
 
-    // Controllo profilo lato funzione: se mancante → manda a /profilo.html prima di proseguire
-    const profileCheck = async () => {
+    // Verifica profilo: se assente/bozza → manda a /profilo.html prima di proseguire
+    const checkProfileThenRoute = async () => {
       try {
         const r = await fetch('/.netlify/functions/profile-load', { credentials: 'include' });
-        if (!r.ok) return false;
+        if (!r.ok) { location.replace('/profilo.html?return=' + encodeURIComponent(RETURN_TO)); return; }
         const data = await r.json();
-        // atteso: { profile: {...}, complete: true/false } — consideriamo valido se esiste o completo
-        return !!(data && (data.complete || data.profile));
-      } catch { return false; }
-    };
-
-    const afterAuthRouting = async () => {
-      const ok = await profileCheck();
-      if (!ok) {
+        const ok = !!(data && (data.complete || data.profile));
+        location.replace(ok ? RETURN_TO : ('/profilo.html?return=' + encodeURIComponent(RETURN_TO)));
+      } catch {
+        // In caso di errore treat-as-missing per sicurezza
         location.replace('/profilo.html?return=' + encodeURIComponent(RETURN_TO));
-      } else {
-        location.replace(RETURN_TO);
       }
     };
 
     // ===== FLOW =====
     window.addEventListener('load', async () => {
       try {
-        if (typeof window.createAuth0Client !== 'function') return showFallback();
+        if (typeof window.createAuth0Client !== 'function') { showFallback(); return; }
 
         const client = await createAuth0Client({
           domain: AUTH0_CFG.domain,
@@ -118,18 +135,18 @@
           cacheLocation: 'memory'
         });
 
-        // Se torna da Auth0 (code+state), completa l'handshake
+        // Callback dopo Auth0
         if (location.search.includes('code=') && location.search.includes('state=')) {
           try { await client.handleRedirectCallback(); } catch {}
-          // ripulisci la query ma conserva eventuale return
+          // pulisci la query ma conserva l'eventuale return
           const ret = qs('return');
           history.replaceState({}, document.title, location.pathname + (ret ? ('?return='+encodeURIComponent(ret)) : ''));
         }
 
-        // Già autenticato → prosegui
-        if (await client.isAuthenticated()) return afterAuthRouting();
+        // Se già autenticato → routing
+        if (await client.isAuthenticated()) { checkProfileThenRoute(); return; }
 
-        // Non autenticato → apri Universal Login (login o signup)
+        // Non autenticato → Universal Login
         await client.loginWithRedirect({
           authorizationParams: {
             redirect_uri: AUTH0_CFG.redirectUri,
