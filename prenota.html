@@ -4,97 +4,129 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prenota — B&B Clean</title>
+  <meta name="description" content="Prenota una pulizia per casa o B&B. Stima trasparente di tempi e costi, pagamento online sicuro.">
   <link rel="icon" href="/favicon.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <style>#map{height:220px;border-radius:12px;margin:10px 0 18px}</style>
 </head>
-<body>
+<body class="light">
+  <!-- Header / Navbar -->
   <header class="container nav">
-    <div class="logo">B&amp;B <span>Clean</span></div>
+    <a class="brand" href="/index.html" aria-label="Home">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+      <span class="brand-text">B&B <strong>Clean</strong></span>
+    </a>
     <nav>
-      <a href="/index.html">Home</a>
-      <a href="/prenota.html" class="active">Prenota</a>
-      <a href="/partner.html">Diventa partner</a>
-      <a href="/partner-app.html">Area Partner</a>
+      <a href="/servizi.html">Servizi</a>
+      <a href="/login.html">Accedi</a>
+      <a href="/signup.html" class="btn">Iscriviti</a>
     </nav>
   </header>
 
-  <main class="container form-wrap">
-    <h1>Prenota una pulizia</h1>
-    <p class="lead">Inserisci i dettagli. Ti mostriamo una stima in tempo reale.</p>
+  <main class="container section">
+    <h1>Prenota il tuo servizio</h1>
+    <p class="subtitle">Descrivi l’alloggio, scegli gli extra e conferma. Stima aggiornata in tempo reale.</p>
 
-    <div class="est-box" id="estBox">
-      <div><strong>Stima totale:</strong> <span id="stimaTot">—</span></div>
-      <div class="muted">Acconto (12% del compenso partner): <span id="stimaAcconto">—</span></div>
-      <div class="muted">Costi del servizio B&B Clean (5%): <span id="stimaFee">—</span></div>
-      <div class="muted">Rimborso distanza (0,25 €/km): <span id="stimaRimb">—</span></div>
+    <div class="split">
+      <!-- Form prenotazione -->
+      <form id="prenota-form" class="card" novalidate>
+        <h2 class="section-title">Dettagli alloggio</h2>
+        <div class="grid-3">
+          <div>
+            <label for="indirizzo">Indirizzo</label>
+            <input type="text" id="indirizzo" name="indirizzo" placeholder="Via, civico, città" required>
+          </div>
+          <div>
+            <label for="mq">Metri quadri</label>
+            <input type="number" id="mq" name="mq" min="10" step="1" placeholder="Es. 60" required>
+          </div>
+          <div>
+            <label for="stanze">N. stanze</label>
+            <input type="number" id="stanze" name="stanze" min="1" step="1" placeholder="Es. 3" required>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div>
+            <label for="bagni">N. bagni</label>
+            <input type="number" id="bagni" name="bagni" min="1" step="1" placeholder="Es. 1" required>
+          </div>
+          <div>
+            <label for="data_servizio">Data</label>
+            <input type="date" id="data_servizio" name="data_servizio" required>
+          </div>
+          <div>
+            <label for="ora_servizio">Orario</label>
+            <input type="time" id="ora_servizio" name="ora_servizio" required>
+          </div>
+        </div>
+
+        <h2 class="section-title">Extra opzionali</h2>
+        <div class="tags">
+          <label class="tag"><input type="checkbox" class="extra" id="extra_biancheria" data-minutes="30"> Cambio biancheria</label>
+          <label class="tag"><input type="checkbox" class="extra" id="extra_forno" data-minutes="25"> Forno</label>
+          <label class="tag"><input type="checkbox" class="extra" id="extra_frigo" data-minutes="20"> Frigo</label>
+          <label class="tag"><input type="checkbox" class="extra" id="extra_vetri" data-minutes="40"> Vetri e infissi</label>
+          <label class="tag"><input type="checkbox" class="extra" id="extra_balcone" data-minutes="25"> Balconi/verande</label>
+          <label class="tag"><input type="checkbox" class="extra" id="extra_stiro" data-minutes="30"> Stiratura</label>
+          <label class="tag"><input type="checkbox" class="extra" id="extra_kit" data-minutes="10"> Kit cortesia ospiti</label>
+        </div>
+
+        <label for="note">Note per il cleaner</label>
+        <textarea id="note" name="note" rows="4" placeholder="Istruzioni per accesso, preferenze, ecc."></textarea>
+
+        <div class="grid-3" style="align-items:center">
+          <label class="checkbox">
+            <input type="checkbox" id="terms" required> Accetto termini e condizioni.
+          </label>
+          <div></div>
+          <button class="btn btn-primary" type="submit">Conferma e paga acconto</button>
+        </div>
+        <p class="muted micro">Il saldo avviene al termine del lavoro. I <strong>Costi del servizio B&B Clean</strong> sono mostrati prima della conferma.</p>
+      </form>
+
+      <!-- Riepilogo / Stima -->
+      <aside class="card">
+        <h2 class="section-title">Stima</h2>
+        <p>Durata consigliata: <strong><span id="stima-ore">—</span> h</strong></p>
+        <p>Costo stimato: <strong><span id="stima-costo">—</span></strong></p>
+        <hr>
+        <div id="mappa" style="height:220px;background:#eef2f7;border:1px dashed #cbd5e1;border-radius:12px;display:flex;align-items:center;justify-content:center">
+          <span class="muted">Mappa</span>
+        </div>
+        <p class="muted micro">I valori sono indicativi e potrebbero variare in base alle condizioni reali.</p>
+      </aside>
     </div>
-
-    <form id="formPrenota" action="/success.html">
-      <h2>Dati immobile</h2>
-      <div class="row">
-        <div>
-          <label>Indirizzo</label>
-          <input id="indirizzo" name="indirizzo" placeholder="Via/Piazza, n., Comune" required>
-        </div>
-        <div>
-          <label>Metri quadrati</label>
-          <input id="mq" name="mq" type="number" min="15" step="1" placeholder="es. 70" required>
-          <p class="muted">Stima ore in base a m² / ora configurati.</p>
-        </div>
-      </div>
-
-      <div id="map"></div>
-
-      <h2>Preferenze</h2>
-      <div class="row">
-        <div>
-          <label>Data</label>
-          <input id="data" name="data" type="date" required>
-        </div>
-        <div>
-          <label>Orario preferito</label>
-          <select id="orario" name="orario" required>
-            <option value="">—</option>
-            <option>Mattina (08:00–12:00)</option>
-            <option>Pomeriggio (14:00–18:00)</option>
-            <option>Serale (18:00–22:00)</option>
-          </select>
-        </div>
-      </div>
-
-      <h2>Contatti</h2>
-      <div class="row">
-        <div>
-          <label>Nome e Cognome</label>
-          <input id="nome" name="nome" required>
-        </div>
-        <div>
-          <label>Email</label>
-          <input id="email" name="email" type="email" required>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Telefono</label>
-          <input id="tel" name="tel" type="tel">
-        </div>
-        <div>
-          <label>Note</label>
-          <input id="note" name="note" placeholder="Esigenze particolari, animali, ecc.">
-        </div>
-      </div>
-
-      <p class="right"><button class="btn" type="submit">Invia richiesta</button></p>
-    </form>
   </main>
 
-  <script src="/estimate.js"></script>
-  <script src="/geocode.js"></script>
-  <script src="/checkout.js"></script>
-  <script src="/prenota.js"></script>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
+      </div>
+      <nav class="footer-links">
+        <a href="/servizi.html">Servizi</a>
+        <a href="/prenota.html" class="active">Prenota</a>
+        <a href="/partner.html">Diventa partner</a>
+        <a href="/dashboard.html">Dashboard</a>
+      </nav>
+      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    // Mini-hook: aggiorna la stima se esiste prenota.js
+    function triggerStima(){ document.dispatchEvent(new Event('stima:update')); }
+    ['mq','.extra','#mq','#bagni','#stanze'].forEach(sel=>{
+      const els = typeof sel==='string' && (sel.startsWith('#')||sel.startsWith('.')) ? document.querySelectorAll(sel) : [];
+      els.forEach(el => el.addEventListener('input', triggerStima));
+      els.forEach(el => el.addEventListener('change', triggerStima));
+    });
+  </script>
+
+  <!-- I TUOI SCRIPT ESISTENTI -->
+  <script src="/assets/js/prenota.js" defer></script>
 </body>
 </html>
