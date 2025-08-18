@@ -4,138 +4,163 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Diventa partner — B&B Clean</title>
+  <meta name="description" content="Diventa B&B cleaner: compila il profilo e invia i documenti. Il Codice Fiscale è calcolato automaticamente.">
   <link rel="icon" href="/favicon.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
-  <style>
-    input.upper { text-transform: uppercase; }
-    .hint { color:#93a0b4; font-size: 13px; }
-    .status-ok { color:#22c55e; font-weight:600; }
-    .status-err { color:#f87171; font-weight:600; }
-  </style>
 </head>
-<body>
+<body class="light">
+  <!-- Header / Navbar -->
   <header class="container nav">
-    <div class="logo">B&amp;B <span>Clean</span></div>
+    <a class="brand" href="/index.html" aria-label="Home">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+      <span class="brand-text">B&B <strong>Clean</strong></span>
+    </a>
     <nav>
-      <a href="/index.html">Home</a>
-      <a href="/prenota.html">Prenota</a>
-      <a href="/partner.html" class="active">Diventa partner</a>
-      <a href="/partner-app.html">Area Partner</a>
+      <a href="/servizi.html">Servizi</a>
+      <a href="/login.html">Accedi</a>
+      <a href="/signup.html" class="btn">Iscriviti</a>
     </nav>
   </header>
 
-  <main class="container form-wrap">
-    <h1>Collabora con noi</h1>
-    <p class="lead">Per attivare il tuo profilo raccogliamo i dati anagrafici, il luogo di nascita (per il Codice Fiscale) e il documento d’identità.</p>
+  <main class="container section">
+    <h1>Diventa B&amp;B cleaner</h1>
+    <p class="subtitle">Compila il profilo. Il <strong>Codice Fiscale</strong> è calcolato automaticamente da <em>Nome, Cognome, Sesso, Data di nascita, Comune (provincia)</em>. Il <strong>codice Belfiore</strong> non è richiesto.</p>
 
-    <!-- enctype multipart per i file -->
-    <form name="partner" method="POST" data-netlify="true" netlify-honeypot="bot-field"
-          action="/success.html" enctype="multipart/form-data">
-      <input type="hidden" name="form-name" value="partner">
-      <p class="hidden"><label>Non compilare: <input name="bot-field"></label></p>
-
-      <h2>Dati personali</h2>
-      <div class="row">
+    <form id="partner-form" class="card" method="post" enctype="multipart/form-data" novalidate>
+      <!-- Dati anagrafici -->
+      <h2 class="section-title">Dati personali</h2>
+      <div class="grid-3">
         <div>
-          <label>Nome</label>
-          <input name="nome" required>
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" required>
         </div>
         <div>
-          <label>Cognome</label>
-          <input name="cognome" required>
+          <label for="cognome">Cognome</label>
+          <input type="text" id="cognome" name="cognome" required>
         </div>
-      </div>
-      <div class="row">
         <div>
-          <label>Sesso</label>
-          <select name="sesso" required>
-            <option value="">—</option>
+          <label for="sesso">Sesso</label>
+          <select id="sesso" name="sesso" required>
+            <option value="" disabled selected>Seleziona</option>
             <option value="M">Maschio</option>
             <option value="F">Femmina</option>
           </select>
         </div>
-        <div>
-          <label>Data di nascita</label>
-          <input type="date" name="data_nascita" required>
-        </div>
       </div>
-      <div class="row">
+
+      <div class="grid-3">
         <div>
-          <label>Luogo di nascita (Comune)</label>
-          <input name="comune_nascita" list="comuniList" required>
+          <label for="data">Data di nascita</label>
+          <input type="date" id="data" name="data" required>
         </div>
         <div>
-          <label>Provincia (sigla)</label>
-          <input name="provincia_nascita" maxlength="2" class="upper" required>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Codice Fiscale (auto)</label>
-          <input id="cf" name="cf" readonly class="upper">
-          <p class="hint">Viene calcolato automaticamente dai dati inseriti.</p>
+          <label for="comune">Comune di nascita</label>
+          <input list="comuniList" id="comune" name="comune" placeholder="Digita e scegli dall’elenco" required>
+          <datalist id="comuniList"></datalist>
+          <small class="muted">Il codice catastale (Belfiore) è gestito in automatico.</small>
         </div>
         <div>
-          <label>Lingue</label>
-          <input name="lingue" placeholder="IT, EN, FR">
+          <label for="provincia">Provincia</label>
+          <input type="text" id="provincia" name="provincia" maxlength="2" placeholder="Es. NU" required>
         </div>
       </div>
 
-      <h2>Residenza & Raggio</h2>
-      <div class="row">
+      <div class="grid-3">
         <div>
-          <label>Indirizzo</label>
-          <input name="indirizzo" placeholder="Via/Piazza, n., Comune" required>
+          <label for="cf">Codice Fiscale (auto)</label>
+          <input type="text" id="cf" name="cf" readonly placeholder="Viene calcolato automaticamente">
         </div>
         <div>
-          <label>Raggio operativo (km)</label>
-          <input type="number" name="raggio_km" min="1" max="50" value="20" required>
-        </div>
-      </div>
-
-      <h2>Documento</h2>
-      <div class="row">
-        <div>
-          <label>Tipo documento</label>
-          <select name="doc_tipo" required>
-            <option value="">—</option>
-            <option>CARTA_IDENTITA</option>
-            <option>PASSAPORTO</option>
-            <option>PATENTE</option>
-          </select>
+          <label for="telefono">Telefono</label>
+          <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 ..." required>
         </div>
         <div>
-          <label>Numero</label>
-          <input name="doc_numero" required>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Fronte (jpg/png/pdf)</label>
-          <input type="file" name="doc_fronte" accept=".jpg,.jpeg,.png,.pdf" required>
-        </div>
-        <div>
-          <label>Retro (jpg/png/pdf)</label>
-          <input type="file" name="doc_retro" accept=".jpg,.jpeg,.png,.pdf" required>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Selfie (jpg/png)</label>
-          <input type="file" name="selfie" accept=".jpg,.jpeg,.png" required>
-        </div>
-        <div>
-          <label>Note (opzionale)</label>
-          <input name="note">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
         </div>
       </div>
 
-      <p class="hint">Spedendo il modulo, autorizzi il trattamento per verifica KYC e contatto (vedi Privacy).</p>
-      <p class="right"><button class="btn" type="submit">Invia candidatura</button></p>
-      <datalist id="comuniList"></datalist>
+      <!-- Documenti -->
+      <h2 class="section-title">Documenti</h2>
+      <div class="grid-3">
+        <div>
+          <label for="doc_id">Documento identità (PDF/JPG/PNG)</label>
+          <input type="file" id="doc_id" name="doc_id" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <div>
+          <label for="doc_cf">Tessera sanitaria / CF (opzionale)</label>
+          <input type="file" id="doc_cf" name="doc_cf" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+        <div>
+          <label for="iban">IBAN (per pagamenti)</label>
+          <input type="text" id="iban" name="iban" placeholder="IT60 X054 2811 1010 0000 0123 456">
+        </div>
+      </div>
+
+      <label for="note">Note</label>
+      <textarea id="note" name="note" rows="4" placeholder="Esperienza, disponibilità, zone coperte..."></textarea>
+
+      <div class="grid-3" style="align-items:center">
+        <label class="checkbox">
+          <input type="checkbox" id="privacy" name="privacy" required> Dichiaro di aver letto l’informativa privacy.
+        </label>
+        <div></div>
+        <button class="btn btn-primary" type="submit">Invia candidatura</button>
+      </div>
+
+      <p class="muted micro">All’invio potresti ricevere un’email di conferma (anteprima candidatura) — sistema Resend attivo.</p>
     </form>
   </main>
 
-  <script src="/partner.js"></script>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
+      </div>
+      <nav class="footer-links">
+        <a href="/servizi.html">Servizi</a>
+        <a href="/prenota.html">Prenota</a>
+        <a href="/partner.html" class="active">Diventa partner</a>
+        <a href="/dashboard.html">Dashboard</a>
+      </nav>
+      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
+    </div>
+  </footer>
+
+  <!-- Script: popolamento comuni + hook CF (non interferisce con script esistenti) -->
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    // Popola datalist comuni se vuota
+    (async () => {
+      try {
+        const dl = document.getElementById('comuniList');
+        if (!dl || dl.children.length) return;
+        const res = await fetch('/assets/data/comuni.json');
+        const items = await res.json();
+        const frag = document.createDocumentFragment();
+        items.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.nome; // struttura: {nome, provincia, codice}
+          opt.label = `${c.nome} (${c.provincia})`;
+          opt.dataset.codice = c.codice;
+          frag.appendChild(opt);
+        });
+        dl.appendChild(frag);
+      } catch(e){}
+    })();
+    // Trigger ricalcolo CF se partner.js è presente
+    ['nome','cognome','sesso','data','comune','provincia'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => {
+        const ev = new Event('cf:recalc');
+        document.dispatchEvent(ev);
+      });
+    });
+  </script>
+
+  <!-- I TUOI SCRIPT ESISTENTI (mantieni gli stessi percorsi) -->
+  <script src="/assets/js/partner.js" defer></script>
 </body>
 </html>
