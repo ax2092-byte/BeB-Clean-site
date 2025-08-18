@@ -34,7 +34,8 @@
       <h1>Pulizie per casa e B&amp;B, veloci e senza pensieri</h1>
       <p class="subtitle">Il tuo tempo è il nostro lavoro!</p>
       <div class="cta">
-        <a class="btn btn-primary" href="/prenota.html">Prenota ora</a>
+        <!-- Fallback: manda a login con ritorno; JS reindirizza direttamente a /prenota.html se l'utente è già loggato -->
+        <a id="cta-prenota" class="btn btn-primary" href="/login.html?return=/prenota.html">Prenota ora</a>
         <a class="btn btn-outline" href="/partner.html">Diventa B&amp;B cleaner</a>
       </div>
       <p class="micro muted">Stima trasparente prima della conferma. Paghi online in sicurezza.</p>
@@ -88,7 +89,7 @@
         <p class="muted">Descrivi l’alloggio, scegli gli extra e conferma: al resto pensiamo noi.</p>
       </div>
       <div class="cta-band-actions">
-        <a class="btn btn-primary" href="/prenota.html">Vai alla prenotazione</a>
+        <a class="btn btn-primary" href="/login.html?return=/prenota.html">Vai alla prenotazione</a>
         <a class="btn btn-outline" href="/servizi.html">Scopri i servizi</a>
       </div>
     </div>
@@ -103,7 +104,7 @@
       </div>
       <nav class="footer-links">
         <a href="/servizi.html">Servizi</a>
-        <a href="/prenota.html">Prenota</a>
+        <a href="/login.html?return=/prenota.html">Prenota</a>
         <a href="/partner.html">Diventa partner</a>
         <a href="/dashboard.html">Dashboard</a>
       </nav>
@@ -111,6 +112,50 @@
     </div>
   </footer>
 
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <!-- Logic: se l'utente è già autenticato, manda direttamente a /prenota.html -->
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    (function(){
+      const btn = document.getElementById('cta-prenota');
+      if(!btn) return;
+
+      function isLoggedLocal(){
+        try{
+          return (
+            localStorage.getItem('bbclean_auth') === '1' ||
+            localStorage.getItem('id_token') ||
+            localStorage.getItem('access_token') ||
+            /(?:^|;)\s*bb_auth=1(?:;|$)/.test(document.cookie)
+          );
+        }catch(_){ return false; }
+      }
+
+      async function isLoggedAuth0(){
+        try{
+          if (window.auth0 && typeof window.auth0.isAuthenticated === 'function') {
+            return await window.auth0.isAuthenticated();
+          }
+        }catch(_){}
+        return null; // indeterminato
+      }
+
+      // Aggiorna href on load se già loggato
+      (async () => {
+        const auth0State = await isLoggedAuth0();
+        if (auth0State === true || (auth0State === null && isLoggedLocal())) {
+          btn.setAttribute('href','/prenota.html');
+        }
+      })();
+
+      // Gestisci click: decide al momento
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const auth0State = await isLoggedAuth0();
+        const logged = (auth0State === true) || (auth0State === null && isLoggedLocal());
+        window.location.href = logged ? '/prenota.html' : '/login.html?return=/prenota.html';
+      });
+    })();
+  </script>
 </body>
 </html>
