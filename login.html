@@ -3,110 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B&B Clean — Accesso</title>
-  <link rel="icon" href="/favicon.png">
-  <meta name="description" content="Accedi o registrati a B&B Clean.">
-  <style>
-    :root { --border:#e5e7eb; --bg:#0b1220; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; }
-    * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .card { max-width:460px; width:92%; padding:24px; border:1px solid var(--border); border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); background:var(--card); text-align:center; }
-    .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--border); cursor:pointer; color:var(--text); text-decoration:none; display:inline-block; }
-    .muted { color:var(--muted); font-size:14px; margin-top:8px; }
-    .err { color:#fca5a5; margin-top:8px; white-space:pre-wrap; }
-    .ok { color:#86efac; font-size:12px; margin-top:8px; }
-  </style>
+  <title>Accedi — B&B Clean</title>
+  <meta name="description" content="Accedi o iscriviti per prenotare con B&B Clean.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/bbclean-mark-32.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <!-- Auth0 SPA SDK (opzionale: se non configurato, parte il fallback) -->
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2/auth0-spa-js.production.js" defer></script>
 </head>
-<body>
-  <div class="card">
-    <h1>Accesso in corso…</h1>
-    <p class="muted">Se non parte automaticamente, clicca “Continua”.</p>
-    <p><a id="loginBtn" class="btn" href="#">Continua</a></p>
-    <div id="status" class="muted"></div>
-    <div id="diag" class="ok"></div>
-    <div id="error" class="err"></div>
-  </div>
+<body class="light">
+  <header class="container nav">
+    <a class="brand" href="/index.html" aria-label="Home">
+      <img src="/assets/img/bbclean-mark-64.png" alt="B&B Clean" class="logo">
+      <span class="brand-text">B&B <strong>Clean</strong></span>
+    </a>
+    <nav>
+      <a href="/servizi.html">Servizi</a>
+      <a href="/login.html" class="active">Accedi</a>
+      <a href="/signup.html" class="btn">Iscriviti</a>
+    </nav>
+  </header>
 
-  <!-- 1) Provo a caricare la config esterna -->
-  <script src="/assets/js/auth0-config.js" defer></script>
+  <main class="container section">
+    <h1>Accedi o crea un account</h1>
+    <p class="subtitle">Per prenotare, accedi o registrati. Occorrono meno di 60 secondi.</p>
 
-  <!-- 1b) Fallback CONFIG: se la config non arriva, la definisco io -->
+    <section id="auth-auto" class="card">
+      <h2 class="section-title">Sto aprendo la pagina di accesso…</h2>
+      <p class="muted">Se non succede nulla in qualche secondo, usa i pulsanti qui sotto.</p>
+    </section>
+
+    <section id="auth-fallback" class="card" style="display:none">
+      <h2 class="section-title">Accesso rapido (fallback)</h2>
+      <p class="muted">Auth0 non è ancora configurato. Puoi usare questo accesso di test per continuare il flusso.</p>
+      <div class="cta">
+        <button class="btn btn-primary" id="btn-demo">Accedi demo</button>
+        <a class="btn btn-outline" id="btn-retry" href="#">Riprova accesso standard</a>
+      </div>
+      <p class="micro muted">Il fallback imposta solo una sessione locale per test e reindirizza alla pagina richiesta.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/img/bbclean-mark-64.png" alt="B&B Clean" class="logo">
+        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
+      </div>
+      <nav class="footer-links">
+        <a href="/servizi.html">Servizi</a>
+        <a href="/login.html?return=/prenota.html">Prenota</a>
+        <a href="/partner.html">Diventa partner</a>
+        <a href="/dashboard.html">Dashboard</a>
+      </nav>
+      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
+    </div>
+  </footer>
+
   <script>
-    (function ensureConfig(){
-      var ORIGIN = window.location && window.location.origin;
-      // se tra 300ms non esiste ancora, la creo io
-      setTimeout(function(){
-        if (typeof window.AUTH0_CONFIG === 'undefined') {
-          window.AUTH0_CONFIG = {
-            domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
-            clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
-            authorizationParams: { redirect_uri: ORIGIN },
-            cacheLocation: "memory",
-            useRefreshTokens: false
-          };
-          window.AUTH0_LOGOUT_OPTIONS = { logoutParams: { returnTo: ORIGIN } };
-        }
-      }, 300);
-    })();
-  </script>
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-  <!-- 2) SDK Auth0 ufficiale (v2, percorso /2.0/) -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js" defer></script>
+    // 1) Config — SOSTITUISCI con i tuoi valori quando pronti (Auth0 by Okta Netlify extension)
+    const AUTH0_CFG = {
+      domain:  window.AUTH0_DOMAIN  || 'YOUR_AUTH0_DOMAIN',
+      clientId:window.AUTH0_CLIENT_ID|| 'YOUR_AUTH0_CLIENT_ID',
+      audience:window.AUTH0_AUDIENCE || '', // opzionale
+      redirectUri: window.location.origin + '/login.html'
+    };
 
-  <!-- 2b) Fallback SDK: se il CDN Auth0 fosse bloccato, carica da jsDelivr -->
-  <script>
-    if (typeof auth0 === 'undefined') {
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js';
-      s.defer = true;
-      document.head.appendChild(s);
+    // Utility
+    function qs(name, def){ const v=new URLSearchParams(location.search).get(name); return v || def; }
+    const RETURN_TO = qs('return', '/prenota.html');
+    const MODE = (qs('mode','login') === 'signup') ? 'signup' : 'login';
+
+    function showFallback(){
+      document.getElementById('auth-auto').style.display='none';
+      document.getElementById('auth-fallback').style.display='';
     }
-  </script>
 
-  <!-- 3) Avvio login: legge role/mode dai parametri e chiama loginWithRedirect -->
-  <script>
-    (async function(){
-      const wait = ms => new Promise(r => setTimeout(r, ms));
+    function persistAndGo(){
+      try{
+        localStorage.setItem('bbclean_auth','1');
+        document.cookie = 'bb_auth=1; path=/; max-age='+(60*60*24*30);
+      }catch(_){}
+      location.replace(RETURN_TO);
+    }
 
-      // attendo che SDK e CONFIG siano disponibili
-      while (typeof window.AUTH0_CONFIG === 'undefined' || typeof auth0 === 'undefined') {
-        await wait(30);
+    // 2) Fallback handlers
+    document.getElementById('btn-demo').addEventListener('click', persistAndGo);
+    document.getElementById('btn-retry').addEventListener('click', (e)=>{
+      e.preventDefault();
+      location.reload();
+    });
+
+    // 3) Auth0 automatic flow (se configurato)
+    window.addEventListener('load', async () => {
+      // Se SDK non c'è o config placeholder → fallback
+      if (typeof window.createAuth0Client !== 'function'
+          || AUTH0_CFG.domain.startsWith('YOUR_')
+          || AUTH0_CFG.clientId.startsWith('YOUR_')) {
+        showFallback();
+        return;
       }
 
-      // diagnostica minima
-      const diag = document.getElementById('diag');
-      if (diag) diag.textContent = 'SDK: ' + (typeof auth0) + ' · CONFIG: ' + (typeof window.AUTH0_CONFIG);
+      try{
+        const auth0 = await createAuth0Client({
+          domain: AUTH0_CFG.domain,
+          clientId: AUTH0_CFG.clientId,
+          authorizationParams: {
+            redirect_uri: AUTH0_CFG.redirectUri,
+            ...(AUTH0_CFG.audience ? { audience: AUTH0_CFG.audience } : {})
+          }
+        });
 
-      const params = new URLSearchParams(window.location.search);
-      const role = params.get('role') || 'client';   // "client" | "partner"
-      const mode = params.get('mode') || 'login';    // "login" | "signup"
-
-      const client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
-
-      const target = role === 'partner' ? '/dashboard.html' : '/prenota.html';
-      const authorizationParams = {};
-      if (mode === 'signup') authorizationParams.screen_hint = 'signup';
-
-      const go = async () => {
-        try {
-          const st = document.getElementById('status');
-          if (st) st.textContent = 'Reindirizzamento a Auth0…';
-          await client.loginWithRedirect({
-            authorizationParams,
-            appState: { role, mode, target }
-          });
-        } catch (e) {
-          const er = document.getElementById('error');
-          if (er) er.textContent = e && e.message ? e.message : String(e);
+        // Se è un callback (code + state) completa il login e torna alla pagina richiesta
+        if (location.search.includes('code=') && location.search.includes('state=')) {
+          await auth0.handleRedirectCallback();
+          const isAuth = await auth0.isAuthenticated();
+          if (isAuth) { persistAndGo(); return; }
         }
-      };
 
-      // bottone manuale
-      document.getElementById('loginBtn').addEventListener('click', (e) => { e.preventDefault(); go(); });
-
-      // avvio automatico
-      go();
-    })();
+        // Non è un callback → avvia login o signup
+        localStorage.setItem('bb_return', RETURN_TO);
+        await auth0.loginWithRedirect({
+          authorizationParams: {
+            redirect_uri: AUTH0_CFG.redirectUri,
+            ...(AUTH0_CFG.audience ? { audience: AUTH0_CFG.audience } : {}),
+            ...(MODE === 'signup' ? { screen_hint: 'signup' } : {})
+          },
+          appState: { returnTo: RETURN_TO }
+        });
+      }catch(err){
+        // Se qualcosa va storto, mostra fallback
+        showFallback();
+      }
+    });
   </script>
 </body>
 </html>
