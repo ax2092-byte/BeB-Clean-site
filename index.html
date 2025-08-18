@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>B&B Clean — Pulizie per casa e B&B, veloci e senza pensieri</title>
   <meta name="description" content="Pulizie per casa e B&B: stima trasparente, paghi online in sicurezza. Trova un B&B cleaner vicino a te. Il tuo tempo è il nostro lavoro!">
-  <link rel="icon" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/bbclean-mark-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/bbclean-logo-256.png">
+  <meta property="og:image" content="/assets/img/bbclean-logo-256.png">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body class="light">
   <!-- Header / Navbar -->
   <header class="container nav">
     <a class="brand" href="/index.html" aria-label="Home">
-      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+      <img src="/assets/img/bbclean-mark-64.png" alt="B&B Clean" class="logo">
       <span class="brand-text">B&B <strong>Clean</strong></span>
     </a>
     <nav>
@@ -22,8 +25,11 @@
     </nav>
   </header>
 
-  <!-- Hero -->
-  <section class="hero container">
+  <!-- Hero Home (logo grande e centrato) -->
+  <section class="hero container home-hero">
+    <div class="hero-art">
+      <img src="/assets/img/bbclean-logo-256.png" alt="B&B Clean" class="hero-logo">
+    </div>
     <div class="hero-text">
       <h1>Pulizie per casa e B&amp;B, veloci e senza pensieri</h1>
       <p class="subtitle">Il tuo tempo è il nostro lavoro!</p>
@@ -33,23 +39,41 @@
       </div>
       <p class="micro muted">Stima trasparente prima della conferma. Paghi online in sicurezza.</p>
     </div>
-    <div class="hero-art">
-      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean logo" class="hero-logo">
-    </div>
   </section>
 
-  <!-- Valori -->
+  <!-- Valori (icone sopra i titoli) -->
   <section class="container section">
     <div class="grid-3">
       <div class="card">
+        <div class="icon-img" aria-hidden="true">
+          <!-- Orologio (Stima trasparente) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7v5l3 3"></path>
+          </svg>
+        </div>
         <h3>Stima trasparente</h3>
         <p>Vedi tempi e costi stimati prima di prenotare, con eventuali extra selezionabili.</p>
       </div>
       <div class="card">
+        <div class="icon-img" aria-hidden="true">
+          <!-- Pin (Vicini a te) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 21s-7-5.2-7-11a7 7 0 1 1 14 0c0 5.8-7 11-7 11z"></path>
+            <circle cx="12" cy="10" r="2.5"></circle>
+          </svg>
+        </div>
         <h3>Vicini a te</h3>
-        <p>Selezioniamo B&amp;B cleaner nel tuo raggio per puntualità e meno spostamenti.</p>
+        <p>B&amp;B cleaner nel tuo raggio per puntualità e meno spostamenti.</p>
       </div>
       <div class="card">
+        <div class="icon-img" aria-hidden="true">
+          <!-- Scudo (Pagamento sicuro) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3l7 4v5c0 5-3.5 9-7 9s-7-4-7-9V7l7-4z"></path>
+            <path d="M9 12l2 2 4-4"></path>
+          </svg>
+        </div>
         <h3>Pagamento sicuro</h3>
         <p>Paghi online in sicurezza. Ricevuta digitale e cronologia interventi.</p>
       </div>
@@ -74,7 +98,7 @@
   <footer class="footer">
     <div class="container footer-inner">
       <div class="footer-brand">
-        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+        <img src="/assets/img/bbclean-mark-64.png" alt="B&B Clean" class="logo">
         <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
       </div>
       <nav class="footer-links">
@@ -87,8 +111,6 @@
     </div>
   </footer>
 
-  <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
-  </script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>
