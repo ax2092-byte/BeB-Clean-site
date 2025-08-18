@@ -20,7 +20,7 @@
     input, select { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0f172a; color:var(--text); }
     .hint { color:var(--muted); font-size:12px; margin-top:4px; }
     .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
-    button, .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--text); cursor:pointer; text-decoration:none; }
+    button, .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:transparent; color:#fff; cursor:pointer; text-decoration:none; }
     .btn-primary { background:var(--brand); border-color:var(--brand); color:#071820; }
     .btn-primary[disabled] { opacity:.6; cursor:not-allowed; }
     .ok { color:#86efac; font-size:12px; }
@@ -98,6 +98,48 @@
           <input id="codice_fiscale" class="mono" readonly>
           <div id="cf_need" class="need hidden"></div>
         </div>
+      </div>
+
+      <!-- Documenti (UI) -->
+      <h2 style="margin-top:14px;">Documenti</h2>
+      <div class="row">
+        <div class="col-6">
+          <label for="doc_type">Tipo documento *</label>
+          <select id="doc_type">
+            <option value="">Seleziona…</option>
+            <option value="CI">Carta d'identità</option>
+            <option value="PATENTE">Patente</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label for="doc_number">Numero documento *</label>
+          <input id="doc_number" placeholder="AA1234567">
+        </div>
+        <div class="col-6">
+          <label for="doc_expiry">Scadenza *</label>
+          <input id="doc_expiry" type="date">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:6px;">
+        <div class="col-4">
+          <label for="file_front">Fronte *</label>
+          <input id="file_front" type="file" accept="image/*,application/pdf">
+        </div>
+        <div class="col-4">
+          <label for="file_back">Retro *</label>
+          <input id="file_back" type="file" accept="image/*,application/pdf">
+        </div>
+        <div class="col-4">
+          <label for="file_selfie">Selfie con documento *</label>
+          <input id="file_selfie" type="file" accept="image/*">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="upload_docs" class="btn">Carica documenti</button>
+        <span id="upload_msg" class="ok"></span>
+        <span id="upload_err" class="err"></span>
       </div>
 
       <div class="actions">
@@ -240,7 +282,7 @@
         const name = U(c.nome);
         const prov = U(c.provincia || '');
         const codeRaw = c.belfiore ?? c.codice ?? c.codice_belfiore ?? c.codiceCatastale ?? c.codice_catastale ?? '';
-        const code = U(codeRaw).slice(0,4); // robusto su vari formati
+        const code = U(codeRaw).slice(0,4);
         const label = prov ? `${name} (${prov})` : name;
 
         const opt = document.createElement('option'); opt.value = label; $list.appendChild(opt);
@@ -302,7 +344,6 @@
           belfiore: $bf.value
         });
         $cf.value = cf || '';
-        // Comune ambigua? suggerisci di aggiungere la provincia
         const baseName = U($com.value).replace(/\s*\([A-Z]{2}\)\s*$/,'').replace(/\s+[A-Z]{2}\s*$/,'');
         const arr = byName.get(baseName);
         const ambiguous = baseName && arr && arr.length > 1 && !$bf.value;
@@ -319,13 +360,13 @@
         el.addEventListener('keyup',  recalcCF);
       });
 
-      // tenta per un po’ in caso Nome/Cognome arrivino tardi dai claims
+      // tentativi iniziali in caso Nome/Cognome arrivino tardi dai claims
       let tries = 0; const ts = setInterval(() => {
         tries++; recalcCF(); if (tries > 30 || (U($fn.value) && U($ln.value))) clearInterval(ts);
       }, 300);
       recalcCF();
 
-      // Salva su Supabase via Function
+      // Salva anagrafica su Supabase via Function
       document.getElementById('save').addEventListener('click', async ()=>{
         document.getElementById('save_msg').textContent = '';
         document.getElementById('save_err').textContent = '';
@@ -347,6 +388,13 @@
         } catch(e) {
           document.getElementById('save_err').textContent = e.message || String(e);
         }
+      });
+
+      // Pulsante "Carica documenti" (solo UI per ora)
+      document.getElementById('upload_docs')?.addEventListener('click', (e)=>{
+        e.preventDefault();
+        document.getElementById('upload_err').textContent = '';
+        document.getElementById('upload_msg').textContent = 'Upload documenti disponibile nel prossimo step.';
       });
     })();
   </script>
