@@ -1,1 +1,63 @@
+# ===========================
+# Netlify configuration - B&B Clean
+# ===========================
+
+[build]
+  publish = "."
+  # Se non hai un processo di build, lascia vuoto; altrimenti es: command = "npm run build"
+  command = ""
+
+# ---------------------------
+# Security & Performance
+# ---------------------------
+
+# Security headers di base + CSP che consente Auth0
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    # CSP: consenti gli script Auth0 e il fallback jsDelivr; consenti connessioni al tuo tenant Auth0
+    # Aggiungi qui eventuali altri domini che usi (mappe, analytics, ecc.)
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' https://cdn.auth0.com https://cdn.jsdelivr.net;
+      connect-src 'self' https://dev-nmvv4fpc7jmiw1pw.eu.auth0.com https://*.auth0.com;
+      img-src 'self' data: blob:;
+      style-src 'self' 'unsafe-inline';
+      font-src 'self' data:;
+      frame-src https://*.auth0.com;
+      base-uri 'self';
+      form-action 'self' https://*.auth0.com;
+      object-src 'none';
+      upgrade-insecure-requests;
+    """
+
+# Cache aggressiva per asset statici
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Non indicizzare ambienti di preview (facoltativo: rimuovi se non ti serve)
+# [[headers]]
+#   for = "/*"
+#   [headers.values]
+#     X-Robots-Tag = "noindex, nofollow"
+
+# ---------------------------
+# (Opzionale) Redirects qui se NON usi l'omonimo file _redirects
+# ---------------------------
+# [[redirects]]
+#   from = "/signup.html"
+#   to = "/login.html?mode=signup"
+#   status = 301
+#
+# [[redirects]]
+#   from = "/iscrizione-cliente.html"
+#   to = "/login.html?mode=signup"
+#   status = 301
 
