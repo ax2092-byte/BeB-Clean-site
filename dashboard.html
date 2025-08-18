@@ -3,108 +3,83 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B&B Clean — Admin Dashboard</title>
+  <title>Dashboard — B&B Clean</title>
+  <meta name="description" content="Dashboard amministrativa: approva o rifiuta partner, gestisci motivazioni e stato.">
   <link rel="icon" href="/favicon.png">
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/bbclean-theme.css">
-  <style>
-    .wrap{max-width:1200px;margin:0 auto;padding:20px}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px}
-    .tab-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--bb-border,#1f2937);background:var(--bb-card,#0f1418);color:#e5e7eb;cursor:pointer}
-    .tab-btn.active{outline:2px solid rgba(20,184,166,.28)}
-    .card{background:var(--bb-card,#0f1418);border:1px solid var(--bb-border,#1f2937);border-radius:16px;padding:16px;margin:10px 0 18px}
-    .muted{color:var(--bb-muted,#9ca3af)}
-    table{width:100%;border-collapse:separate;border-spacing:0}
-    th,td{padding:10px;border-bottom:1px solid var(--bb-border,#1f2937);text-align:left;vertical-align:top}
-    th{font-weight:600;color:#e5e7eb}
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--bb-border,#1f2937);font-size:12px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bb-border,#1f2937);background:#0c1114;color:#e5e7eb}
-    .btn{display:inline-block;padding:8px 12px;border-radius:12px;border:1px solid var(--bb-border,#1f2937);background:var(--bb-teal,#14b8a6);color:#001010;cursor:pointer;font-weight:600}
-    .btn.ghost{background:transparent;color:#e5e7eb}
-    .right{text-align:right}
-    .toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between}
-    .status-in_attesa{background:#111827;color:#e5e7eb}
-    .status-approvato{background:#052d27;color:#9ff2e5;border:1px solid rgba(20,184,166,.4)}
-    .status-rifiutato{background:#2a0f0f;color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
-    .token-banner{background:#1f2937;border:1px dashed #374151;padding:10px;border-radius:12px;margin-bottom:12px}
-  </style>
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body>
+<body class="light">
+  <!-- Header / Navbar -->
   <header class="container nav">
-    <div class="logo">B&amp;B <span>Clean</span></div>
+    <a class="brand" href="/index.html" aria-label="Home">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+      <span class="brand-text">B&B <strong>Clean</strong></span>
+    </a>
     <nav>
-      <!-- Solo Admin nel menu su questa pagina -->
-      <a href="/dashboard.html" class="active">Admin</a>
+      <a href="/servizi.html">Servizi</a>
+      <a href="/login.html">Accedi</a>
+      <a href="/signup.html" class="btn">Iscriviti</a>
     </nav>
   </header>
 
-  <main class="wrap">
-    <h1>Admin Dashboard</h1>
-    <p class="muted">Gestione interna — KYC, richieste e controlli.</p>
+  <main class="container section">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Approva o rifiuta le candidature dei B&amp;B cleaner. Lascia una motivazione quando rifiuti.</p>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="kyc">KYC</button>
-      <button class="tab-btn" data-tab="altro" disabled>Altro (coming soon)</button>
-    </div>
-
-    <!-- KYC -->
-    <section id="tab-kyc" class="card">
-      <div class="toolbar">
-        <div style="display:flex;gap:8px;align-items:center">
-          <label>Filtro stato</label>
-          <select id="kycFilter">
-            <option value="">Tutti</option>
-            <option value="in_attesa">In attesa</option>
-            <option value="approvato">Approvato</option>
-            <option value="rifiutato">Rifiutato</option>
-          </select>
-          <button class="btn" id="btnReload">Ricarica</button>
-        </div>
-        <div>
-          <button class="btn ghost" id="btnSetAdmin">Imposta nome admin</button>
-          <button class="btn ghost" id="btnSetToken">Imposta token</button>
-        </div>
-      </div>
-
-      <div id="adminHints" class="token-banner" style="display:none"></div>
-
-      <div class="card">
-        <table id="kycTable">
+    <section class="card">
+      <h2 class="section-title">Candidature</h2>
+      <div style="overflow:auto">
+        <table id="partner-table" style="width:100%; border-collapse:collapse">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Partner</th>
-              <th>Documento</th>
-              <th>Stato</th>
-              <th class="right">Azione</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Nome</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Email</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Telefono</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Comune</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">CF</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Stato</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Azioni</th>
             </tr>
           </thead>
-          <tbody>
-            <tr><td colspan="5" class="muted">Caricamento…</td></tr>
+          <tbody id="partner-tbody">
+            <!-- popolato da dashboard.js -->
           </tbody>
         </table>
       </div>
     </section>
-
-    <!-- Placeholder altri tab -->
-    <section id="tab-altro" class="card" style="display:none">
-      <p class="muted">Altre sezioni in arrivo.</p>
-    </section>
   </main>
 
+  <!-- Modal rifiuto -->
+  <dialog id="modal-rifiuto" style="border:none;border-radius:16px;max-width:520px;width:90%">
+    <form method="dialog" class="card">
+      <h3>Motivazione rifiuto</h3>
+      <p class="muted micro">Spiega brevemente il motivo. Sarà notificato al candidato.</p>
+      <textarea id="motivo-rifiuto" rows="4" placeholder="Es. documenti incompleti, IBAN errato..." required></textarea>
+      <div class="cta" style="justify-content:flex-end;margin-top:12px">
+        <button value="cancel">Annulla</button>
+        <button class="btn btn-primary" id="conferma-rifiuto" value="ok">Conferma</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
+        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
+      </div>
+      <nav class="footer-links">
+        <a href="/servizi.html">Servizi</a>
+        <a href="/prenota.html">Prenota</a>
+        <a href="/partner.html">Diventa partner</a>
+        <a href="/dashboard.html" class="active">Dashboard</a>
+      </nav>
+      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
+    </div>
+  </footer>
+
   <script>
-    // gestione tab
-    const tabs = document.querySelector('.tabs');
-    const sections = { kyc: document.getElementById('tab-kyc'), altro: document.getElementById('tab-altro') };
-    tabs.addEventListener('click', (e)=>{
-      const b = e.target.closest('.tab-btn'); if(!b || b.disabled) return;
-      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.toggle('active', x===b));
-      Object.values(sections).forEach(s=>s.style.display='none');
-      sections[b.dataset.tab].style.display='';
-    });
-  </script>
-  <script src="/admin-kyc-decision.js"></script>
-  <script src="/admin-kyc-list.js"></script>
-</body>
-</html>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    // Hook semplice per aprire il modal da dashboard.js:
+    document.addEv
