@@ -1,8 +1,4 @@
-# 1) NON riscrivere le Functions (devono restare raggiungibili)
-/.netlify/functions/*   /.netlify/functions/:splat   200
-
-# 2) Pagine statiche da servire "as is" (senza fallback SPA)
-#/ aggiungi/rimuovi qui se crei nuove pagine .html
+# Pagine statiche servite “as is”
 /profilo.html               /profilo.html               200
 /iscrizione-cliente.html    /iscrizione-cliente.html    200
 /grazie.html                /grazie.html                200
@@ -11,6 +7,5 @@
 /prenota.html               /prenota.html               200
 /dashboard.html             /dashboard.html             200
 
-# 3) Fallback SPA (mettere SEMPRE per ultimo)
-#   - Qualsiasi rotta non trovata verrà servita con index.html
+# Fallback SPA: tienilo per ultimo
 /*                         /index.html                 200
