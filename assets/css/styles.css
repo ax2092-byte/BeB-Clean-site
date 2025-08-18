@@ -43,12 +43,32 @@ a{color:inherit}
 .nav a{color:var(--text);text-decoration:none;padding:8px 12px;border-radius:10px}
 .nav a:hover{background:rgba(2,6,23,.04)}
 .nav a.active{color:#fff;background:var(--primary)}
-.btn{background:#111827;color:#fff;border:1px solid #111827;border-radius:12px;padding:10px 14px;display:inline-block;line-height:1;transition:transform .12s ease, filter .12s ease}
+
+/* Pulsanti (generici) */
+.btn{
+  background:#111827;
+  color:#fff;
+  border:1px solid #111827;
+  border-radius:12px;
+  padding:10px 14px;
+  display:inline-block;
+  line-height:1;
+  transition:transform .12s ease, filter .12s ease;
+}
 .btn:hover{filter:brightness(1.05);transform:translateY(-0.5px)}
 .btn-primary{background:var(--primary);border-color:var(--primary)}
 .btn-primary:hover{background:var(--primary-600);border-color:var(--primary-600)}
 .btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary)}
 .btn-outline:hover{background:var(--ring)}
+
+/* **Fix leggibilità navbar**: bottoni in nav sempre teal */
+.nav .btn{
+  background:var(--primary) !important;
+  border-color:var(--primary) !important;
+  color:#fff !important;
+}
+.nav .btn:hover{background:var(--primary-600) !important;border-color:var(--primary-600) !important}
+.nav .btn:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 
 /* Hero */
 .hero{display:grid;grid-template-columns:1.2fr .8fr;align-items:center;gap:24px;padding:24px 0 10px}
