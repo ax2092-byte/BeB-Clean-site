@@ -54,16 +54,15 @@
         <span id="diag-sdk" class="diag"></span>
       </div>
 
-      <!-- Menù: NON autenticato -->
+      <!-- Menù: NON autenticato (tolto Prenota) -->
       <nav id="nav-guest">
         <a class="btn btn-ghost" href="#servizi">Servizi</a>
         <a class="btn btn-ghost" href="#come-funziona">Come funziona</a>
-        <a class="btn btn-ghost" href="/prenota.html">Prenota</a>
 
         <details class="menu">
           <summary>Accedi</summary>
           <div class="dropdown menu">
-            <a id="login-client"  href="/login.html?role=client&mode=login">Accedi come Cliente</a>
+            <a id="login-client"  href="#">Accedi come Cliente</a>
             <a id="login-partner" href="/login.html?role=partner&mode=login">Accedi come Partner</a>
           </div>
         </details>
@@ -71,20 +70,18 @@
         <details class="menu">
           <summary>Iscriviti</summary>
           <div class="dropdown menu">
-            <!-- NUOVO ID per evitare vecchi handler -->
             <a id="go-signup-client"
-   href="/iscrizione-cliente.html"
-   onclick="window.location.assign('/iscrizione-cliente.html'); return false;">
-  Iscriviti come Cliente
-</a>
+               href="/iscrizione-cliente.html"
+               onclick="window.location.assign('/iscrizione-cliente.html'); return false;">
+              Iscriviti come Cliente
+            </a>
             <div class="sep"></div>
-            <a href="/partner.html" id="go-partner-page">Info per diventare Partner</a>
             <a id="signup-partner" href="/login.html?role=partner&mode=signup">Iscriviti come Partner</a>
           </div>
         </details>
       </nav>
 
-      <!-- Menù: AUTENTICATO -->
+      <!-- Menù: AUTENTICATO (Prenota rimane qui) -->
       <nav id="nav-auth" class="hidden">
         <a class="btn btn-ghost" href="/prenota.html">Prenota</a>
         <a class="btn btn-ghost" href="/dashboard.html">Dashboard</a>
@@ -97,9 +94,13 @@
   <main class="container">
     <section class="hero">
       <h1>Pulizie per casa e B&B, veloci e senza pensieri</h1>
-      <p class="lead">Trova un <strong>B&amp;B cleaner</strong> vicino a te. Stima trasparente, <strong>paghi online</strong> in sicurezza. <br><em>Il tuo tempo è il nostro lavoro!</em></p>
+      <p class="lead">Trova un <strong>B&amp;B cleaner</strong> vicino a te. Stima trasparente, <strong>paghi online</strong> in sicurezza.</p>
       <div class="cta">
-        <a href="/prenota.html" class="btn btn-primary">Prenota ora</a>
+        <!-- Tolto il bottone Prenota dalla home -->
+        <a href="/iscrizione-cliente.html" class="btn btn-primary"
+           onclick="window.location.assign('/iscrizione-cliente.html'); return false;">
+          Iscriviti ora
+        </a>
         <a href="/partner.html" class="btn">Diventa partner</a>
       </div>
     </section>
@@ -116,9 +117,9 @@
     <section id="come-funziona">
       <h2>Come funziona</h2>
       <ul class="check">
-        <li>Inserisci indirizzo e caratteristiche della casa.</li>
-        <li>Ottieni una stima e scegli data/ora.</li>
-        <li>Conferma e paga online: pensiamo a tutto noi.</li>
+        <li>Crea un account o accedi.</li>
+        <li>Inserisci i dati della tua casa.</li>
+        <li>Conferma e ricevi il servizio.</li>
       </ul>
     </section>
   </main>
@@ -127,7 +128,7 @@
     <div class="container"><p>© B&amp;B Clean — Tutti i diritti riservati</p></div>
   </footer>
 
-  <!-- Loader: config → SDK (CDN v2.0, fallback jsDelivr) → auth.js (cache-bust v=2) -->
+  <!-- Loader: config → SDK → auth.js (cache-bust v=3) -->
   <script>
   (function(){
     function add(src, ondone){
@@ -138,38 +139,26 @@
       s.onerror = ondone;
       document.head.appendChild(s);
     }
-    // 1) Config
     add('/assets/js/auth0-config.js', function(){
-      // 2) SDK (v2.0)
       add('https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js', function(){
-        // 2b) fallback jsDelivr
         if (typeof auth0 === 'undefined') {
           add('https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js', function(){
-            // 3) tuo script (cache bust)
-            add('/assets/js/auth.js?v=2');
+            add('/assets/js/auth.js?v=3');
           });
         } else {
-          add('/assets/js/auth.js?v=2');
+          add('/assets/js/auth.js?v=3');
         }
       });
     });
   })();
   </script>
 
-  <!-- Forza la navigazione per il link "Iscrizione Cliente" (nessun preventDefault potrà bloccarlo) -->
+  <!-- Diagnostica mini -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      const el = document.getElementById('go-signup-client');
-      if (el) {
-        el.addEventListener('click', function(e){
-          // se per qualsiasi motivo qualche script esterno prova a bloccare, noi navighiamo comunque
-          window.location.assign('/iscrizione-cliente.html');
-        }, { capture: true });
-      }
-
-      // Diagnostica mini
-      const badge = document.getElementById('diag-sdk');
-      if (badge) badge.textContent = '· ' + (typeof auth0 !== 'undefined' ? 'SDK OK' : 'SDK NON CARICATO');
+      const el = document.getElementById('diag-sdk');
+      const ok = (typeof auth0 !== 'undefined') ? 'SDK OK' : 'SDK NON CARICATO';
+      el.textContent = '· ' + ok;
     });
   </script>
 </body>
