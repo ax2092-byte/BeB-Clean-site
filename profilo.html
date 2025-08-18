@@ -37,7 +37,7 @@
 <body>
   <div class="wrap">
     <h1>Profilo</h1>
-    <p class="muted">Completa i dati anagrafici. Il Codice Fiscale viene calcolato automaticamente. Il Codice Belfiore è gestito in automatico e non è richiesto.</p>
+    <p class="muted">Completa i dati anagrafici.</p>
 
     <!-- login richiesta -->
     <div id="need-auth" class="card">
@@ -89,15 +89,13 @@
         </div>
         <div class="col-12">
           <label for="comune">Comune di nascita *</label>
-          <input id="comune" list="comuni-list" placeholder="Es. ROMA (RM) o ROMA o H501" required autocomplete="off">
+          <input id="comune" list="comuni-list" placeholder="Es. ROMA (RM)" required autocomplete="off">
           <datalist id="comuni-list"></datalist>
-          <div class="hint">Digita e scegli dall’elenco (o inserisci direttamente il codice catastale, es. H501). Il Belfiore è inserito in automatico.</div>
           <input id="belfiore" type="hidden">
         </div>
         <div class="col-6">
-          <label for="codice_fiscale">Codice Fiscale (auto)</label>
+          <label for="codice_fiscale">Codice Fiscale</label>
           <input id="codice_fiscale" class="mono" readonly>
-          <div class="hint">Viene calcolato da Nome, Cognome, Sesso, Data e Comune.</div>
           <div id="cf_need" class="need hidden"></div>
         </div>
       </div>
@@ -182,7 +180,6 @@
       const $need = document.getElementById('need-auth');
       const $card = document.getElementById('profile');
       const $err  = document.getElementById('err');
-      const $diag = document.getElementById('diag');
 
       if (!isAuth) {
         document.getElementById('cta-login')?.addEventListener('click', async (e)=>{
@@ -243,7 +240,7 @@
         const name = U(c.nome);
         const prov = U(c.provincia || '');
         const codeRaw = c.belfiore ?? c.codice ?? c.codice_belfiore ?? c.codiceCatastale ?? c.codice_catastale ?? '';
-        const code = U(codeRaw).slice(0, 4); // es. "H501" o "A001";
+        const code = U(codeRaw).slice(0,4); // robusto su vari formati
         const label = prov ? `${name} (${prov})` : name;
 
         const opt = document.createElement('option'); opt.value = label; $list.appendChild(opt);
@@ -263,15 +260,25 @@
       const $cfNeed = document.getElementById('cf_need');
       const $save = document.getElementById('save');
 
+      function parseProv(raw){
+        const q = U(raw);
+        const m = q.match(/\(([A-Z]{2})\)\s*$/) || q.match(/\s([A-Z]{2})\s*$/);
+        return m ? m[1] : '';
+      }
       function findBelfiore(raw){
         const q = U(raw);
+        if (!q) return '';
         if (byLabel.has(q)) return byLabel.get(q);
-        if (byCode.has(q))  return q; // inserito direttamente H501
-        const arr = byName.get(q);
-        if (arr && arr.length === 1) return arr[0].code; // nome univoco
+        if (byCode.has(q))  return q;
+        const pr = parseProv(q);
+        const baseName = q.replace(/\s*\([A-Z]{2}\)\s*$/,'').replace(/\s+[A-Z]{2}\s*$/,'');
+        const arr = byName.get(baseName);
+        if (arr && arr.length) {
+          if (pr) { const hit = arr.find(a => a.prov === pr); if (hit) return hit.code; }
+          if (arr.length === 1) return arr[0].code;
+        }
         return '';
       }
-
       function updateSaveState(){
         const missing = [];
         if (!U($fn.value)) missing.push('Nome');
@@ -280,12 +287,10 @@
         if (!$dob.value)   missing.push('Data di nascita');
         if (!$bf.value)    missing.push('Comune valido');
         if (!U($cf.value)) missing.push('Codice Fiscale');
-
         $cfNeed.classList.toggle('hidden', missing.length === 0);
         $cfNeed.textContent = missing.length ? ('Completa: ' + missing.join(', ')) : '';
         $save.disabled = missing.length > 0;
       }
-
       function recalcCF(){
         if (!$bf.value && $com.value) {
           const bf = findBelfiore($com.value);
@@ -297,22 +302,30 @@
           belfiore: $bf.value
         });
         $cf.value = cf || '';
+        // Comune ambigua? suggerisci di aggiungere la provincia
+        const baseName = U($com.value).replace(/\s*\([A-Z]{2}\)\s*$/,'').replace(/\s+[A-Z]{2}\s*$/,'');
+        const arr = byName.get(baseName);
+        const ambiguous = baseName && arr && arr.length > 1 && !$bf.value;
+        if (ambiguous) {
+          $cfNeed.classList.remove('hidden');
+          $cfNeed.textContent = 'Comune non univoco: aggiungi la provincia, es. "NOME (PR)".';
+        }
         updateSaveState();
       }
 
       [$sex,$dob,$com].forEach(el => {
         el.addEventListener('change', recalcCF);
         el.addEventListener('input',  recalcCF);
+        el.addEventListener('keyup',  recalcCF);
       });
 
-      // se nome/cognome arrivano in ritardo dai claims, prova qualche volta
+      // tenta per un po’ in caso Nome/Cognome arrivino tardi dai claims
       let tries = 0; const ts = setInterval(() => {
-        tries++; recalcCF(); if (tries > 10 || (U($fn.value) && U($ln.value))) clearInterval(ts);
+        tries++; recalcCF(); if (tries > 30 || (U($fn.value) && U($ln.value))) clearInterval(ts);
       }, 300);
-
       recalcCF();
 
-      // --- Salva su Supabase via Function ---
+      // Salva su Supabase via Function
       document.getElementById('save').addEventListener('click', async ()=>{
         document.getElementById('save_msg').textContent = '';
         document.getElementById('save_err').textContent = '';
