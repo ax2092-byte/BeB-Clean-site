@@ -3,7 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
-    "@netlify/blobs": "^5.0.0"
+    "@netlify/blobs": "^5.0.0",
+    "jose": "^5.2.4"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
