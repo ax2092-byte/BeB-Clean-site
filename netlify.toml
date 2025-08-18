@@ -4,14 +4,15 @@
 
 [build]
   publish = "."
-  # Se non hai un processo di build, lascia vuoto; altrimenti es: command = "npm run build"
-  command = ""
+  command = "" # statico; se hai un build step, impostalo qui
 
 # ---------------------------
-# Security & Performance
+# Security & Performance (global)
 # ---------------------------
 
-# Security headers di base + CSP che consente Auth0
+# Header di sicurezza globali.
+# NOTA: abilitiamo 'unsafe-inline' negli script perché usi script inline (es. in login.html).
+# Se in futuro li sposti tutti in file separati, potremo restringere.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -20,11 +21,10 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-    # CSP: consenti gli script Auth0 e il fallback jsDelivr; consenti connessioni al tuo tenant Auth0
-    # Aggiungi qui eventuali altri domini che usi (mappe, analytics, ecc.)
+    # CSP globale: consenti inline script e gli host di Auth0 + jsDelivr.
     Content-Security-Policy = """
       default-src 'self';
-      script-src 'self' https://cdn.auth0.com https://cdn.jsdelivr.net;
+      script-src 'self' 'unsafe-inline' https://cdn.auth0.com https://cdn.jsdelivr.net;
       connect-src 'self' https://dev-nmvv4fpc7jmiw1pw.eu.auth0.com https://*.auth0.com;
       img-src 'self' data: blob:;
       style-src 'self' 'unsafe-inline';
@@ -42,15 +42,10 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Non indicizzare ambienti di preview (facoltativo: rimuovi se non ti serve)
-# [[headers]]
-#   for = "/*"
-#   [headers.values]
-#     X-Robots-Tag = "noindex, nofollow"
-
 # ---------------------------
-# (Opzionale) Redirects qui se NON usi l'omonimo file _redirects
+# Redirects (se NON usi l'omonimo file _redirects)
 # ---------------------------
+# Esempi: scommenta se vuoi gestirli qui invece che in _redirects.
 # [[redirects]]
 #   from = "/signup.html"
 #   to = "/login.html?mode=signup"
@@ -60,4 +55,3 @@
 #   from = "/iscrizione-cliente.html"
 #   to = "/login.html?mode=signup"
 #   status = 301
-
