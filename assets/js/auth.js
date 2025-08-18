@@ -1,42 +1,81 @@
-// /assets/js/auth.js
-// Gestione Auth0 per B&B Clean — v2
-// NOTE: NON leghiamo "signup-client" / "go-signup-client": il link va alla pagina locale.
+// B&B Clean — Auth0 helpers (v2, CDN global createAuth0Client)
+// Unico punto di verità per dominio/Client ID e flussi login/signup.
+// Assicura il redirect a /login.html (come configurato in Auth0).
 
 (async () => {
-  // Fallback: se la config globale non è stata caricata, la definisco qui
-  if (typeof window.AUTH0_CONFIG === 'undefined') {
-    const ORIGIN = window.location.origin;
-    window.AUTH0_CONFIG = {
-      domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
-      clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
-      authorizationParams: { redirect_uri: ORIGIN },
-      cacheLocation: "memory",
-      useRefreshTokens: false
-    };
-    window.AUTH0_LOGOUT_OPTIONS = { logoutParams: { returnTo: ORIGIN } };
+  // -----------------------------
+  // 0) Config unificata (tenant tuo)
+  // -----------------------------
+  const ORIGIN = window.location.origin;
+  window.AUTH0_CONFIG = {
+    domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
+    clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
+    authorizationParams: {
+      // IMPORTANT: il callback in Auth0 è /login.html → deve coincidere
+      redirect_uri: ORIGIN + "/login.html"
+    },
+    cacheLocation: "memory",
+    useRefreshTokens: false,
+    ...(window.AUTH0_CONFIG || {}) // eventuale override esterno
+  };
+  window.AUTH0_LOGOUT_OPTIONS = window.AUTH0_LOGOUT_OPTIONS || {
+    logoutParams: { returnTo: ORIGIN }
+  };
+
+  // -----------------------------
+  // 1) Carica SDK se manca (v2)
+  // -----------------------------
+  function loadAuth0Sdk() {
+    return new Promise((resolve) => {
+      if (typeof window.createAuth0Client === "function") return resolve(true);
+      const add = (src, next) => {
+        const s = document.createElement("script");
+        s.src = src; s.defer = true;
+        s.onload = () => next && next(false);
+        s.onerror = () => next && next(true);
+        document.head.appendChild(s);
+      };
+      add("https://cdn.auth0.com/js/auth0-spa-js/2/auth0-spa-js.production.js", (err1) => {
+        if (!err1 && typeof window.createAuth0Client === "function") return resolve(true);
+        // fallback
+        add("https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.3.0/dist/auth0-spa-js.production.js", (err2) => {
+          resolve(!err2 && typeof window.createAuth0Client === "function");
+        });
+      });
+    });
   }
 
-  // attende che l'SDK sia disponibile
-  const wait = (ms) => new Promise(r => setTimeout(r, ms));
-  while (typeof auth0 === 'undefined') { await wait(30); }
+  const sdkOk = await loadAuth0Sdk();
+  if (!sdkOk) {
+    console.error("Auth0 SDK non disponibile");
+    return;
+  }
 
-  const auth0Client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
+  // -----------------------------
+  // 2) Client
+  // -----------------------------
+  const auth0Client = await createAuth0Client(window.AUTH0_CONFIG);
 
-  // helper: login con ruolo e modalità
+  // -----------------------------
+  // 3) Helpers
+  // -----------------------------
   async function goAuth(role = "client", mode = "login") {
-    const appState = { role, mode, target: role === "partner" ? "/dashboard.html" : "/prenota.html" };
+    const appState = {
+      role,
+      mode,
+      target: role === "partner" ? "/dashboard.html" : "/prenota.html"
+    };
     const authorizationParams = {};
     if (mode === "signup") authorizationParams.screen_hint = "signup";
     await auth0Client.loginWithRedirect({ authorizationParams, appState });
   }
 
-  // lega SOLO i bottoni/link che devono usare Auth0
-  function wire(id, handler){
+  function wire(id, handler) {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener("click", async (e) => {
+      e.preventDefault();
       try {
-        e.preventDefault();
         await handler();
       } catch (err) {
         console.warn("Auth fallback:", err);
@@ -46,32 +85,36 @@
     });
   }
 
-  // LOGIN via Auth0
+  // -----------------------------
+  // 4) Bind pulsanti (se presenti nella pagina)
+  // -----------------------------
   wire("login-client",  () => goAuth("client",  "login"));
   wire("login-partner", () => goAuth("partner", "login"));
-
-  // SIGNUP via Auth0 SOLO per il Partner
   wire("signup-partner", () => goAuth("partner", "signup"));
+  // Intenzionalmente NON bindiamo "signup-client": usa il link locale che decidi tu.
 
-  // ⚠️ NIENTE wire("signup-client") / wire("go-signup-client")
-  // Il link "Iscriviti come Cliente" deve navigare a /iscrizione-cliente.html senza interferenze.
-
-  // Gestione callback dopo il login (code/state in querystring)
+  // -----------------------------
+  // 5) Gestione callback (code/state) ovunque sia presente questo script
+  //    NB: il redirect_uri è /login.html, quindi questo ramo opererà soprattutto lì.
+  // -----------------------------
   if (location.search.includes("state=") &&
      (location.search.includes("code=") || location.search.includes("error="))) {
     try {
       const res = await auth0Client.handleRedirectCallback();
       const target = res?.appState?.target || "/";
-      window.history.replaceState({}, document.title, "/");
+      // pulisci la query
+      window.history.replaceState({}, document.title, location.pathname);
       window.location.assign(target);
-      return; // interrompe perché sto cambiando pagina
+      return; // interrompi esecuzione perché stai cambiando pagina
     } catch (err) {
       console.error("Errore callback Auth0:", err);
-      window.history.replaceState({}, document.title, "/");
+      window.history.replaceState({}, document.title, location.pathname);
     }
   }
 
-  // UI nav autenticato/non
+  // -----------------------------
+  // 6) UI nav (mostra/nasconde blocchi autenticazione)
+  // -----------------------------
   const $navGuest = document.getElementById("nav-guest");
   const $navAuth  = document.getElementById("nav-auth");
   const $username = document.getElementById("nav-username");
@@ -90,7 +133,7 @@
     $logout.addEventListener("click", async (e) => {
       e.preventDefault();
       try {
-        await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS || { logoutParams: { returnTo: window.location.origin } });
+        await auth0Client.logout(window.AUTH0_LOGOUT_OPTIONS);
       } catch (err) {
         console.error("Errore logout:", err);
       }
