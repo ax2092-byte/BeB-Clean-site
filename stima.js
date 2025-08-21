@@ -55,17 +55,17 @@
     return { lat: js.lat, lon: js.lon, raw: js.raw };
   }
 
-  async function loadPartners(){
-    const res = await fetch('/assets/data/partners.json');
-    if (!res.ok) throw new Error('partners.json mancante');
+  async function loadPartner(){
+    const res = await fetch('/assets/data/partner.json');
+    if (!res.ok) throw new Error('partner.json mancante');
     return res.json();
   }
 
-  function estimateCost(mq, partners, settings){
+  function estimateCost(mq, partner, settings){
     const mph = settings.m2_per_hour || 35;
     const oreBase = Math.max(1, roundHalf(mq / mph));
-    if (!partners || partners.length === 0) return { ore: oreBase, costo: null };
-    const rates = partners.map(p => Number(p.hourly_rate || 0)).filter(v=>v>0);
+    if (!partner || partner.length === 0) return { ore: oreBase, costo: null };
+    const rates = partner.map(p => Number(p.hourly_rate || 0)).filter(v=>v>0);
     const rate = (settings.pricing_policy === 'min') ? Math.min(...rates) : (rates.reduce((a,b)=>a+b,0) / rates.length);
     return { ore: oreBase, costo: oreBase * rate };
   }
@@ -92,9 +92,9 @@
     try{
       const q = `${indirizzo}, ${citta}, ${regione}, Italia`;
       const pos = await geocodeAddress(q);
-      const partners = await loadPartners();
+      const partner = await loadPartner();
 
-      const arr = partners.map(p=>{
+      const arr = partner.map(p=>{
         const d = haversine(pos.lat, pos.lon, p.lat, p.lon);
         return Object.assign({}, p, { distanza_km: d });
       });
