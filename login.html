@@ -80,48 +80,50 @@
 
   <!-- Logica di Redirect/Login -->
   <script>
-    (async function(){
-      const params = new URLSearchParams(location.search);
-      const qs = params.toString();
+  (async function(){
+    const params = new URLSearchParams(location.search);
+    const qs = params.toString();
 
-      if (qs) sessionStorage.setItem('stima_qs', qs);
+    if (qs) sessionStorage.setItem('stima_qs', qs);
 
-      // Riepilogo
-      const regione = params.get('regione')||'';
-      const citta = params.get('citta')||'';
-      const indirizzo = params.get('indirizzo')||'';
-      const mq = params.get('mq')||'';
-      const summary = [];
-      if(regione) summary.push(`Regione: <strong>${regione}</strong>`);
-      if(citta) summary.push(`Città: <strong>${citta}</strong>`);
-      if(indirizzo) summary.push(`Indirizzo: <strong>${indirizzo}</strong>`);
-      if(mq) summary.push(`Metri quadri: <strong>${mq}</strong>`);
-      document.getElementById('booking-summary').innerHTML = summary.join(' • ');
+    // Riepilogo
+    const regione = params.get('regione') || '';
+    const citta = params.get('citta') || '';
+    const indirizzo = params.get('indirizzo') || '';
+    const mq = params.get('mq') || '';
+    const summary = [];
+    if (regione) summary.push(`Regione: <strong>${regione}</strong>`);
+    if (citta) summary.push(`Città: <strong>${citta}</strong>`);
+    if (indirizzo) summary.push(`Indirizzo: <strong>${indirizzo}</strong>`);
+    if (mq) summary.push(`Metri quadri: <strong>${mq}</strong>`);
+    document.getElementById('booking-summary').innerHTML = summary.join(' • ');
 
-      await window.Auth.ensureReady();
+    await window.Auth.ensureReady();
 
-      // Callback dopo Auth0
-      if (location.search.includes('code=') && location.search.includes('state=')) {
-        await window.Auth.handleRedirect();
-      }
+    // Callback dopo Auth0
+    if (location.search.includes('code=') && location.search.includes('state=')) {
+      await window.Auth.handleRedirect();
+    }
 
-      // Se già autenticato → vai a prenota mantenendo i parametri
-      if (await window.Auth.isAuthenticated()) {
-        const saved = sessionStorage.getItem('stima_qs') || '';
-        location.replace("/prenota.html" + (saved ? ("?" + saved) : ""));
-        return;
-      }
+    // Se già autenticato → vai a prenota mantenendo i parametri
+    if (await window.Auth.isAuthenticated()) {
+      const saved = sessionStorage.getItem('stima_qs') || '';
+      location.replace("/prenota.html" + (saved ? ("?" + saved) : ""));
+      return;
+    }
 
-      // Bottoni
-      const mkAppState = () => ({ returnTo: "/prenota.html", qs: sessionStorage.getItem('stima_qs') || '' });
+    // Bottoni
+    const mkAppState = () => ({
+      returnTo: "/prenota.html",
+      qs: sessionStorage.getItem('stima_qs') || ''
+    });
 
-      document.getElementById('btn-login').addEventListener('click', async ()=>{
-        await window.Auth.login({ screen_hint: null, appState: mkAppState() });
-      });
-      document.getElementById('btn-signup').addEventListener('click', async ()=>{
-        await window.Auth.login({ screen_hint: 'signup', appState: mkAppState() });
-      });
-    }()
-  </script>
-</body>
-</html>
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      await window.Auth.login({ screen_hint: null, appState: mkAppState() });
+    });
+
+    document.getElementById('btn-signup').addEventListener('click', async () => {
+      await window.Auth.login({ screen_hint: 'signup', appState: mkAppState() });
+    });
+  })();
+</script>
