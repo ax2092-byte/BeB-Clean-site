@@ -1,21 +1,38 @@
 /* FILE: /assets/js/auth.js
-   Helper Auth0 SPA: NON modificare.
-   Richiede che in pagina siano già caricati:
-   1) /assets/js/vendor/auth0-spa-js.production.js  (SDK Auth0, locale)
+   Helper Auth0 SPA compatibile con SDK v2.x (window.auth0.createAuth0Client)
+   e con esposizione legacy (window.createAuth0Client).
+   Richiede in pagina:
+   1) /assets/js/vendor/auth0-spa-js.production.js  (oppure CDN)
    2) /assets/js/auth-config.js
 */
 window.Auth = (function(){
   let client = null;
   let lastAppState = null;
 
+  function getCreateClientFactory(){
+    // SDK v2.x espone la factory sotto window.auth0.createAuth0Client
+    if (window.auth0 && typeof window.auth0.createAuth0Client === 'function') {
+      return window.auth0.createAuth0Client;
+    }
+    // compat legacy
+    if (typeof window.createAuth0Client === 'function') {
+      return window.createAuth0Client;
+    }
+    return null;
+  }
+
   async function ensureReady(){
     if (client) return;
-    if (!window.createAuth0Client) throw new Error('Auth0 SDK non caricato');
+
+    const createClient = getCreateClientFactory();
+    if (!createClient) throw new Error('Auth0 SDK non caricato');
+
     const cfg = window.AUTH0_CONFIG || {};
     if (!cfg.domain || !cfg.clientId || !cfg.redirectUri){
-      console.warn('[Auth] Config mancante: compila /assets/js/auth-config.js');
+      console.warn('[Auth] Config mancante: compila /assets/js/auth-config.js (domain, clientId, redirectUri)');
     }
-    client = await window.createAuth0Client({
+
+    client = await createClient({
       domain: cfg.domain,
       clientId: cfg.clientId,
       authorizationParams: { redirect_uri: cfg.redirectUri },
