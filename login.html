@@ -80,7 +80,7 @@
 
   <!-- Logica di Redirect/Login -->
   <script>
-    (async function(){
+    /(async function(){
       const params = new URLSearchParams(location.search);
       const qs = params.toString();
 
@@ -122,6 +122,6 @@
         await window.Auth.login({ screen_hint: 'signup', appState: mkAppState() });
       });
     }()
-   </script>
+  </script>
 </body>
 </html>
