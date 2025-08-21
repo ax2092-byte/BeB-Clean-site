@@ -6,10 +6,10 @@
     const path = location.pathname.replace(/\/+$/,'') || '/';
     const map = {
       '/': 'home',
-      '/index.html': 'home',
-      '/prenota.html': 'prenota',
-      '/servizi.html': 'servizi',
-      '/partner.html': 'partner'
+      '/index.html': 'HOME',
+      '/prenota.html': 'PRENOTA',
+      '/servizi.html': 'SERVIZI',
+      '/partner.html': 'PARTNER'
     };
     const current = map[path] || null;
     document.querySelectorAll('.mainnav a').forEach(a=>{
