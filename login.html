@@ -1,3 +1,4 @@
+<!-- FILE: /login.html -->
 <!doctype html>
 <html lang="it">
 <head>
@@ -71,11 +72,12 @@
     © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
   </footer>
 
-  <!-- Script comune sito -->
+  <!-- Script comune del sito -->
   <script src="/assets/js/site.js" defer></script>
 
-  <!-- Auth0 SPA SDK + Config + Helper (ordine obbligatorio, senza defer/async) -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+  <!-- SDK Auth0 (locale) + Config + Helper  --> 
+  <!-- Ordine OBBLIGATORIO, senza defer/async -->
+  <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
   <script src="/assets/js/auth-config.js"></script>
   <script src="/assets/js/auth.js"></script>
 
@@ -86,7 +88,7 @@
       const qs = params.toString();
       if (qs) sessionStorage.setItem('stima_qs', qs);
 
-      // Riepilogo
+      // Riepilogo stima (se presente)
       const regione = params.get('regione') || '';
       const citta = params.get('citta') || '';
       const indirizzo = params.get('indirizzo') || '';
