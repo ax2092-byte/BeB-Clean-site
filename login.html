@@ -1,4 +1,4 @@
-<!-- FILE: /login.html -->
+<!-- FILE: /login.html  (aggiornato: aggiunta UI stato utente + logout) -->
 <!doctype html>
 <html lang="it">
 <head>
@@ -26,13 +26,15 @@
     .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:18px}
     .btn{display:inline-block;border:1px solid var(--ring);padding:12px 16px;border-radius:14px;text-decoration:none;font-weight:700}
     .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    .btn.ghost:hover{background:#f3f4f6}
     .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
     .muted{color:var(--muted)}
+    .authbar{display:flex;align-items:center;gap:10px;margin-left:12px}
+    .authbar .hi{color:var(--muted);font-size:14px}
+    .authbar a{font-weight:700;text-decoration:none;border:1px solid var(--ring);padding:6px 10px;border-radius:10px}
+    .authbar a:hover{background:#f3f4f6}
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="topbar container" role="banner">
     <div class="left">
       <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
@@ -48,13 +50,11 @@
     </nav>
   </header>
 
-  <!-- HERO -->
   <section class="hero container">
     <h1>Accedi o registrati</h1>
     <p class="sub">Per completare la prenotazione ti chiediamo di accedere (o creare un account).</p>
   </section>
 
-  <!-- BOX LOGIN -->
   <main class="container" style="margin-bottom:24px">
     <section class="card" id="gate">
       <div id="booking-summary" class="muted" style="margin-bottom:10px"></div>
@@ -72,14 +72,15 @@
     © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
   </footer>
 
-  <!-- Script comune del sito -->
+  <!-- Script comune -->
   <script src="/assets/js/site.js" defer></script>
 
-  <!-- SDK Auth0 (locale) + Config + Helper  --> 
-  <!-- Ordine OBBLIGATORIO, senza defer/async -->
+  <!-- SDK Auth0 (locale) + Config + Helper  → ordine OBBLIGATORIO -->
   <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
   <script src="/assets/js/auth-config.js"></script>
   <script src="/assets/js/auth.js"></script>
+  <!-- Stato utente + Logout nel menu -->
+  <script src="/assets/js/menu-auth.js"></script>
 
   <!-- Logica di Redirect/Login -->
   <script>
@@ -88,7 +89,6 @@
       const qs = params.toString();
       if (qs) sessionStorage.setItem('stima_qs', qs);
 
-      // Riepilogo stima (se presente)
       const regione = params.get('regione') || '';
       const citta = params.get('citta') || '';
       const indirizzo = params.get('indirizzo') || '';
@@ -103,24 +103,18 @@
 
       await window.Auth.ensureReady();
 
-      // Callback dopo Auth0
       if (location.search.includes('code=') && location.search.includes('state=')) {
         await window.Auth.handleRedirect();
       }
 
-      // Se già autenticato → vai a prenota mantenendo i parametri
       if (await window.Auth.isAuthenticated()) {
         const saved = sessionStorage.getItem('stima_qs') || '';
         location.replace('/prenota.html' + (saved ? ('?' + saved) : ''));
         return;
       }
 
-      // Bottoni
       const mkAppState = function () {
-        return {
-          returnTo: '/prenota.html',
-          qs: sessionStorage.getItem('stima_qs') || ''
-        };
+        return { returnTo: '/prenota.html', qs: sessionStorage.getItem('stima_qs') || '' };
       };
 
       var loginBtn = document.getElementById('btn-login');
