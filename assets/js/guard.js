@@ -1,6 +1,5 @@
-// B&B Clean — Guard per pagine protette (es. /prenota.html)
-// Se l'utente non è autenticato, reindirizza a /login.html preservando la querystring.
-
+/* FILE: /assets/js/guard.js  (se non l'hai già creato) */
+// Reindirizza a /login.html se non autenticato. Mantiene la querystring.
 (async function(){
   try{
     await window.Auth.ensureReady();
@@ -11,6 +10,6 @@
       location.replace('/login.html' + (qs ? ('?' + qs) : ''));
     }
   }catch(e){
-    console.warn('[AuthGuard] Errore inizializzazione Auth0:', e);
+    console.warn('[AuthGuard] Init Auth0 fallita:', e);
   }
 })();
