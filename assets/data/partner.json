@@ -1,0 +1,26 @@
+[
+  {
+    "id": "nuoro-01",
+    "nome": "Cleaner Nuoro",
+    "lat": 40.3202,
+    "lon": 9.3265,
+    "raggio_km": 35,
+    "hourly_rate": 22
+  },
+  {
+    "id": "olbia-01",
+    "nome": "Cleaner Olbia",
+    "lat": 40.9234,
+    "lon": 9.4990,
+    "raggio_km": 40,
+    "hourly_rate": 24
+  },
+  {
+    "id": "sassari-01",
+    "nome": "Cleaner Sassari",
+    "lat": 40.7272,
+    "lon": 8.5604,
+    "raggio_km": 35,
+    "hourly_rate": 26
+  }
+]
