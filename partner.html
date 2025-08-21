@@ -4,163 +4,95 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Diventa partner — B&B Clean</title>
-  <meta name="description" content="Diventa B&B cleaner: compila il profilo e invia i documenti. Il Codice Fiscale è calcolato automaticamente.">
-  <link rel="icon" href="/favicon.png">
+  <meta name="description" content="Entra nella rete B&B Clean: lavori vicino a casa con prenotazioni chiare.">
+  <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    :root{--brand:#0f9e9e;--brand-ink:#0a6f6f;--ink:#111827;--muted:#6b7280;--ring:#e5e7eb;--card:#f9fafb;--surface:#fff}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;color:var(--ink);background:var(--surface)}
+    .container{width:min(1000px,92%);margin:0 auto}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .topbar .left{display:flex;align-items:center;gap:10px}
+    .back-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;border:1px solid var(--ring);text-decoration:none;color:var(--ink)}
+    .back-arrow:hover{background:#f3f4f6}
+    .logo{height:32px;display:block}
+    .mainnav a{text-decoration:none;color:var(--ink);font-weight:700;margin-left:16px;padding:8px 12px;border-radius:12px}
+    .mainnav a:hover{background:#f3f4f6}
+    .mainnav a.active{background:#e6f5f5;color:var(--brand-ink)}
+    .hero{padding:36px 0 8px}
+    .hero h1{font-size:clamp(26px,4vw,36px);margin:0 0 8px}
+    .hero .sub{color:var(--muted);margin:0}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:18px}
+    .grid{display:grid;gap:16px}
+    .cards{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .btn{display:inline-block;border:1px solid var(--ring);padding:12px 16px;border-radius:14px;text-decoration:none;font-weight:700}
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    form .field{margin:12px 0}
+    form label{display:block;margin-bottom:6px;font-weight:600}
+    form input,form select{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px}
+  </style>
 </head>
-<body class="light">
-  <!-- Header / Navbar -->
-  <header class="container nav">
-    <a class="brand" href="/index.html" aria-label="Home">
-      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
-      <span class="brand-text">B&B <strong>Clean</strong></span>
-    </a>
-    <nav>
-      <a href="/servizi.html">Servizi</a>
-      <a href="/login.html">Accedi</a>
-      <a href="/signup.html" class="btn">Iscriviti</a>
+<body>
+  <header class="topbar container" role="banner">
+    <div class="left">
+      <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
+      <a href="/index.html" aria-label="B&B Clean — Home">
+        <img class="logo" src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean">
+      </a>
+    </div>
+    <nav class="mainnav" aria-label="Menu principale">
+      <a href="/index.html" data-page="home">HOME</a>
+      <a href="/prenota.html" data-page="prenota">PRENOTA</a>
+      <a href="/servizi.html" data-page="servizi">I NOSTRI SERVIZI</a>
+      <a href="/partner.html" data-page="partner">DIVENTA PARTNER</a>
     </nav>
   </header>
 
-  <main class="container section">
-    <h1>Diventa B&amp;B cleaner</h1>
-    <p class="subtitle">Compila il profilo. Il <strong>Codice Fiscale</strong> è calcolato automaticamente da <em>Nome, Cognome, Sesso, Data di nascita, Comune (provincia)</em>. Il <strong>codice Belfiore</strong> non è richiesto.</p>
+  <section class="hero container">
+    <h1>Diventa partner</h1>
+    <p class="sub">Lavora vicino a casa, con prenotazioni chiare e pagamenti sicuri.</p>
+  </section>
 
-    <form id="partner-form" class="card" method="post" enctype="multipart/form-data" novalidate>
-      <!-- Dati anagrafici -->
-      <h2 class="section-title">Dati personali</h2>
-      <div class="grid-3">
-        <div>
-          <label for="nome">Nome</label>
-          <input type="text" id="nome" name="nome" required>
-        </div>
-        <div>
-          <label for="cognome">Cognome</label>
-          <input type="text" id="cognome" name="cognome" required>
-        </div>
-        <div>
-          <label for="sesso">Sesso</label>
-          <select id="sesso" name="sesso" required>
-            <option value="" disabled selected>Seleziona</option>
-            <option value="M">Maschio</option>
-            <option value="F">Femmina</option>
-          </select>
-        </div>
-      </div>
+  <main class="container" style="margin-bottom:24px">
+    <div class="card" style="margin-bottom:18px">
+      <h3>Vantaggi</h3>
+      <ul>
+        <li>Ricevi richieste nella tua zona</li>
+        <li>Prezzi chiari (commissione partner 12%)</li>
+        <li>Dashboard per gestire disponibilità</li>
+      </ul>
+    </div>
 
-      <div class="grid-3">
-        <div>
-          <label for="data">Data di nascita</label>
-          <input type="date" id="data" name="data" required>
+    <div class="card">
+      <h3>Candidati</h3>
+      <form id="form-partner">
+        <div class="field">
+          <label for="nome">Nome e Cognome</label>
+          <input id="nome" name="nome" required>
         </div>
-        <div>
-          <label for="comune">Comune di nascita</label>
-          <input list="comuniList" id="comune" name="comune" placeholder="Digita e scegli dall’elenco" required>
-          <datalist id="comuniList"></datalist>
-          <small class="muted">Il codice catastale (Belfiore) è gestito in automatico.</small>
-        </div>
-        <div>
-          <label for="provincia">Provincia</label>
-          <input type="text" id="provincia" name="provincia" maxlength="2" placeholder="Es. NU" required>
-        </div>
-      </div>
-
-      <div class="grid-3">
-        <div>
-          <label for="cf">Codice Fiscale (auto)</label>
-          <input type="text" id="cf" name="cf" readonly placeholder="Viene calcolato automaticamente">
-        </div>
-        <div>
-          <label for="telefono">Telefono</label>
-          <input type="tel" id="telefono" name="telefono" inputmode="tel" placeholder="+39 ..." required>
-        </div>
-        <div>
+        <div class="field">
           <label for="email">Email</label>
-          <input type="email" id="email" name="email" required>
+          <input id="email" name="email" type="email" required>
         </div>
-      </div>
-
-      <!-- Documenti -->
-      <h2 class="section-title">Documenti</h2>
-      <div class="grid-3">
-        <div>
-          <label for="doc_id">Documento identità (PDF/JPG/PNG)</label>
-          <input type="file" id="doc_id" name="doc_id" accept=".pdf,.jpg,.jpeg,.png" required>
+        <div class="field">
+          <label for="zona">Zona</label>
+          <input id="zona" name="zona" placeholder="es. Nuoro, Olbia-Tempio">
         </div>
-        <div>
-          <label for="doc_cf">Tessera sanitaria / CF (opzionale)</label>
-          <input type="file" id="doc_cf" name="doc_cf" accept=".pdf,.jpg,.jpeg,.png">
-        </div>
-        <div>
-          <label for="iban">IBAN (per pagamenti)</label>
-          <input type="text" id="iban" name="iban" placeholder="IT60 X054 2811 1010 0000 0123 456">
-        </div>
-      </div>
-
-      <label for="note">Note</label>
-      <textarea id="note" name="note" rows="4" placeholder="Esperienza, disponibilità, zone coperte..."></textarea>
-
-      <div class="grid-3" style="align-items:center">
-        <label class="checkbox">
-          <input type="checkbox" id="privacy" name="privacy" required> Dichiaro di aver letto l’informativa privacy.
-        </label>
-        <div></div>
-        <button class="btn btn-primary" type="submit">Invia candidatura</button>
-      </div>
-
-      <p class="muted micro">All’invio potresti ricevere un’email di conferma (anteprima candidatura) — sistema Resend attivo.</p>
-    </form>
+        <button class="btn primary" type="submit">Invia candidatura</button>
+      </form>
+    </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
-        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
-      </div>
-      <nav class="footer-links">
-        <a href="/servizi.html">Servizi</a>
-        <a href="/prenota.html">Prenota</a>
-        <a href="/partner.html" class="active">Diventa partner</a>
-        <a href="/dashboard.html">Dashboard</a>
-      </nav>
-      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
-    </div>
+  <footer class="container" style="border-top:1px solid var(--ring);padding:16px 0;color:var(--muted);font-size:14px">
+    © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
   </footer>
 
-  <!-- Script: popolamento comuni + hook CF (non interferisce con script esistenti) -->
+  <script src="/assets/js/site.js" defer></script>
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
-    // Popola datalist comuni se vuota
-    (async () => {
-      try {
-        const dl = document.getElementById('comuniList');
-        if (!dl || dl.children.length) return;
-        const res = await fetch('/assets/data/comuni.json');
-        const items = await res.json();
-        const frag = document.createDocumentFragment();
-        items.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.nome; // struttura: {nome, provincia, codice}
-          opt.label = `${c.nome} (${c.provincia})`;
-          opt.dataset.codice = c.codice;
-          frag.appendChild(opt);
-        });
-        dl.appendChild(frag);
-      } catch(e){}
-    })();
-    // Trigger ricalcolo CF se partner.js è presente
-    ['nome','cognome','sesso','data','comune','provincia'].forEach(id=>{
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('input', () => {
-        const ev = new Event('cf:recalc');
-        document.dispatchEvent(ev);
-      });
+    document.getElementById('form-partner')?.addEventListener('submit', e=>{
+      e.preventDefault();
+      alert('Grazie! Ti contatteremo a breve.');
     });
   </script>
-
-  <!-- I TUOI SCRIPT ESISTENTI (mantieni gli stessi percorsi) -->
-  <script src="/assets/js/partner.js" defer></script>
 </body>
 </html>
