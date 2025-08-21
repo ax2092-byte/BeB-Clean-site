@@ -35,7 +35,6 @@
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="topbar container" role="banner">
     <div class="left">
       <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
@@ -51,13 +50,11 @@
     </nav>
   </header>
 
-  <!-- HERO -->
   <section class="hero container">
     <h1>Calcola la stima</h1>
     <p class="sub">Inserisci i dati dell’abitazione. La stima si basa sui B&B cleaner vicini al tuo indirizzo.</p>
   </section>
 
-  <!-- FORM -->
   <main class="container" style="margin-bottom:24px">
     <form id="form-stima" class="card" novalidate>
       <div class="grid-2">
@@ -65,26 +62,13 @@
           <label for="regione">Regione</label>
           <select id="regione" required>
             <option value="" selected disabled>Seleziona la regione</option>
-            <option>Sardegna</option>
-            <option>Lazio</option>
-            <option>Lombardia</option>
-            <option>Piemonte</option>
-            <option>Liguria</option>
-            <option>Toscana</option>
-            <option>Emilia-Romagna</option>
-            <option>Veneto</option>
-            <option>Friuli-Venezia Giulia</option>
-            <option>Trentino-Alto Adige</option>
-            <option>Valle d'Aosta</option>
-            <option>Marche</option>
-            <option>Umbria</option>
-            <option>Abruzzo</option>
-            <option>Molise</option>
-            <option>Campania</option>
-            <option>Puglia</option>
-            <option>Basilicata</option>
-            <option>Calabria</option>
-            <option>Sicilia</option>
+            <option>Sardegna</option><option>Lazio</option><option>Lombardia</option>
+            <option>Piemonte</option><option>Liguria</option><option>Toscana</option>
+            <option>Emilia-Romagna</option><option>Veneto</option><option>Friuli-Venezia Giulia</option>
+            <option>Trentino-Alto Adige</option><option>Valle d'Aosta</option><option>Marche</option>
+            <option>Umbria</option><option>Abruzzo</option><option>Molise</option>
+            <option>Campania</option><option>Puglia</option><option>Basilicata</option>
+            <option>Calabria</option><option>Sicilia</option>
           </select>
         </div>
         <div class="field">
@@ -110,7 +94,6 @@
       </div>
     </form>
 
-    <!-- RISULTATO -->
     <section id="risultato" class="card" style="margin-top:18px;display:none" aria-live="polite">
       <div class="grid-3">
         <div>
@@ -127,8 +110,10 @@
         </div>
       </div>
       <small class="muted" id="out-note" style="display:block;margin-top:8px"></small>
+
       <div style="margin-top:12px">
-        <a class="btn" href="/prenota.html">Prenota ora</a>
+        <!-- HREF impostato da stima.js per portare a /login.html con i parametri -->
+        <a id="btn-prenota" class="btn" href="/login.html">Prenota ora</a>
       </div>
     </section>
   </main>
