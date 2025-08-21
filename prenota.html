@@ -4,129 +4,127 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prenota — B&B Clean</title>
-  <meta name="description" content="Prenota una pulizia per casa o B&B. Stima trasparente di tempi e costi, pagamento online sicuro.">
-  <link rel="icon" href="/favicon.png">
+  <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
+  <meta name="description" content="Prenota una pulizia per casa o B&B. Stima trasparente prima della conferma. Paghi online in sicurezza.">
 </head>
-<body class="light">
-  <!-- Header / Navbar -->
+<body>
+  <!-- Header / Nav -->
   <header class="container nav">
-    <a class="brand" href="/index.html" aria-label="Home">
-      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
-      <span class="brand-text">B&B <strong>Clean</strong></span>
+    <a href="/index.html" class="logo" aria-label="B&B Clean — Home">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px">
     </a>
     <nav>
+      <a href="/index.html">Home</a>
+      <a href="/prenota.html" class="active">Prenota</a>
       <a href="/servizi.html">Servizi</a>
-      <a href="/login.html">Accedi</a>
-      <a href="/signup.html" class="btn">Iscriviti</a>
+      <a href="/partner.html">Diventa partner</a>
+      <a href="/dashboard.html">Dashboard</a>
     </nav>
   </header>
 
-  <main class="container section">
-    <h1>Prenota il tuo servizio</h1>
-    <p class="subtitle">Descrivi l’alloggio, scegli gli extra e conferma. Stima aggiornata in tempo reale.</p>
+  <!-- Hero -->
+  <section class="hero container">
+    <h1>Prenota una pulizia</h1>
+    <p class="sub">Stima trasparente prima della conferma. Paghi online in sicurezza.</p>
+  </section>
 
-    <div class="split">
-      <!-- Form prenotazione -->
-      <form id="prenota-form" class="card" novalidate>
-        <h2 class="section-title">Dettagli alloggio</h2>
+  <!-- Form prenotazione -->
+  <main class="container">
+    <form id="form-prenota" class="card lg" novalidate>
+      <!-- Alloggio -->
+      <h2 class="h4">Dati dell’alloggio</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label for="mq">Metri quadri (mq)</label>
+          <input type="number" id="mq" name="mq" min="10" max="400" step="1" placeholder="es. 70" required>
+          <small id="mq-help" class="muted">Inserisci la superficie calpestabile.</small>
+        </div>
+
+        <div class="field">
+          <label for="stanze">Numero di stanze (opzionale)</label>
+          <input type="number" id="stanze" name="stanze" min="1" max="15" step="1" placeholder="es. 3">
+        </div>
+      </div>
+
+      <!-- Extra opzionali -->
+      <h2 class="h5 mt-24">Extra su richiesta</h2>
+      <div id="extra-list" class="chips">
+        <label class="chip">
+          <input type="checkbox" class="extra" value="cambio_biancheria" data-minutes="15" data-price="5">
+          <span>Cambio biancheria</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" class="extra" value="forno" data-minutes="20" data-price="10">
+          <span>Forno</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" class="extra" value="frigo" data-minutes="15" data-price="8">
+          <span>Frigo</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" class="extra" value="vetri" data-minutes="25" data-price="12">
+          <span>Vetri e infissi</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" class="extra" value="balconi" data-minutes="20" data-price="10">
+          <span>Balconi / verande</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" class="extra" value="stiratura" data-minutes="30" data-price="12">
+          <span>Stiratura</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" class="extra" value="kit_ospiti" data-minutes="5" data-price="4">
+          <span>Kit cortesia ospiti</span>
+        </label>
+      </div>
+
+      <!-- Risultato stima -->
+      <div class="summary card mt-24" id="box-stima" aria-live="polite">
         <div class="grid-3">
           <div>
-            <label for="indirizzo">Indirizzo</label>
-            <input type="text" id="indirizzo" name="indirizzo" placeholder="Via, civico, città" required>
+            <div class="muted">Durata stimata</div>
+            <div class="h4" id="durata">—</div>
           </div>
           <div>
-            <label for="mq">Metri quadri</label>
-            <input type="number" id="mq" name="mq" min="10" step="1" placeholder="Es. 60" required>
+            <div class="muted">Costo del servizio B&B Clean</div>
+            <div class="h4" id="costo">—</div>
           </div>
           <div>
-            <label for="stanze">N. stanze</label>
-            <input type="number" id="stanze" name="stanze" min="1" step="1" placeholder="Es. 3" required>
+            <div class="muted">Extra selezionati</div>
+            <div id="extra-riepilogo">Nessuno</div>
           </div>
         </div>
+        <small class="muted">La stima è indicativa e può variare in base alle esigenze reali. Vedrai il dettaglio prima della conferma.</small>
+      </div>
 
-        <div class="grid-3">
-          <div>
-            <label for="bagni">N. bagni</label>
-            <input type="number" id="bagni" name="bagni" min="1" step="1" placeholder="Es. 1" required>
-          </div>
-          <div>
-            <label for="data_servizio">Data</label>
-            <input type="date" id="data_servizio" name="data_servizio" required>
-          </div>
-          <div>
-            <label for="ora_servizio">Orario</label>
-            <input type="time" id="ora_servizio" name="ora_servizio" required>
-          </div>
-        </div>
-
-        <h2 class="section-title">Extra opzionali</h2>
-        <div class="tags">
-          <label class="tag"><input type="checkbox" class="extra" id="extra_biancheria" data-minutes="30"> Cambio biancheria</label>
-          <label class="tag"><input type="checkbox" class="extra" id="extra_forno" data-minutes="25"> Forno</label>
-          <label class="tag"><input type="checkbox" class="extra" id="extra_frigo" data-minutes="20"> Frigo</label>
-          <label class="tag"><input type="checkbox" class="extra" id="extra_vetri" data-minutes="40"> Vetri e infissi</label>
-          <label class="tag"><input type="checkbox" class="extra" id="extra_balcone" data-minutes="25"> Balconi/verande</label>
-          <label class="tag"><input type="checkbox" class="extra" id="extra_stiro" data-minutes="30"> Stiratura</label>
-          <label class="tag"><input type="checkbox" class="extra" id="extra_kit" data-minutes="10"> Kit cortesia ospiti</label>
-        </div>
-
-        <label for="note">Note per il cleaner</label>
-        <textarea id="note" name="note" rows="4" placeholder="Istruzioni per accesso, preferenze, ecc."></textarea>
-
-        <div class="grid-3" style="align-items:center">
-          <label class="checkbox">
-            <input type="checkbox" id="terms" required> Accetto termini e condizioni.
-          </label>
-          <div></div>
-          <button class="btn btn-primary" type="submit">Conferma e paga acconto</button>
-        </div>
-        <p class="muted micro">Il saldo avviene al termine del lavoro. I <strong>Costi del servizio B&B Clean</strong> sono mostrati prima della conferma.</p>
-      </form>
-
-      <!-- Riepilogo / Stima -->
-      <aside class="card">
-        <h2 class="section-title">Stima</h2>
-        <p>Durata consigliata: <strong><span id="stima-ore">—</span> h</strong></p>
-        <p>Costo stimato: <strong><span id="stima-costo">—</span></strong></p>
-        <hr>
-        <div id="mappa" style="height:220px;background:#eef2f7;border:1px dashed #cbd5e1;border-radius:12px;display:flex;align-items:center;justify-content:center">
-          <span class="muted">Mappa</span>
-        </div>
-        <p class="muted micro">I valori sono indicativi e potrebbero variare in base alle condizioni reali.</p>
-      </aside>
-    </div>
+      <!-- Azioni -->
+      <div class="actions mt-24">
+        <button type="submit" id="btn-prosegui" class="btn primary" disabled>Prosegui</button>
+        <a href="/servizi.html" class="btn">Scopri i servizi</a>
+      </div>
+    </form>
   </main>
 
   <!-- Footer -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" class="logo">
-        <div>B&B <strong>Clean</strong><br><span class="muted">Il tuo tempo è il nostro lavoro!</span></div>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="brand">
+        <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:24px">
+        <div class="muted">Il tuo tempo è il nostro lavoro!</div>
       </div>
-      <nav class="footer-links">
+      <nav class="footer-nav">
         <a href="/servizi.html">Servizi</a>
-        <a href="/prenota.html" class="active">Prenota</a>
+        <a href="/prenota.html">Prenota</a>
         <a href="/partner.html">Diventa partner</a>
         <a href="/dashboard.html">Dashboard</a>
       </nav>
-      <div class="footer-legal muted">© <span id="y"></span> B&B Clean — Tutti i diritti riservati</div>
+      <div class="copy muted">© 2025 B&B Clean — Tutti i diritti riservati</div>
     </div>
   </footer>
 
-  <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
-    // Mini-hook: aggiorna la stima se esiste prenota.js
-    function triggerStima(){ document.dispatchEvent(new Event('stima:update')); }
-    ['mq','.extra','#mq','#bagni','#stanze'].forEach(sel=>{
-      const els = typeof sel==='string' && (sel.startsWith('#')||sel.startsWith('.')) ? document.querySelectorAll(sel) : [];
-      els.forEach(el => el.addEventListener('input', triggerStima));
-      els.forEach(el => el.addEventListener('change', triggerStima));
-    });
-  </script>
-
-  <!-- I TUOI SCRIPT ESISTENTI -->
-  <script src="/assets/js/prenota.js" defer></script>
+  <!-- Script -->
+  <script src="/prenota.js" defer></script>
 </body>
 </html>
