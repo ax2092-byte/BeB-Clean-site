@@ -94,9 +94,10 @@
         <label class="chip"><input type="checkbox" class="extra" value="cambio_biancheria" data-minutes="15" data-price="5"><span>Cambio biancheria</span></label>
         <label class="chip"><input type="checkbox" class="extra" value="forno" data-minutes="20" data-price="10"><span>Forno</span></label>
         <label class="chip"><input type="checkbox" class="extra" value="frigo" data-minutes="15" data-price="8"><span>Frigo</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="vetri" data-minutes="25" data-price="12"><span>Vetri</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="vetri" data-minutes="25" data-price="12"><span>Vetri e infissi</span></label>
         <label class="chip"><input type="checkbox" class="extra" value="balconi" data-minutes="20" data-price="10"><span>Balconi / verande</span></label>
         <label class="chip"><input type="checkbox" class="extra" value="stiratura" data-minutes="30" data-price="12"><span>Stiratura</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="kit_ospiti" data-minutes="5" data-price="4"><span>Kit cortesia ospiti</span></label>
       </div>
 
       <div class="card mt-24" id="box-stima" aria-live="polite">
@@ -120,8 +121,15 @@
   </footer>
 
   <script src="/assets/js/site.js" defer></script>
+
+  <!-- Auth0: SDK + Config + Helper + Guard -->
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+  <script src="/assets/js/auth-config.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/guard.js"></script>
+
+  <!-- Prefill e logica pagina -->
   <script>
-    // Prefill da querystring e riepilogo
     document.addEventListener('DOMContentLoaded', ()=>{
       const p = new URLSearchParams(location.search);
       const regione = p.get('regione')||'';
