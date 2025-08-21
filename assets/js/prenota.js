@@ -1,195 +1,123 @@
-// assets/js/prenota.js — stima + mappa + notify email + redirect Stripe
-const euro = v =>
-  (v === null || isNaN(v))
-    ? '—'
-    : new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(v);
+/* B&B Clean — prenota.js (completo)
+   - Carica impostazioni da /settings.json (fallback locale)
+   - Calcola durata e costo
+   - Evita errori: controlli sugli ID e binding sicuri
+*/
 
-// valori caricati da settings.json (fallback se non disponibile)
-let SETTINGS = { m2_per_hour: 35 };
-fetch('/settings.json')
-  .then(r => r.json())
-  .then(js => { SETTINGS = Object.assign(SETTINGS, js || {}); })
-  .catch(() => {});
+(function () {
+  "use strict";
 
-function durataConsigliata(mq) {
-  if (!mq || mq <= 0) return 1;
-  const ore = mq / (SETTINGS.m2_per_hour || 35);
-  return Math.max(1, Math.round(ore * 2) / 2);
-}
-const numVal = id => {
-  const el = document.getElementById(id);
-  if (!el) return null;
-  const n = el.valueAsNumber;
-  return Number.isFinite(n) ? n : null;
-};
-function indirizzoCompleto() {
-  const reg = (document.getElementById('regione').value || '').trim();
-  const cit = (document.getElementById('citta').value || '').trim();
-  const cap = (document.getElementById('cap').value || '').trim();
-  const ind = (document.getElementById('indirizzo').value || '').trim();
-  if (!reg || !cit || !ind || !/^[0-9]{5}$/.test(cap)) return null;
-  return `${ind}, ${cit} ${cap}, ${reg}, Italia`;
-}
-let debounceId = null;
-const debounce = (fn, ms = 450) => { clearTimeout(debounceId); debounceId = setTimeout(fn, ms); };
+  // ---- Utils
+  const euro = v =>
+    (v === null || v === undefined || isNaN(v))
+      ? '—'
+      : new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(v);
 
-function setText(id, txt) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = txt;
-}
+  const roundHalf = num => Math.round(num * 2) / 2; // arrotonda a 0.5h
 
-function resetStima(msg = 'Completa i campi o riprova più tardi.') {
-  setText('stimaTot', '—');
-  setText('stimaAcconto', '—');
-  setText('stimaRimb', '—');
-  setText('stimaFee', '—'); // se esiste il campo per la fee
-  setText('stimaNote', msg);
-  window.__lastEstimate = null;
-}
+  // ---- DOM refs (tutti gli ID usati ESISTONO in prenota.html)
+  const elForm = document.getElementById('form-prenota');
+  const elMq = document.getElementById('mq');
+  const elStanze = document.getElementById('stanze');  // opzionale
+  const elExtras = document.querySelectorAll('input.extra');
+  const elDurata = document.getElementById('durata');
+  const elCosto = document.getElementById('costo');
+  const elExtraRiep = document.getElementById('extra-riepilogo');
+  const elProsegui = document.getElementById('btn-prosegui');
 
-// Leaflet map
-let map, marker;
-function ensureMap() {
-  if (map) return map;
-  map = L.map('map').setView([40.12, 9.65], 8); // Sardegna approx
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
-  marker = L.marker([40.12, 9.65]).addTo(map);
-  return map;
-}
-
-async function stimaTotale() {
-  const address = indirizzoCompleto();
-  const durata = numVal('durata') ?? 1;
-  if (!address) {
-    resetStima('Inserisci via/civico, città, CAP (5 cifre) e regione.');
+  // Se per qualche motivo la pagina non ha il form, termina senza errori
+  if (!elForm || !elMq || !elDurata || !elCosto || !elProsegui) {
+    console.warn('[B&B Clean] Elementi fondamentali mancanti in /prenota.html');
     return;
   }
-  try {
-    const r = await fetch('/.netlify/functions/estimate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, duration_hours: durata })
+
+  // ---- SETTINGS (fallback se /settings.json non presente)
+  let SETTINGS = {
+    m2_per_hour: 35,            // metri quadri puliti per ora
+    hourly_rate: 22,            // € / ora
+    extra_prices_eur: true      // se true somma anche prezzi extra (non solo tempo)
+  };
+
+  // Prova a caricare /settings.json
+  fetch('/settings.json')
+    .then(r => r.ok ? r.json() : {})
+    .then(js => {
+      if (js && typeof js === 'object') SETTINGS = Object.assign(SETTINGS, js);
+    })
+    .catch(() => { /* fallback già impostato */ })
+    .finally(() => {
+      // Avvia binding e calcolo iniziale
+      bindEvents();
+      recalc();
     });
-    const js = await r.json();
-    if (!r.ok) throw new Error(js.error || 'Errore stima');
 
-    // Dati base dalla funzione server
-    const rate = Number(js.partner_rate_eur_h ?? 12);
-    const kmRaw = Number(js.distance_km ?? 0);
-    const km = Math.round(kmRaw * 100) / 100;        // km (SOLO ANDATA), 2 decimali
+  // ---- Calcolo stima
+  function recalc() {
+    const mq = parseFloat(elMq.value);
+    const stanze = parseInt(elStanze?.value ?? '', 10);
 
-    // Calcoli economici
-    const lavoro = Math.round(rate * durata * 100) / 100;                   // tariffa × ore
-    const costiServizio = Math.round(lavoro * 0.05 * 100) / 100;            // 5% sul lavoro (no rimborso)
-    const rimborso = Math.round(km * 0.25 * 100) / 100;                     // 0,25 €/km (solo andata)
-    const totale = Math.round((lavoro + costiServizio + rimborso) * 100) / 100;
-    const acconto = Math.round(lavoro * 0.10 * 100) / 100;                  // 10% sul lavoro
-
-    // UI
-    setText('stimaTot', euro(totale));
-    setText('stimaAcconto', euro(acconto));
-    setText('stimaRimb', euro(rimborso));
-    if (document.getElementById('stimaFee')) {
-      setText('stimaFee', euro(costiServizio));
-      setText('stimaNote', js.note || 'A partire da: partner più vicino e tariffa più bassa disponibili.');
-    } else {
-      // Se non c’è una riga dedicata alla fee, la indichiamo in nota
-      setText('stimaNote', (js.note ? js.note + ' — ' : 'A partire da. ')
-        + `Costi del servizio B&B Clean (5%): ${euro(costiServizio)}`);
-    }
-
-    // mappa
-    if (js.client && typeof L !== 'undefined') {
-      ensureMap();
-      marker.setLatLng([js.client.lat, js.client.lon]);
-      map.setView([js.client.lat, js.client.lon], 13);
-    }
-
-    // salva per checkout/notify
-    window.__lastEstimate = {
-      address, durata, rate, km, lavoro, costiServizio, rimborso, totale, acconto
-    };
-  } catch (e) {
-    resetStima('Impossibile calcolare la stima. Riprova tra poco.');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const mqEl = document.getElementById('mq');
-  const durataEl = document.getElementById('durata');
-
-  // Aggiorna SEMPRE la durata quando cambiano i m²
-  mqEl.addEventListener('input', () => {
-    const m = numVal('mq') ?? 0;
-    const d = durataConsigliata(m);
-    if (Number.isFinite(d)) durataEl.value = d;
-    debounce(stimaTotale);
-  });
-
-  // Se cambi le ore manualmente, ricalcolo comunque la stima
-  ['input', 'change'].forEach(evt => {
-    durataEl.addEventListener(evt, () => { debounce(stimaTotale); });
-  });
-
-  // ricalcolo quando compili indirizzo / CAP / città / regione
-  ['regione', 'citta', 'cap', 'indirizzo'].forEach(id => {
-    const el = document.getElementById(id);
-    ['input', 'change'].forEach(evt => el.addEventListener(evt, () => debounce(stimaTotale)));
-  });
-
-  const form = document.getElementById('bookForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('payBtn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Attendi…'; }
-
-    const est = window.__lastEstimate;
-    if (!est) {
-      alert('Completa i campi per calcolare la stima.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Conferma & paga acconto'; }
+    if (!mq || mq <= 0) {
+      // reset
+      elDurata.textContent = '—';
+      elCosto.textContent = '—';
+      elExtraRiep.textContent = 'Nessuno';
+      elProsegui.disabled = true;
       return;
     }
 
-    try {
-      // 1) registra la submission su Netlify Forms
-      const fd = new FormData(form);
-      const formObj = Object.fromEntries(fd.entries());
-      const bodyEncoded = new URLSearchParams(fd).toString();
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: bodyEncoded
-      });
+    // Ore base dai mq
+    const mph = SETTINGS.m2_per_hour || 35;
+    let oreBase = mq / mph;
+    oreBase = Math.max(1, roundHalf(oreBase)); // minimo 1h
 
-      // 2) notifica via funzione (non blocca se fallisce)
-      try {
-        await fetch('/.netlify/functions/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'booking', data: formObj, estimate: est })
-        });
-      } catch (_) { }
+    // Extra: tempo aggiuntivo e costo extra
+    let extraMin = 0;
+    let extraCost = 0;
+    const selezionati = [];
 
-      // 3) crea sessione Stripe e vai al checkout
-      const r = await fetch('/.netlify/functions/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          acconto_eur: est.acconto,
-          meta: { durata_ore: est.durata, km: est.km, address: est.address }
-        })
-      });
-      const js = await r.json();
-      if (!r.ok || !js.url) throw new Error((js && js.error) || 'Errore checkout');
-      window.location.href = js.url;
-    } catch (err) {
-      alert('Pagamento non avviato. Riprova.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Conferma & paga acconto'; }
+    document.querySelectorAll('input.extra:checked').forEach(chk => {
+      const min = parseInt(chk.getAttribute('data-minutes') || '0', 10);
+      const price = parseFloat(chk.getAttribute('data-price') || '0');
+      extraMin += isNaN(min) ? 0 : min;
+      extraCost += isNaN(price) ? 0 : price;
+      const lbl = chk.parentElement?.querySelector('span')?.textContent || chk.value;
+      selezionati.push(lbl);
+    });
+
+    // Stanza/e (opzionale): micro aggiustamento (5 min per stanza oltre la 1)
+    if (!isNaN(stanze) && stanze > 1) {
+      extraMin += (stanze - 1) * 5;
     }
-  });
 
-  // prima stima
-  debounce(stimaTotale, 0);
-});
+    const oreExtra = extraMin / 60;
+    let oreTot = roundHalf(oreBase + oreExtra);
+
+    const rate = SETTINGS.hourly_rate || 22;
+    let costo = (oreTot * rate) + (SETTINGS.extra_prices_eur ? extraCost : 0);
+
+    // Aggiorna UI
+    elDurata.textContent = `${oreTot.toString().replace('.', ',')} h`;
+    elCosto.textContent = euro(costo);
+    elExtraRiep.textContent = selezionati.length ? selezionati.join(', ') : 'Nessuno';
+
+    elProsegui.disabled = false;
+  }
+
+  // ---- Event binding (sicuro)
+  function bindEvents() {
+    // Input principali
+    elMq.addEventListener('input', recalc);
+    if (elStanze) elStanze.addEventListener('input', recalc);
+
+    // Extras
+    elExtras.forEach(chk => chk.addEventListener('change', recalc));
+
+    // Submit (per ora niente pagamento: preveniamo e mostriamo riepilogo)
+    elForm.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      // Qui potrai inserire: invio a funzione Netlify "notify" oppure redirect a checkout.
+      // Per adesso, facciamo semplicemente scroll al box stima:
+      document.getElementById('box-stima')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+})();
