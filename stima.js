@@ -1,7 +1,7 @@
 /* B&B Clean — stima.js
    - Autocomplete dei comuni (da /assets/data/comuni.json)
    - Geocoding indirizzo via Netlify Function /.netlify/functions/geocode (OSM Nominatim)
-   - Caricamento partners da /assets/data/partners.json
+   - Caricamento partners da /assets/data/partner.json
    - Calcolo distanza (Haversine), durata e costo medio sui partner nel raggio
 */
 (function(){
@@ -78,8 +78,8 @@
   }
 
   async function loadPartners(){
-    const res = await fetch('/assets/data/partners.json');
-    if (!res.ok) throw new Error('partners.json mancante');
+    const res = await fetch('/assets/data/partner.json');
+    if (!res.ok) throw new Error('partner.json mancante');
     return res.json();
   }
 
