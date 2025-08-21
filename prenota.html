@@ -1,3 +1,4 @@
+<!-- FILE: /prenota.html  (Aggiornato: Regioni select, Città da comuni.json, geocode lat/lon) -->
 <!doctype html>
 <html lang="it">
 <head>
@@ -26,7 +27,7 @@
     .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
     .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
     .field label{display:block;margin:8px 0 6px;font-weight:600}
-    .field input, .field select{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px}
+    .field input,.field select{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px}
     .chips{display:flex;flex-wrap:wrap;gap:10px}
     .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ring);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer}
     .muted{color:var(--muted)}
@@ -41,8 +42,7 @@
     .summary-kv .kv{background:#fff;border:1px solid var(--ring);border-radius:12px;padding:8px 10px}
     .summary-kv .kv .k{color:var(--muted);font-size:12px}
     .summary-kv .kv .v{font-weight:700}
-    .notice{font-size:14px;color:var(--muted)}
-    .price-note{margin-top:6px}
+    .verified{font-size:12px;color:#065f46;background:#d1fae5;border:1px solid #10b981;padding:4px 8px;border-radius:999px;display:none}
   </style>
 </head>
 <body>
@@ -68,10 +68,11 @@
     <p class="sub">Conferma i dettagli, scegli gli extra e invia la richiesta.</p>
   </section>
 
-  <!-- RIEPILOGO INDIRIZZO (dalla stima) -->
+  <!-- RIEPILOGO -->
   <section class="container">
     <div class="card" id="summary-address" style="display:none">
       <div class="summary-kv" id="summary-kv"></div>
+      <span id="addr-verified" class="verified">Indirizzo verificato ✓</span>
     </div>
   </section>
 
@@ -86,32 +87,57 @@
       <input type="hidden" name="form-name" value="prenota">
       <input type="hidden" name="bot-field">
 
-      <!-- info partner/prezzi -->
+      <!-- hidden tecnici -->
       <input type="hidden" name="partner_id" id="nf-partner-id">
       <input type="hidden" name="prezzi_fonte" id="nf-prezzi-fonte" value="consigliati">
       <input type="hidden" name="extras" id="nf-extras">
       <input type="hidden" name="email" id="nf-email">
+      <input type="hidden" name="lat" id="nf-lat">
+      <input type="hidden" name="lon" id="nf-lon">
 
       <h2 class="h5">Dati dell’alloggio</h2>
       <div class="grid-2">
         <div class="field">
           <label for="regione">Regione</label>
-          <input type="text" id="regione" name="regione" placeholder="es. Sardegna" required>
+          <select id="regione" name="regione" required>
+            <option value="">Seleziona…</option>
+            <option>Abruzzo</option>
+            <option>Basilicata</option>
+            <option>Calabria</option>
+            <option>Campania</option>
+            <option>Emilia-Romagna</option>
+            <option>Friuli-Venezia Giulia</option>
+            <option>Lazio</option>
+            <option>Liguria</option>
+            <option>Lombardia</option>
+            <option>Marche</option>
+            <option>Molise</option>
+            <option>Piemonte</option>
+            <option>Puglia</option>
+            <option>Sardegna</option>
+            <option>Sicilia</option>
+            <option>Toscana</option>
+            <option>Trentino-Alto Adige</option>
+            <option>Umbria</option>
+            <option>Valle d'Aosta</option>
+            <option>Veneto</option>
+          </select>
         </div>
         <div class="field">
           <label for="citta">Città</label>
-          <input type="text" id="citta" name="citta" placeholder="es. Nuoro" required>
+          <input list="comuni-list" id="citta" name="citta" placeholder="Es. Nuoro" required>
+          <datalist id="comuni-list"></datalist>
         </div>
       </div>
 
       <div class="grid-2">
         <div class="field">
           <label for="indirizzo">Indirizzo</label>
-          <input type="text" id="indirizzo" name="indirizzo" placeholder="es. Via Bologna" required>
+          <input type="text" id="indirizzo" name="indirizzo" placeholder="Es. Via Bologna" required>
         </div>
         <div class="field">
           <label for="civico">Numero civico</label>
-          <input type="text" id="civico" name="civico" placeholder="es. 10" required>
+          <input type="text" id="civico" name="civico" placeholder="Es. 10" required>
         </div>
       </div>
 
@@ -147,7 +173,6 @@
 
       <h2 class="h5 mt-24">Extra su richiesta</h2>
       <div id="extra-list" class="chips">
-        <!-- Prezzi consigliati (override dal partner se presente) -->
         <label class="chip">
           <input type="checkbox" class="extra" value="cambio_biancheria" data-minutes="15" data-price="4">
           <span data-label="cambio_biancheria">Cambio biancheria · 4€</span>
@@ -173,7 +198,7 @@
           <span data-label="balconi">Balconi / verande · 12€</span>
         </label>
       </div>
-      <div class="notice price-note" id="price-note">
+      <div class="muted" id="price-note" style="margin-top:6px">
         Prezzi extra consigliati da B&B Clean. Il partner può applicare prezzi propri.
       </div>
 
@@ -200,14 +225,14 @@
   <!-- Script comune -->
   <script src="/assets/js/site.js" defer></script>
 
-  <!-- Auth0 + guard + stato utente -->
+  <!-- Auth0: SDK (locale) + Config + Helper + Guard + Stato utente -->
   <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
   <script src="/assets/js/auth-config.js"></script>
   <script src="/assets/js/auth.js"></script>
   <script src="/assets/js/guard.js"></script>
   <script src="/assets/js/menu-auth.js"></script>
 
-  <!-- Prefill + stima + prezzi partner -->
+  <!-- Prefill + comuni.json + geocode + stima + prezzi partner -->
   <script>
     (function(){
       const $ = s => document.querySelector(s);
@@ -216,7 +241,7 @@
         new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v);
       const roundHalf = num => Math.round(num*2)/2;
 
-      // Prezzi consigliati default (possono essere sovrascritti dal partner)
+      // Prezzi consigliati (override dal partner se disponibile)
       const defaultExtraPrices = {
         cambio_biancheria: 4,
         forno: 7.5,
@@ -225,22 +250,6 @@
         balconi: 12
       };
 
-      // Aggiorna prezzo visuale + data-price
-      function applyExtraPrices(prices, sourceLabel){
-        $$('.extra').forEach(inp=>{
-          const key = inp.value;
-          const p = (prices && prices[key] != null) ? Number(prices[key]) : defaultExtraPrices[key];
-          inp.dataset.price = String(p);
-          const lab = document.querySelector('[data-label="'+key+'"]');
-          if (lab) lab.textContent = labelText(key, p);
-        });
-        if (sourceLabel){
-          $('#price-note').textContent = sourceLabel;
-        }
-        updateStima(); // ricalcola
-      }
-
-      // Etichetta umana per la chip
       function labelText(key, price){
         const map = {
           cambio_biancheria: 'Cambio biancheria',
@@ -249,76 +258,74 @@
           vetri: 'Vetri e infissi',
           balconi: 'Balconi / verande'
         };
-        return map[key] + ' · ' + euro(price).replace(' €','€'); // compact
+        return map[key] + ' · ' + euro(price).replace(' €','€');
       }
 
-      // STIMA
-      const mph = 35;        // mq per ora (base)
-      const baseRate = 18;   // €/h base (puoi modificarlo)
+      function applyExtraPrices(prices, sourceLabel){
+        $$('.extra').forEach(inp=>{
+          const key = inp.value;
+          const p = (prices && prices[key] != null) ? Number(prices[key]) : defaultExtraPrices[key];
+          inp.dataset.price = String(p);
+          const lab = document.querySelector('[data-label="'+key+'"]');
+          if (lab) lab.textContent = labelText(key, p);
+        });
+        if (sourceLabel){ $('#price-note').textContent = sourceLabel; }
+        updateStima();
+      }
+
+      // STIMA (coerente con stima.html)
+      const MPH = 35;      // mq/ora
+      const BASE_RATE = 18; // €/h
       function updateStima(){
         const mq = parseFloat($('#mq').value) || 0;
-        const ore = Math.max(1, roundHalf(mq / mph));
+        const ore = Math.max(1, roundHalf(mq / MPH));
         $('#durata').textContent = `${String(ore).replace('.',',')} h`;
 
         const extras = $$('.extra:checked');
         const extraSum = extras.reduce((acc,el)=> acc + (parseFloat(el.dataset.price)||0), 0);
-        const costo = (ore * baseRate) + extraSum;
+        const costo = (ore * BASE_RATE) + extraSum;
         $('#costo').textContent = euro(costo);
 
         const riepilogo = extras.length ? extras.map(e => {
-          const key = e.value;
-          const p = parseFloat(e.dataset.price)||0;
-          return (labelText(key, p));
+          const key = e.value; const p = parseFloat(e.dataset.price)||0;
+          return labelText(key, p);
         }).join(', ') : 'Nessuno';
         $('#extra-riepilogo').textContent = riepilogo;
 
-        // Compila hidden "extras" per Netlify (testuale)
+        // hidden "extras"
         $('#nf-extras').value = extras.map(e=>{
-          const key = e.value;
-          const p = parseFloat(e.dataset.price)||0;
+          const key = e.value; const p = parseFloat(e.dataset.price)||0;
           return `${key}:${p}`;
         }).join('; ');
       }
-
       document.addEventListener('change', e=>{
-        if (e.target && (e.target.id==='mq' || e.target.classList.contains('extra'))){
-          updateStima();
-        }
+        if (e.target && (e.target.id==='mq' || e.target.classList.contains('extra'))) updateStima();
       });
       document.addEventListener('input', e=>{
-        if (e.target && e.target.id==='mq'){ updateStima(); }
+        if (e.target && e.target.id==='mq') updateStima();
       });
 
-      // PREFILL da query + user email
+      // Prefill da query + email utente + partner prices
       document.addEventListener('DOMContentLoaded', async ()=>{
         const p = new URLSearchParams(location.search);
-        const regione = p.get('regione')||'';
-        const citta = p.get('citta')||'';
-        const indirizzo = p.get('indirizzo')||'';
-        const civico = p.get('civico')||'';
-        const mq = p.get('mq')||'';
-        // prefill visibili
-        if (regione) $('#regione').value = regione;
-        if (citta) $('#citta').value = citta;
-        if (indirizzo) $('#indirizzo').value = indirizzo;
-        if (civico) $('#civico').value = civico;
-        if (mq) $('#mq').value = mq;
+        const regioneQS = p.get('regione')||'';
+        const cittaQS = p.get('citta')||'';
+        const indirizzoQS = p.get('indirizzo')||'';
+        const civicoQS = p.get('civico')||'';
+        const mqQS = p.get('mq')||'';
 
-        // riepilogo
-        const items = [];
-        if (regione) items.push(['Regione', regione]);
-        if (citta) items.push(['Città', citta]);
-        if (indirizzo || civico) items.push(['Indirizzo', (indirizzo||'') + (civico? ' ' + civico : '')]);
-        if (items.length){
-          const wrap = $('#summary-address');
-          const kv = $('#summary-kv');
-          kv.innerHTML = items.map(([k,v])=>(
-            `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`
-          )).join('');
-          wrap.style.display = 'block';
+        // Regioni: seleziona se presente in QS (case-insensitive)
+        if (regioneQS){
+          const opts = $$('#regione option');
+          const match = opts.find(o => o.value.toLowerCase() === regioneQS.toLowerCase());
+          if (match) $('#regione').value = match.value;
         }
+        if (cittaQS) $('#citta').value = cittaQS;
+        if (indirizzoQS) $('#indirizzo').value = indirizzoQS;
+        if (civicoQS) $('#civico').value = civicoQS;
+        if (mqQS) $('#mq').value = mqQS;
 
-        // Email da Auth (se loggato)
+        // Email da Auth
         try{
           await window.Auth.ensureReady();
           if (await window.Auth.isAuthenticated()){
@@ -327,31 +334,135 @@
           }
         }catch(_){}
 
-        // Prezzi consigliati di default
+        // Prezzi consigliati default
         applyExtraPrices(defaultExtraPrices, 'Prezzi extra consigliati da B&B Clean. Il partner può applicare prezzi propri.');
 
-        // Override da partner (se presente)
-        const partnerId = p.get('pid') || p.get('partner') || sessionStorage.getItem('stima_partner_id') || '';
-        if (partnerId){
+        // Override da partner (pid in QS)
+        const pid = p.get('pid') || p.get('partner') || sessionStorage.getItem('stima_partner_id') || '';
+        if (pid){
           try{
-            const res = await fetch('/assets/data/partner.json',{cache:'no-store'});
+            const res = await fetch('/assets/data/partner.json', {cache:'no-store'});
             const partners = await res.json();
-            const partner = Array.isArray(partners) ? partners.find(x => String(x.id||x.ID||x.slug||'') === String(partnerId)) : null;
+            const partner = Array.isArray(partners) ? partners.find(x => String(x.id||x.ID||x.slug||'') === String(pid)) : null;
             if (partner){
-              $('#nf-partner-id').value = String(partnerId);
+              $('#nf-partner-id').value = String(pid);
               const partnerPrices = partner.extra_prices || partner.extras || null;
               if (partnerPrices){
                 applyExtraPrices(partnerPrices, 'Prezzi extra applicati dal partner.');
                 $('#nf-prezzi-fonte').value = 'partner';
               }
             }
-          }catch(e){
-            // Se il file non è disponibile o non ha prezzi, restano i consigliati
-          }
+          }catch(_){}
         }
 
+        // Carica comuni.json nel datalist (prima percorso assets, poi fallback root)
+        loadComuniDatalist();
+        updateSummaryBox();
         updateStima();
       });
+
+      async function loadComuniDatalist(){
+        const dl = $('#comuni-list');
+        if (!dl) return;
+        let data = null;
+        for (const path of ['/assets/data/comuni.json','/comuni.json']){
+          try{
+            const res = await fetch(path, {cache:'no-store'});
+            if (res.ok){ data = await res.json(); break; }
+          }catch(_){}
+        }
+        if (!Array.isArray(data)) return;
+        // Attenzione: usiamo value=nome, label=“NOME (PR)”
+        const frag = document.createDocumentFragment();
+        data.forEach(c=>{
+          const opt = document.createElement('option');
+          opt.value = (c.nome || c.Nome || '').toString();
+          const prov = (c.provincia || c.Provincia || '').toString();
+          if (prov) opt.setAttribute('label', opt.value + ' (' + prov + ')');
+          frag.appendChild(opt);
+        });
+        dl.innerHTML = '';
+        dl.appendChild(frag);
+      }
+
+      function updateSummaryBox(){
+        const regione = $('#regione').value || '';
+        const citta = $('#citta').value || '';
+        const indirizzo = $('#indirizzo').value || '';
+        const civico = $('#civico').value || '';
+        const items = [];
+        if (regione) items.push(['Regione', regione]);
+        if (citta) items.push(['Città', citta]);
+        if (indirizzo || civico) items.push(['Indirizzo', (indirizzo||'') + (civico? ' ' + civico : '')]);
+        const wrap = $('#summary-address');
+        const kv = $('#summary-kv');
+        if (items.length){
+          kv.innerHTML = items.map(([k,v])=>(
+            `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`
+          )).join('');
+          wrap.style.display = 'block';
+        } else {
+          wrap.style.display = 'none';
+        }
+      }
+
+      // Aggiorna riepilogo live
+      ['regione','citta','indirizzo','civico'].forEach(id=>{
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateSummaryBox);
+        if (el) el.addEventListener('change', updateSummaryBox);
+      });
+
+      // Geocode prima del submit → salva lat/lon + badge verificato
+      async function geocodeAddress(fullAddress){
+        const url = '/.netlify/functions/geocode?q=' + encodeURIComponent(fullAddress);
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Geocode fallito');
+        return res.json(); // {lat, lon, display_name}
+      }
+
+      $('#form-prenota').addEventListener('submit', async function(e){
+        e.preventDefault();
+        $('#btn-prosegui').disabled = true;
+
+        const regione = $('#regione').value.trim();
+        const citta = $('#citta').value.trim();
+        const indirizzo = $('#indirizzo').value.trim();
+        const civico = $('#civico').value.trim();
+
+        if (!regione || !citta || !indirizzo || !civico){
+          alert('Compila tutti i campi di indirizzo (Regione, Città, Indirizzo e Numero civico).');
+          $('#btn-prosegui').disabled = false;
+          return;
+        }
+
+        const fullAddress = `${indirizzo} ${civico}, ${citta}, ${regione}, Italia`;
+
+        try{
+          const geo = await geocodeAddress(fullAddress);
+          $('#nf-lat').value = geo.lat || '';
+          $('#nf-lon').value = geo.lon || '';
+          const badge = $('#addr-verified');
+          if (badge) badge.style.display = 'inline-block';
+        }catch(_){
+          alert('Non sono riuscito a verificare l’indirizzo. Controlla i dati e riprova.');
+          $('#btn-prosegui').disabled = false;
+          return;
+        }
+
+        // invia il form
+        e.target.submit();
+      });
+
+      // Freccia indietro
+      const back = document.getElementById('back-link');
+      if (back){
+        back.addEventListener('click', function(e){
+          e.preventDefault();
+          if (history.length > 1) history.back();
+          else location.href = '/index.html';
+        });
+      }
     })();
   </script>
 </body>
