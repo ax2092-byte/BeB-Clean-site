@@ -8,9 +8,7 @@
   <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
-    :root{
-      --brand:#0f9e9e;--brand-ink:#0a6f6f;--ink:#111827;--muted:#6b7280;--ring:#e5e7eb;--card:#f9fafb;--surface:#fff;
-    }
+    :root{--brand:#0f9e9e;--brand-ink:#0a6f6f;--ink:#111827;--muted:#6b7280;--ring:#e5e7eb;--card:#f9fafb;--surface:#fff}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;color:var(--ink);background:var(--surface)}
     .container{width:min(1000px,92%);margin:0 auto}
     .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
@@ -39,6 +37,10 @@
     .btn{display:inline-block;border:1px solid var(--ring);padding:12px 16px;border-radius:14px;text-decoration:none;font-weight:700}
     .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
     .btn.primary:disabled{opacity:.6;cursor:not-allowed}
+    .summary-kv{display:flex;flex-wrap:wrap;gap:10px 16px}
+    .summary-kv .kv{background:#fff;border:1px solid var(--ring);border-radius:12px;padding:8px 10px}
+    .summary-kv .kv .k{color:var(--muted);font-size:12px}
+    .summary-kv .kv .v{font-weight:700}
   </style>
 </head>
 <body>
@@ -61,7 +63,14 @@
   <!-- HERO -->
   <section class="hero container">
     <h1>Prenota una pulizia</h1>
-    <p class="sub">Stima trasparente prima della conferma. Paghi online in sicurezza.</p>
+    <p class="sub">Conferma i dettagli, scegli gli extra e invia la richiesta.</p>
+  </section>
+
+  <!-- RIEPILOGO INDIRIZZO DALLA STIMA -->
+  <section class="container">
+    <div class="card" id="summary-address" style="display:none">
+      <div class="summary-kv" id="summary-kv"></div>
+    </div>
   </section>
 
   <!-- FORM -->
@@ -82,50 +91,19 @@
 
       <h2 class="h5 mt-24">Extra su richiesta</h2>
       <div id="extra-list" class="chips">
-        <label class="chip">
-          <input type="checkbox" class="extra" value="cambio_biancheria" data-minutes="15" data-price="5">
-          <span>Cambio biancheria</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" class="extra" value="forno" data-minutes="20" data-price="10">
-          <span>Forno</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" class="extra" value="frigo" data-minutes="15" data-price="8">
-          <span>Frigo</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" class="extra" value="vetri" data-minutes="25" data-price="12">
-          <span>Vetri e infissi</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" class="extra" value="balconi" data-minutes="20" data-price="10">
-          <span>Balconi / verande</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" class="extra" value="stiratura" data-minutes="30" data-price="12">
-          <span>Stiratura</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" class="extra" value="kit_ospiti" data-minutes="5" data-price="4">
-          <span>Kit cortesia ospiti</span>
-        </label>
+        <label class="chip"><input type="checkbox" class="extra" value="cambio_biancheria" data-minutes="15" data-price="5"><span>Cambio biancheria</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="forno" data-minutes="20" data-price="10"><span>Forno</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="frigo" data-minutes="15" data-price="8"><span>Frigo</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="vetri" data-minutes="25" data-price="12"><span>Vetri</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="balconi" data-minutes="20" data-price="10"><span>Balconi / verande</span></label>
+        <label class="chip"><input type="checkbox" class="extra" value="stiratura" data-minutes="30" data-price="12"><span>Stiratura</span></label>
       </div>
 
       <div class="card mt-24" id="box-stima" aria-live="polite">
         <div class="grid-3">
-          <div>
-            <div class="muted">Durata stimata</div>
-            <div class="h4" id="durata">—</div>
-          </div>
-          <div>
-            <div class="muted">Costo del servizio B&B Clean</div>
-            <div class="h4" id="costo">—</div>
-          </div>
-          <div>
-            <div class="muted">Extra selezionati</div>
-            <div id="extra-riepilogo">Nessuno</div>
-          </div>
+          <div><div class="muted">Durata stimata</div><div class="h4" id="durata">—</div></div>
+          <div><div class="muted">Costo del servizio B&B Clean</div><div class="h4" id="costo">—</div></div>
+          <div><div class="muted">Extra selezionati</div><div id="extra-riepilogo">Nessuno</div></div>
         </div>
         <small class="muted">La stima è indicativa e può variare in base alle esigenze reali. Vedrai il dettaglio prima della conferma.</small>
       </div>
@@ -142,6 +120,35 @@
   </footer>
 
   <script src="/assets/js/site.js" defer></script>
+  <script>
+    // Prefill da querystring e riepilogo
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const p = new URLSearchParams(location.search);
+      const regione = p.get('regione')||'';
+      const citta = p.get('citta')||'';
+      const indirizzo = p.get('indirizzo')||'';
+      const mq = p.get('mq')||'';
+
+      if (mq) {
+        const el = document.getElementById('mq');
+        if (el) el.value = mq;
+      }
+
+      const items = [];
+      if (regione) items.push(['Regione', regione]);
+      if (citta) items.push(['Città', citta]);
+      if (indirizzo) items.push(['Indirizzo', indirizzo]);
+
+      if (items.length){
+        const wrap = document.getElementById('summary-address');
+        const kv = document.getElementById('summary-kv');
+        kv.innerHTML = items.map(([k,v])=>(
+          `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`
+        )).join('');
+        wrap.style.display = 'block';
+      }
+    });
+  </script>
   <script src="/prenota.js" defer></script>
 </body>
 </html>
