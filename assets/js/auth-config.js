@@ -3,7 +3,7 @@
 window.AUTH0_CONFIG = {
   domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",       // es: bebclean.eu.auth0.com
   clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",  // es: AbCdEf123456789
-  redirectUri: window.location.origin + "https://bebclean.it/login.html",
+  redirectUri: window.location.origin + "/login.html",
   cacheLocation: "localstorage",
   useRefreshTokens: true
 };
