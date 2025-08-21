@@ -1,8 +1,9 @@
-// B&B Clean — Helper Auth0 SPA
-// Richiede in pagina:
-// 1) <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
-// 2) <script src="/assets/js/auth-config.js"></script>
-
+/* FILE: /assets/js/auth.js
+   Helper Auth0 SPA: NON modificare.
+   Richiede che in pagina siano già caricati:
+   1) /assets/js/vendor/auth0-spa-js.production.js  (SDK Auth0, locale)
+   2) /assets/js/auth-config.js
+*/
 window.Auth = (function(){
   let client = null;
   let lastAppState = null;
@@ -12,7 +13,7 @@ window.Auth = (function(){
     if (!window.createAuth0Client) throw new Error('Auth0 SDK non caricato');
     const cfg = window.AUTH0_CONFIG || {};
     if (!cfg.domain || !cfg.clientId || !cfg.redirectUri){
-      console.warn('[Auth] Config mancante: imposta window.AUTH0_CONFIG in /assets/js/auth-config.js');
+      console.warn('[Auth] Config mancante: compila /assets/js/auth-config.js');
     }
     client = await window.createAuth0Client({
       domain: cfg.domain,
