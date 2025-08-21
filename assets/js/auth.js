@@ -1,6 +1,7 @@
-// B&B Clean — Auth helper per Auth0 SPA
-// Richiede: <script src="https://cdn.auth0.com/js/auth0-spa-js/..."></script>
-// e window.AUTH0_CONFIG impostato in pagina (domain, clientId, redirectUri)
+// B&B Clean — Helper Auth0 SPA
+// Richiede in pagina:
+// 1) <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+// 2) <script src="/assets/js/auth-config.js"></script>
 
 window.Auth = (function(){
   let client = null;
@@ -8,12 +9,10 @@ window.Auth = (function(){
 
   async function ensureReady(){
     if (client) return;
-    if (!window.createAuth0Client) {
-      throw new Error('Auth0 SDK non caricato');
-    }
+    if (!window.createAuth0Client) throw new Error('Auth0 SDK non caricato');
     const cfg = window.AUTH0_CONFIG || {};
     if (!cfg.domain || !cfg.clientId || !cfg.redirectUri){
-      console.warn('[Auth] Config mancante: imposta window.AUTH0_CONFIG in login.html');
+      console.warn('[Auth] Config mancante: imposta window.AUTH0_CONFIG in /assets/js/auth-config.js');
     }
     client = await window.createAuth0Client({
       domain: cfg.domain,
@@ -26,7 +25,7 @@ window.Auth = (function(){
 
   async function isAuthenticated(){
     await ensureReady();
-    return await client.isAuthenticated();
+    return client.isAuthenticated();
   }
 
   async function login({ screen_hint = null, appState = {} } = {}){
