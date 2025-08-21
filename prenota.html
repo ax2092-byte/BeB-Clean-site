@@ -1,10 +1,11 @@
+<!-- FILE: /prenota.html  (Netlify Forms + prefill + stato utente + guard) -->
 <!doctype html>
 <html lang="it">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prenota — B&B Clean</title>
-  <meta name="description" content="Prenota una pulizia per casa o B&B. Stima trasparente prima della conferma. Paghi online in sicurezza.">
+  <meta name="description" content="Prenota una pulizia per casa o B&B. Stima trasparente prima della conferma.">
   <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
@@ -44,7 +45,6 @@
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="topbar container" role="banner">
     <div class="left">
       <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
@@ -60,22 +60,34 @@
     </nav>
   </header>
 
-  <!-- HERO -->
   <section class="hero container">
     <h1>Prenota una pulizia</h1>
     <p class="sub">Conferma i dettagli, scegli gli extra e invia la richiesta.</p>
   </section>
 
-  <!-- RIEPILOGO INDIRIZZO DALLA STIMA -->
   <section class="container">
     <div class="card" id="summary-address" style="display:none">
       <div class="summary-kv" id="summary-kv"></div>
     </div>
   </section>
 
-  <!-- FORM -->
+  <!-- Netlify Forms: name, method, data-netlify, honeypot, hidden form-name -->
   <main class="container">
-    <form id="form-prenota" class="card" novalidate>
+    <form id="form-prenota" class="card"
+          name="prenota"
+          method="POST"
+          action="/success.html"
+          data-netlify="true"
+          netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="prenota">
+      <input type="hidden" name="bot-field">
+      <!-- campi hidden dalla stima / auth -->
+      <input type="hidden" name="regione" id="nf-regione">
+      <input type="hidden" name="citta" id="nf-citta">
+      <input type="hidden" name="indirizzo" id="nf-indirizzo">
+      <input type="hidden" name="email" id="nf-email">
+      <input type="hidden" name="extras" id="nf-extras">
+
       <h2 class="h5">Dati dell’alloggio</h2>
       <div class="grid-2">
         <div class="field">
@@ -91,13 +103,13 @@
 
       <h2 class="h5 mt-24">Extra su richiesta</h2>
       <div id="extra-list" class="chips">
-        <label class="chip"><input type="checkbox" class="extra" value="cambio_biancheria" data-minutes="15" data-price="5"><span>Cambio biancheria</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="forno" data-minutes="20" data-price="10"><span>Forno</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="frigo" data-minutes="15" data-price="8"><span>Frigo</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="vetri" data-minutes="25" data-price="12"><span>Vetri e infissi</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="balconi" data-minutes="20" data-price="10"><span>Balconi / verande</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="stiratura" data-minutes="30" data-price="12"><span>Stiratura</span></label>
-        <label class="chip"><input type="checkbox" class="extra" value="kit_ospiti" data-minutes="5" data-price="4"><span>Kit cortesia ospiti</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_cambio_biancheria" value="cambio_biancheria" data-minutes="15" data-price="5"><span>Cambio biancheria</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_forno" value="forno" data-minutes="20" data-price="10"><span>Forno</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_frigo" value="frigo" data-minutes="15" data-price="8"><span>Frigo</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_vetri" value="vetri" data-minutes="25" data-price="12"><span>Vetri e infissi</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_balconi" value="balconi" data-minutes="20" data-price="10"><span>Balconi / verande</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_stiratura" value="stiratura" data-minutes="30" data-price="12"><span>Stiratura</span></label>
+        <label class="chip"><input type="checkbox" class="extra" name="extra_kit_ospiti" value="kit_ospiti" data-minutes="5" data-price="4"><span>Kit cortesia ospiti</span></label>
       </div>
 
       <div class="card mt-24" id="box-stima" aria-live="polite">
@@ -110,7 +122,7 @@
       </div>
 
       <div class="actions mt-24">
-        <button type="submit" id="btn-prosegui" class="btn primary" disabled>Prosegui</button>
+        <button type="submit" id="btn-prosegui" class="btn primary">Prosegui</button>
         <a href="/servizi.html" class="btn">I nostri servizi</a>
       </div>
     </form>
@@ -120,43 +132,93 @@
     © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
   </footer>
 
+  <!-- Script comune -->
   <script src="/assets/js/site.js" defer></script>
 
-  <!-- Auth0: SDK + Config + Helper + Guard -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+  <!-- Auth0: SDK (locale) + Config + Helper + Guard + Stato utente -->
+  <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
   <script src="/assets/js/auth-config.js"></script>
   <script src="/assets/js/auth.js"></script>
   <script src="/assets/js/guard.js"></script>
+  <script src="/assets/js/menu-auth.js"></script>
 
-  <!-- Prefill e logica pagina -->
+  <!-- Prefill + calcolo extras + stima + Netlify Forms helper -->
   <script>
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const p = new URLSearchParams(location.search);
-      const regione = p.get('regione')||'';
-      const citta = p.get('citta')||'';
-      const indirizzo = p.get('indirizzo')||'';
-      const mq = p.get('mq')||'';
+    (function(){
+      const $ = s => document.querySelector(s);
+      const euro = v => (v==null || isNaN(v)) ? '—' :
+        new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v);
+      const roundHalf = num => Math.round(num*2)/2;
 
-      if (mq) {
-        const el = document.getElementById('mq');
-        if (el) el.value = mq;
+      // RIEPILOGO E PREFILL
+      document.addEventListener('DOMContentLoaded', async ()=>{
+        const p = new URLSearchParams(location.search);
+        const regione = p.get('regione')||'';
+        const citta = p.get('citta')||'';
+        const indirizzo = p.get('indirizzo')||'';
+        const mq = p.get('mq')||'';
+
+        if (mq) { const el = $('#mq'); if (el) el.value = mq; }
+
+        // Hidden per Netlify
+        $('#nf-regione').value = regione;
+        $('#nf-citta').value = citta;
+        $('#nf-indirizzo').value = indirizzo;
+
+        // Email da Auth (se disponibile)
+        try{
+          await window.Auth.ensureReady();
+          if (await window.Auth.isAuthenticated()){
+            const user = await window.Auth.getUser();
+            if (user && user.email) $('#nf-email').value = user.email;
+          }
+        }catch(_){}
+
+        // Riepilogo box
+        const items = [];
+        if (regione) items.push(['Regione', regione]);
+        if (citta) items.push(['Città', citta]);
+        if (indirizzo) items.push(['Indirizzo', indirizzo]);
+        if (items.length){
+          const wrap = $('#summary-address');
+          const kv = $('#summary-kv');
+          kv.innerHTML = items.map(([k,v])=>(
+            `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`
+          )).join('');
+          wrap.style.display = 'block';
+        }
+      });
+
+      // CALCOLO STIMA LOCALE (semplice)
+      const mph = 35;
+      function updateStima(){
+        const mq = parseFloat($('#mq').value) || 0;
+        const ore = Math.max(1, roundHalf(mq / mph));
+        $('#durata').textContent = `${ore.toString().replace('.',',')} h`;
+
+        const extras = Array.from(document.querySelectorAll('.extra:checked'));
+        const extraSum = extras.reduce((acc,el)=> acc + (parseFloat(el.dataset.price)||0), 0);
+        const baseRate = 18; // es. media
+        const costo = (ore * baseRate) + extraSum;
+        $('#costo').textContent = euro(costo);
+
+        const riepilogo = extras.length ? extras.map(e => e.value.replace('_',' ')).join(', ') : 'Nessuno';
+        $('#extra-riepilogo').textContent = riepilogo;
+
+        // Compila hidden "extras" per Netlify
+        $('#nf-extras').value = extras.map(e=>e.value).join(',');
       }
 
-      const items = [];
-      if (regione) items.push(['Regione', regione]);
-      if (citta) items.push(['Città', citta]);
-      if (indirizzo) items.push(['Indirizzo', indirizzo]);
-
-      if (items.length){
-        const wrap = document.getElementById('summary-address');
-        const kv = document.getElementById('summary-kv');
-        kv.innerHTML = items.map(([k,v])=>(
-          `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`
-        )).join('');
-        wrap.style.display = 'block';
-      }
-    });
+      document.addEventListener('change', e=>{
+        if (e.target && (e.target.id==='mq' || e.target.classList.contains('extra'))){
+          updateStima();
+        }
+      });
+      document.addEventListener('input', e=>{
+        if (e.target && e.target.id==='mq'){ updateStima(); }
+      });
+      document.addEventListener('DOMContentLoaded', updateStima);
+    })();
   </script>
-  <script src="/prenota.js" defer></script>
 </body>
 </html>
