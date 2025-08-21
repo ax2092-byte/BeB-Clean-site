@@ -62,7 +62,7 @@
         <button id="btn-signup" class="btn" type="button">Registrati</button>
       </div>
       <div id="login-note" class="muted" style="margin-top:10px">
-        Dopo l’accesso verrai reindirizzato alla pagina di prenotazione, mantenendo i dati inseriti nella stima.
+        Dopo l’accesso verrai reindirizzato alla pagina di prenotazione.
       </div>
     </section>
   </main>
@@ -73,34 +73,20 @@
 
   <script src="/assets/js/site.js" defer></script>
 
-  <!-- Auth0 SPA SDK -->
+  <!-- Auth0 SPA SDK + Config + Helper -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
-
-  <!-- Configura QUI il tuo dominio/clientId Auth0 -->
-  <script>
-    // Sostituisci con i tuoi valori Auth0
-    window.AUTH0_CONFIG = {
-      domain: dev-nmvv4fpc7jmiw1pw.eu.auth0.com,       // es: bebclean.eu.auth0.com
-      clientId: Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq,  // es: abcDEF123...
-      redirectUri: window.location.origin + "/login.html",
-      cacheLocation: "localstorage",     // mantiene login anche dopo refresh
-      useRefreshTokens: true
-    };
-  </script>
-
-  <!-- Helper Auth0 -->
+  <script src="/assets/js/auth-config.js"></script>
   <script src="/assets/js/auth.js"></script>
 
-  <!-- Logica di Redirect -->
+  <!-- Logica di Redirect/Login -->
   <script>
     (async function(){
       const params = new URLSearchParams(location.search);
       const qs = params.toString();
 
-      // salva i parametri della stima per il post-login
       if (qs) sessionStorage.setItem('stima_qs', qs);
 
-      // Mostra riepilogo stima (se presente)
+      // Riepilogo
       const regione = params.get('regione')||'';
       const citta = params.get('citta')||'';
       const indirizzo = params.get('indirizzo')||'';
@@ -112,34 +98,29 @@
       if(mq) summary.push(`Metri quadri: <strong>${mq}</strong>`);
       document.getElementById('booking-summary').innerHTML = summary.join(' • ');
 
-      // Inizializza Auth0
       await window.Auth.ensureReady();
 
-      // Se già autenticato → vai direttamente a prenota
+      // Callback dopo Auth0
+      if (location.search.includes('code=') && location.search.includes('state=')) {
+        await window.Auth.handleRedirect();
+      }
+
+      // Se già autenticato → vai a prenota mantenendo i parametri
       if (await window.Auth.isAuthenticated()) {
-        const prev = sessionStorage.getItem('stima_qs') || '';
-        location.href = "/prenota.html" + (prev ? ("?" + prev) : "");
+        const saved = sessionStorage.getItem('stima_qs') || '';
+        location.replace("/prenota.html" + (saved ? ("?" + saved) : ""));
         return;
       }
 
       // Bottoni
+      const mkAppState = () => ({ returnTo: "/prenota.html", qs: sessionStorage.getItem('stima_qs') || '' });
+
       document.getElementById('btn-login').addEventListener('click', async ()=>{
-        const appState = { returnTo: "/prenota.html", qs: sessionStorage.getItem('stima_qs') || '' };
-        await window.Auth.login({ screen_hint: null, appState });
+        await window.Auth.login({ screen_hint: null, appState: mkAppState() });
       });
-
       document.getElementById('btn-signup').addEventListener('click', async ()=>{
-        const appState = { returnTo: "/prenota.html", qs: sessionStorage.getItem('stima_qs') || '' };
-        await window.Auth.login({ screen_hint: 'signup', appState });
+        await window.Auth.login({ screen_hint: 'signup', appState: mkAppState() });
       });
-
-      // Gestione callback (dopo redirect Auth0 su login.html)
-      if (location.search.includes('code=') && location.search.includes('state=')) {
-        await window.Auth.handleRedirect();
-        const state = window.Auth.getAppState() || {};
-        const qsSaved = (state.qs || sessionStorage.getItem('stima_qs') || '');
-        location.replace((state.returnTo || "/prenota.html") + (qsSaved ? ("?" + qsSaved) : ""));
-      }
     })();
   </script>
 </body>
