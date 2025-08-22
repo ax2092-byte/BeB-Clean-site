@@ -1,29 +1,34 @@
-/* FILE: /assets/js/guard-partner.js  (NUOVO - blocca l’accesso ai non partner) */
 (async function(){
-  function hasPartnerFlag(user){
-    if (!user) return false;
-    try{
-      if (user.app_metadata && user.app_metadata.user_type === 'partner') return true;
-      if (user['https://bebclean.it/user_type'] === 'partner') return true;
-      const roles = user['https://bebclean.it/roles'] || user['https://schemas.bebclean.it/roles'] || user.roles;
-      if (Array.isArray(roles) && roles.includes('partner')) return true;
-    }catch(_){}
-    return false;
-  }
-
   try{
-    await window.Auth.ensureReady();
-    const ok = await window.Auth.isAuthenticated();
-    if (!ok){ location.replace('/partner-login.html'); return; }
+    const cfg = window.AUTH0_CONFIG || {};
+    const client = await (window.auth0 && window.auth0.createAuth0Client ? window.auth0.createAuth0Client(cfg) : window.createAuth0Client(cfg));
+    const isAuth = await client.isAuthenticated();
+    if (!isAuth){ return window.location.href = '/partner-login.html'; }
+    const claims = await client.getIdTokenClaims();
+    const userType = claims['https://bebclean.it/user_type'];
+    const pid = claims['https://bebclean.it/partner_id'];
+    if (!(userType==='partner' || !!pid)){ return window.location.href = '/partner-login.html'; }
 
-    const user = await window.Auth.getUser();
-    if (!hasPartnerFlag(user)){
-      location.replace('/index.html');
-      return;
-    }
-    // partner ammesso → prosegue
+    // Banner blocchi opzionale
+    try{
+      const res = await fetch('/.netlify/functions/partner-get-state',{ method:'POST', headers:{'Authorization':`Bearer ${claims.__raw}`,'Content-Type':'application/json'} });
+      if (res.ok){
+        const st = await res.json();
+        const alerts = document.getElementById('alerts');
+        if (alerts){
+          if (!st.phone_verified){
+            const d = document.createElement('div'); d.className='alert'; d.textContent='Verifica il telefono per abilitare tutte le funzioni.';
+            alerts.appendChild(d);
+          }
+          if (st.docs_status !== 'approved'){
+            const d = document.createElement('div'); d.className='alert'; d.textContent='Carica e verifica i documenti per abilitare tutte le funzioni.';
+            alerts.appendChild(d);
+          }
+        }
+      }
+    }catch(e){}
   }catch(e){
-    console.warn('[GuardPartner] errore inizializzazione', e);
-    location.replace('/partner-login.html');
+    console.warn('guard-partner error', e);
+    window.location.href = '/partner-login.html';
   }
 })();
