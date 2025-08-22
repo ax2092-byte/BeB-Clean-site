@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B&B Clean — Profilo Partner</title>
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+<header class="container nav">
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" style="height:32px" alt=""></div>
+  <nav>
+    <a href="/partner-dashboard.html">Dashboard</a>
+    <a href="/partner-profile.html" class="active">Profilo</a>
+    <a href="#" id="logout-link">Esci</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1>Profilo</h1>
+
+  <div class="card">
+    <label>Nickname</label>
+    <input id="nickname-input" type="text" maxlength="32" placeholder="es. MariaBnb">
+  </div>
+
+  <div class="card">
+    <label>Foto profilo (avatar)</label>
+    <img id="avatar-preview" src="" alt="Avatar" style="width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;margin-bottom:8px;">
+    <input id="avatar-file" type="file" accept="image/*">
+    <button id="upload-avatar" class="btn">Carica e salva</button>
+  </div>
+</main>
+
+<script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
+<script src="/assets/js/auth-config.js"></script>
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/guard-partner.js"></script>
+
+<script src="/assets/js/partner/state.js"></script>
+<script src="/assets/js/partner/profile.js"></script>
+</body>
+</html>
