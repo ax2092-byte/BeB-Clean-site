@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B&B Clean — Domicilio</title>
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+<header class="container nav">
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" style="height:32px" alt=""></div>
+  <nav>
+    <a href="/partner-dashboard.html">Dashboard</a>
+    <a href="/partner-domicile.html" class="active">Domicilio</a>
+    <a href="#" id="logout-link">Esci</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1>Domicilio e raggio</h1>
+  <div class="card">
+    <input id="dom-address" placeholder="Indirizzo">
+    <input id="dom-city" placeholder="Città">
+    <input id="dom-region" placeholder="Regione">
+    <input id="dom-cap" placeholder="CAP" inputmode="numeric">
+    <label>Raggio (km): <input id="dom-radius" type="number" min="1" max="200" value="20"></label>
+    <button id="save-domicile" class="btn">Salva</button>
+    <p class="muted" id="dom-note">Il domicilio è usato solo per trovare lavori vicini.</p>
+  </div>
+</main>
+
+<script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
+<script src="/assets/js/auth-config.js"></script>
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/guard-partner.js"></script>
+
+<script src="/assets/js/partner/state.js"></script>
+<script src="/assets/js/partner/domicile.js"></script>
+</body>
+</html>
