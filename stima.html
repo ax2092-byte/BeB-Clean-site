@@ -32,26 +32,11 @@
         <label for="regione">Regione</label>
         <select id="regione">
           <option value="">Seleziona…</option>
-          <option>Abruzzo</option>
-          <option>Basilicata</option>
-          <option>Calabria</option>
-          <option>Campania</option>
-          <option>Emilia-Romagna</option>
-          <option>Friuli-Venezia Giulia</option>
-          <option>Lazio</option>
-          <option>Liguria</option>
-          <option>Lombardia</option>
-          <option>Marche</option>
-          <option>Molise</option>
-          <option>Piemonte</option>
-          <option>Puglia</option>
-          <option>Sardegna</option>
-          <option>Sicilia</option>
-          <option>Toscana</option>
-          <option>Trentino-Alto Adige</option>
-          <option>Umbria</option>
-          <option>Valle d'Aosta</option>
-          <option>Veneto</option>
+          <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
+          <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
+          <option>Lombardia</option><option>Marche</option><option>Molise</option><option>Piemonte</option>
+          <option>Puglia</option><option>Sardegna</option><option>Sicilia</option><option>Toscana</option>
+          <option>Trentino-Alto Adige</option><option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
         </select>
       </div>
       <div>
@@ -154,7 +139,7 @@ async function publicPartner(pid){
 function durataConsigliata(mq){
   if (!mq || mq <= 0) return 1;
   const ore = mq / (SETTINGS.m2_per_hour || 35);
-  return Math.max(1, Math.round(ore * 2) / 2); // intervalli 0.5h
+  return Math.max(1, Math.round(ore * 2) / 2);
 }
 
 document.getElementById('calcola').addEventListener('click', async ()=>{
@@ -187,9 +172,7 @@ document.getElementById('calcola').addEventListener('click', async ()=>{
   const nickname = pub?.nickname || best.nome_visibile || 'B&B Cleaner';
   const avatar = pub?.avatar_url || '/assets/img/bbclean-icon-128.png';
 
-  if (!hourly){
-    hourly = SETTINGS.default_hourly_eur; // fallback
-  }
+  if (!hourly){ hourly = SETTINGS.default_hourly_eur; }
 
   const ore = durataConsigliata(mq);
   const totale = hourly * ore;
@@ -204,7 +187,6 @@ document.getElementById('calcola').addEventListener('click', async ()=>{
   document.getElementById('durata-label').textContent = ore.toFixed(1) + ' h';
   document.getElementById('totale-label').textContent = euro(totale);
 
-  // Link a prenota con parametri
   const qp = new URLSearchParams({
     pid: (best.pid || best.partner_id || ''),
     regione, citta, indirizzo, civico, mq: String(mq),
@@ -216,9 +198,10 @@ document.getElementById('calcola').addEventListener('click', async ()=>{
   msg('');
 });
 
-// Logout (se loggato)
 document.getElementById('logout-link').addEventListener('click', (e)=>{ e.preventDefault(); window.authLogout && window.authLogout(); });
 </script>
-</main>
+
+<!-- Freccia indietro -->
+<script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
