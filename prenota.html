@@ -142,7 +142,6 @@ async function geocode(address, city, region){
 }
 
 function renderExtras(container, prices){
-  // prezzi consigliati default (override se partner li ha)
   const defaults = { cambio_biancheria:4, forno:7.5, frigo:6, vetri:8, balconi:12 };
   const p = Object.assign({}, defaults, prices || {});
   const labels = {
@@ -185,18 +184,15 @@ function extraTotal(){
   const oreStima = q.ore ? Number(q.ore) : durataConsigliata(mq);
   let hourly = q.hourly ? Number(q.hourly) : null;
 
-  // Dati pubblici partner (per nickname/avatar/hourly eventualmente aggiornato)
   const pub = pid ? await publicPartner(pid) : null;
   if (!hourly) hourly = pub?.hourly_eur || SETTINGS.default_hourly_eur;
 
-  // Partner.json per extra override
   let partnerRow = null;
   try{
     const partners = await loadPartners();
     partnerRow = partners.find(p => (p.pid||p.partner_id||'') === pid);
   }catch(e){}
 
-  // Riepilogo
   const base = hourly * oreStima;
   document.getElementById('r-partner').textContent = pub?.nickname || partnerRow?.nome_visibile || 'B&B Cleaner';
   document.getElementById('r-pid').textContent = pid ? '('+pid+')' : '';
@@ -206,20 +202,17 @@ function extraTotal(){
   document.getElementById('r-ore').textContent = oreStima.toFixed(1) + ' h';
   document.getElementById('r-base').textContent = euro(base);
 
-  // Extra
   renderExtras(document.getElementById('extra-list'), partnerRow?.extra_prices);
   const refreshTotals = ()=>{
     const { tot } = extraTotal();
     document.getElementById('r-extra').textContent = euro(tot);
     document.getElementById('r-totale').textContent = euro(base + tot);
-    // aggiorna hidden
     document.getElementById('f-totale').value = String((base + tot).toFixed(2));
     document.getElementById('f-extra-json').value = JSON.stringify(extraTotal().items);
   };
   document.getElementById('extra-list').addEventListener('change', refreshTotals);
   refreshTotals();
 
-  // Hidden per form Netlify
   document.getElementById('f-pid').value = pid;
   document.getElementById('f-hourly').value = String(hourly);
   document.getElementById('f-ore').value = String(oreStima);
@@ -229,15 +222,12 @@ function extraTotal(){
   document.getElementById('f-civico').value = civico;
   document.getElementById('f-mq').value = String(mq);
 
-  // Geocode (prima dell'invio) -> nf-lat/nf-lon
   const form = document.getElementById('form-prenota');
   form.addEventListener('submit', async (e)=>{
-    // calcola extra JSON e totale aggiornato
     const { tot, items } = extraTotal();
     document.getElementById('f-extra-json').value = JSON.stringify(items);
     document.getElementById('f-totale').value = String((hourly*oreStima + tot).toFixed(2));
 
-    // geocoding indirizzo+civico
     const geo = await (async function geocode(address, city, region){
       const q = [address, city, region, 'Italia'].filter(Boolean).join(', ');
       const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
@@ -256,9 +246,11 @@ function extraTotal(){
     }
   });
 
-  // Logout (se loggato)
   document.getElementById('logout-link').addEventListener('click', (e)=>{ e.preventDefault(); window.authLogout && window.authLogout(); });
 })();
 </script>
+
+<!-- Freccia indietro -->
+<script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
