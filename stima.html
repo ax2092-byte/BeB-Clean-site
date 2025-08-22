@@ -3,249 +3,222 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Calcola la stima — B&B Clean</title>
-  <meta name="description" content="Calcola subito una stima e trova il B&B cleaner più vicino.">
+  <title>B&B Clean — Stima</title>
   <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
-  <style>
-    :root{--brand:#0f9e9e;--brand-ink:#0a6f6f;--ink:#111827;--muted:#6b7280;--ring:#e5e7eb;--card:#f9fafb;--surface:#fff}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;color:var(--ink);background:var(--surface)}
-    .container{width:min(1000px,92%);margin:0 auto}
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
-    .topbar .left{display:flex;align-items:center;gap:10px}
-    .back-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;border:1px solid var(--ring);text-decoration:none;color:var(--ink)}
-    .back-arrow:hover{background:#f3f4f6}
-    .logo{height:32px;display:block}
-    .mainnav a{text-decoration:none;color:var(--ink);font-weight:700;margin-left:16px;padding:8px 12px;border-radius:12px}
-    .mainnav a:hover{background:#f3f4f6}
-    .mainnav a.active{background:#e6f5f5;color:var(--brand-ink)}
-    .hero{padding:36px 0 8px}
-    .hero h1{font-size:clamp(26px,4vw,36px);margin:0 0 8px}
-    .hero .sub{color:var(--muted);margin:0}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:18px}
-    .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-    .field label{display:block;margin:8px 0 6px;font-weight:600}
-    .field input{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px}
-    .btn{display:inline-block;border:1px solid var(--ring);padding:12px 16px;border-radius:14px;text-decoration:none;font-weight:700}
-    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    .muted{color:var(--muted)}
-    .result{display:none;margin-top:18px}
-    .pill{display:inline-block;background:#e6f5f5;color:var(--brand-ink);border-radius:999px;padding:6px 10px;font-weight:700}
-  </style>
+  <meta name="description" content="Calcola una stima e trova il partner più vicino">
 </head>
 <body>
-  <!-- HEADER -->
-  <header class="topbar container" role="banner">
-    <div class="left">
-      <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
-      <a href="/index.html" aria-label="B&B Clean — Home">
-        <img class="logo" src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean">
-      </a>
-    </div>
-    <nav class="mainnav" aria-label="Menu principale">
-      <a href="/index.html" data-page="home">HOME</a>
-      <a href="/prenota.html" data-page="prenota">PRENOTA</a>
-      <a href="/servizi.html" data-page="servizi">I NOSTRI SERVIZI</a>
-      <a href="/partner.html" data-page="partner">DIVENTA PARTNER</a>
-    </nav>
-  </header>
+<header class="container nav">
+  <div class="logo">
+    <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px">
+  </div>
+  <nav id="main-nav">
+    <a href="/index.html">Home</a>
+    <a href="/stima.html" class="active">Stima</a>
+    <a href="/prenota.html">Prenota</a>
+    <a href="/partner.html" data-role="nav-partner-cta">Diventa partner</a>
+    <a href="#" id="logout-link">Esci</a>
+  </nav>
+</header>
 
-  <!-- HERO -->
-  <section class="hero container">
-    <h1>Calcola la stima</h1>
-    <p class="sub">Inserisci l’indirizzo. Ti mostriamo la stima e il B&B cleaner più vicino.</p>
+<main class="container">
+  <h1>Stima trasparente</h1>
+  <p class="muted">Inserisci i dati dell’immobile. Troveremo il partner più vicino e ti mostreremo una stima.</p>
+
+  <section class="card">
+    <div class="grid-2">
+      <div>
+        <label for="regione">Regione</label>
+        <select id="regione">
+          <option value="">Seleziona…</option>
+          <option>Abruzzo</option>
+          <option>Basilicata</option>
+          <option>Calabria</option>
+          <option>Campania</option>
+          <option>Emilia-Romagna</option>
+          <option>Friuli-Venezia Giulia</option>
+          <option>Lazio</option>
+          <option>Liguria</option>
+          <option>Lombardia</option>
+          <option>Marche</option>
+          <option>Molise</option>
+          <option>Piemonte</option>
+          <option>Puglia</option>
+          <option>Sardegna</option>
+          <option>Sicilia</option>
+          <option>Toscana</option>
+          <option>Trentino-Alto Adige</option>
+          <option>Umbria</option>
+          <option>Valle d'Aosta</option>
+          <option>Veneto</option>
+        </select>
+      </div>
+      <div>
+        <label for="citta">Città</label>
+        <input id="citta" list="citta-list" placeholder="Digita e scegli…">
+        <datalist id="citta-list"></datalist>
+      </div>
+      <div>
+        <label for="indirizzo">Indirizzo</label>
+        <input id="indirizzo" placeholder="Via/Piazza">
+      </div>
+      <div>
+        <label for="civico">Civico</label>
+        <input id="civico" placeholder="es. 12" inputmode="numeric">
+      </div>
+      <div>
+        <label for="mq">Metri quadrati</label>
+        <input id="mq" type="number" min="20" step="5" placeholder="es. 70">
+      </div>
+    </div>
+    <button id="calcola" class="btn">Trova partner e calcola stima</button>
+    <p id="msg" class="muted" style="margin-top:8px;"></p>
   </section>
 
-  <!-- FORM -->
-  <main class="container">
-    <section class="card">
-      <form id="stima-form">
-        <div class="grid-3">
-          <div class="field">
-            <label for="regione">Regione</label>
-            <input type="text" id="regione" name="regione" placeholder="es. Sardegna" required>
-          </div>
-          <div class="field">
-            <label for="citta">Città</label>
-            <input type="text" id="citta" name="citta" placeholder="es. Nuoro" required>
-          </div>
-          <div class="field">
-            <label for="indirizzo">Indirizzo</label>
-            <input type="text" id="indirizzo" name="indirizzo" placeholder="es. Via Bologna" required>
-          </div>
-        </div>
-
-        <div class="grid-3">
-          <div class="field">
-            <label for="civico">Numero civico</label>
-            <input type="text" id="civico" name="civico" placeholder="es. 10">
-          </div>
-          <div class="field">
-            <label for="mq">Metri quadri (mq)</label>
-            <input type="number" id="mq" name="mq" min="10" max="400" step="1" placeholder="es. 70" required>
-          </div>
-          <div class="field" style="display:flex;align-items:flex-end">
-            <button id="btn-calc" class="btn primary" type="submit" style="width:100%">Calcola</button>
-          </div>
-        </div>
-      </form>
-
-      <!-- RISULTATO -->
-      <div id="result" class="result">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-          <div>
-            <div class="muted">Durata stimata</div>
-            <div class="h4" id="r-durata">—</div>
-          </div>
-          <div>
-            <div class="muted">Costo stimato (base)</div>
-            <div class="h4" id="r-costo">—</div>
-          </div>
-          <div>
-            <div class="muted">Cleaner selezionato</div>
-            <div id="r-partner"><span class="pill">Nessun partner vicino</span></div>
-          </div>
-        </div>
-
-        <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
-          <a id="cta-prenota" class="btn primary" href="#">Prenota ora</a>
-          <a class="btn" href="/servizi.html">I nostri servizi</a>
-        </div>
-        <small class="muted">La stima è indicativa. I prezzi extra potranno variare in base al partner selezionato.</small>
+  <section id="risultato" class="card" style="display:none">
+    <h3>Risultato</h3>
+    <div id="partner-info" class="row" style="gap:12px;align-items:center;">
+      <img id="partner-avatar" alt="Avatar" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:none;">
+      <div>
+        <div>Partner: <strong id="partner-name">—</strong> <span id="partner-pid" class="muted"></span></div>
+        <div>Distanza: <span id="partner-dist">—</span> km</div>
       </div>
-    </section>
-  </main>
+    </div>
+    <hr>
+    <div class="grid-2">
+      <div>
+        <div>Tariffa oraria: <strong id="rate-label">—</strong></div>
+        <div>Durata stimata: <strong id="durata-label">—</strong></div>
+        <div>Totale stimato: <strong id="totale-label">—</strong></div>
+      </div>
+      <div style="text-align:right">
+        <a id="vai-prenota" class="btn">Procedi alla prenotazione</a>
+      </div>
+    </div>
+  </section>
+</main>
 
-  <footer class="container" style="border-top:1px solid var(--ring);margin-top:28px;padding:16px 0;color:var(--muted);font-size:14px">
-    © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
-  </footer>
+<script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
+<script src="/assets/js/auth-config.js"></script>
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/menu-auth.js"></script>
 
-  <!-- Script comune -->
-  <script src="/assets/js/site.js" defer></script>
+<script>
+const euro = v => (v===null||isNaN(v)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v);
+let SETTINGS = { m2_per_hour: 35, default_hourly_eur: 20 };
 
-  <!-- LOGICA STIMA -->
-  <script>
-    (function(){
-      const $ = s => document.querySelector(s);
-      const euro = v => (v==null || isNaN(v)) ? '—' :
-        new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v);
-      const roundHalf = num => Math.round(num*2)/2;
+(async function loadComuni(){
+  try {
+    const r = await fetch('/assets/data/comuni.json',{cache:'no-store'});
+    const js = await r.json();
+    const dl = document.getElementById('citta-list');
+    js.slice(0, 20000).forEach(c=>{
+      const o = document.createElement('option');
+      o.value = c.nome + (c.provincia ? ` (${c.provincia})` : '');
+      dl.appendChild(o);
+    });
+  } catch(e){}
+})();
 
-      // Parametri stima base (coerenti con prenota.html)
-      const MPH = 35;     // mq per ora
-      const BASE_RATE = 18; // €/h
+function msg(t){ document.getElementById('msg').textContent = t||''; }
 
-      function haversine(lat1, lon1, lat2, lon2){
-        const toRad = d => d * Math.PI/180;
-        const R = 6371; // km
-        const dLat = toRad(lat2-lat1);
-        const dLon = toRad(lon2-lon1);
-        const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-      }
+async function geocode(address, city, region){
+  const q = [address, city, region, 'Italia'].filter(Boolean).join(', ');
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
+  const res = await fetch(url, { headers: { 'Accept-Language':'it' }});
+  if (!res.ok) return null;
+  const js = await res.json();
+  if (!js || !js.length) return null;
+  return { lat: parseFloat(js[0].lat), lon: parseFloat(js[0].lon) };
+}
 
-      async function geocode(q){
-        const url = '/.netlify/functions/geocode?q=' + encodeURIComponent(q);
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Geocode fallito');
-        return res.json(); // {lat, lon, display_name}
-      }
+function haversine(lat1, lon1, lat2, lon2){
+  const R=6371, toRad = d => d*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
 
-      async function findNearestPartner(lat, lon){
-        try{
-          const res = await fetch('/assets/data/partner.json', { cache: 'no-store' });
-          const list = await res.json();
-          if (!Array.isArray(list) || !list.length) return null;
-          let best = null;
-          for (const p of list){
-            const plat = Number(p.lat || p.latitude);
-            const plon = Number(p.lon || p.longitude || p.lng);
-            if (isNaN(plat) || isNaN(plon)) continue;
-            const d = haversine(lat, lon, plat, plon);
-            if (!best || d < best.distanceKm) best = { ...p, distanceKm: d };
-          }
-          return best;
-        }catch(e){
-          return null;
-        }
-      }
+async function loadPartners(){
+  const r = await fetch('/assets/data/partner.json',{cache:'no-store'});
+  return r.json();
+}
 
-      function buildQS(obj){
-        const sp = new URLSearchParams();
-        Object.keys(obj).forEach(k=>{
-          const v = obj[k];
-          if (v !== undefined && v !== null && String(v).trim() !== '') sp.set(k, v);
-        });
-        return sp.toString();
-      }
+async function publicPartner(pid){
+  const r = await fetch('/.netlify/functions/public-partner-get?pid='+encodeURIComponent(pid),{cache:'no-store'});
+  if (!r.ok) return null;
+  return r.json();
+}
 
-      $('#stima-form').addEventListener('submit', async function(ev){
-        ev.preventDefault();
+function durataConsigliata(mq){
+  if (!mq || mq <= 0) return 1;
+  const ore = mq / (SETTINGS.m2_per_hour || 35);
+  return Math.max(1, Math.round(ore * 2) / 2); // intervalli 0.5h
+}
 
-        const regione = $('#regione').value.trim();
-        const citta = $('#citta').value.trim();
-        const indirizzo = $('#indirizzo').value.trim();
-        const civico = $('#civico').value.trim();
-        const mq = Number($('#mq').value);
+document.getElementById('calcola').addEventListener('click', async ()=>{
+  msg('Geocodifica in corso…');
+  const regione = document.getElementById('regione').value.trim();
+  const citta = document.getElementById('citta').value.trim();
+  const indirizzo = document.getElementById('indirizzo').value.trim();
+  const civico = document.getElementById('civico').value.trim();
+  const mq = Number(document.getElementById('mq').value);
 
-        if (!regione || !citta || !indirizzo || !mq){
-          alert('Compila tutti i campi richiesti.');
-          return;
-        }
+  if (!regione || !citta || !indirizzo || !civico || !mq){ msg('Compila tutti i campi.'); return; }
 
-        const fullAddress = `${indirizzo}${civico ? ' ' + civico : ''}, ${citta}, ${regione}, Italia`;
+  const geo = await geocode(`${indirizzo} ${civico}`, citta, regione);
+  if (!geo){ msg('Indirizzo non trovato. Controlla i dati.'); return; }
 
-        // Geocode
-        let geo;
-        try{
-          geo = await geocode(fullAddress);
-        }catch(e){
-          alert('Non sono riuscito a calcolare la stima. Verifica l’indirizzo e riprova.');
-          return;
-        }
+  msg('Calcolo partner più vicino…');
+  const partners = await loadPartners();
+  let best = null, bestDist = Infinity;
+  partners.forEach(p=>{
+    if (p.lat!=null && p.lon!=null){
+      const d = haversine(geo.lat, geo.lon, Number(p.lat), Number(p.lon));
+      if (d < bestDist){ bestDist = d; best = p; }
+    }
+  });
+  if (!best){ msg('Nessun partner disponibile.'); return; }
 
-        // Stima base
-        const ore = Math.max(1, roundHalf(mq / MPH));
-        const costo = ore * BASE_RATE;
+  msg('Lettura tariffa partner…');
+  const pub = await publicPartner(best.pid || best.partner_id || best.id || '');
+  let hourly = pub?.hourly_eur;
+  const nickname = pub?.nickname || best.nome_visibile || 'B&B Cleaner';
+  const avatar = pub?.avatar_url || '/assets/img/bbclean-icon-128.png';
 
-        // Trova partner vicino
-        const nearest = await findNearestPartner(Number(geo.lat), Number(geo.lon));
-        let partnerHtml = '<span class="pill">Nessun partner vicino</span>';
-        let pid = '';
-        if (nearest){
-          pid = String(nearest.id || nearest.ID || nearest.slug || '');
-          const dist = nearest.distanceKm.toFixed(1).replace('.', ',');
-          const nome = nearest.nome || nearest.name || 'Partner';
-          partnerHtml = `<span class="pill">${nome} · ${dist} km</span>`;
-        }
+  if (!hourly){
+    hourly = SETTINGS.default_hourly_eur; // fallback
+  }
 
-        // Mostra risultato
-        $('#r-durata').textContent = String(ore).replace('.', ',') + ' h';
-        $('#r-costo').textContent = euro(costo);
-        $('#r-partner').innerHTML = partnerHtml;
-        $('#result').style.display = 'block';
+  const ore = durataConsigliata(mq);
+  const totale = hourly * ore;
 
-        // CTA → login con tutti i parametri + pid
-        const qs = buildQS({
-          regione, citta, indirizzo, civico, mq, pid
-        });
-        // memoria per login redirect
-        sessionStorage.setItem('stima_qs', qs);
-        $('#cta-prenota').setAttribute('href', '/login.html?' + qs);
-      });
+  // UI
+  document.getElementById('risultato').style.display = '';
+  const av = document.getElementById('partner-avatar'); av.src = avatar; av.style.display='block';
+  document.getElementById('partner-name').textContent = nickname;
+  document.getElementById('partner-pid').textContent = '(' + (best.pid || best.partner_id || 'pid') + ')';
+  document.getElementById('partner-dist').textContent = bestDist.toFixed(1);
+  document.getElementById('rate-label').textContent = euro(hourly);
+  document.getElementById('durata-label').textContent = ore.toFixed(1) + ' h';
+  document.getElementById('totale-label').textContent = euro(totale);
 
-      // freccia indietro
-      const back = document.getElementById('back-link');
-      if (back){
-        back.addEventListener('click', function(e){
-          e.preventDefault();
-          if (history.length > 1) history.back();
-          else location.href = '/index.html';
-        });
-      }
-    })();
-  </script>
+  // Link a prenota con parametri
+  const qp = new URLSearchParams({
+    pid: (best.pid || best.partner_id || ''),
+    regione, citta, indirizzo, civico, mq: String(mq),
+    lat: String(geo.lat), lon: String(geo.lon),
+    hourly: String(hourly), ore: String(ore), stima: String(totale)
+  }).toString();
+  document.getElementById('vai-prenota').href = '/prenota.html?'+qp;
+
+  msg('');
+});
+
+// Logout (se loggato)
+document.getElementById('logout-link').addEventListener('click', (e)=>{ e.preventDefault(); window.authLogout && window.authLogout(); });
+</script>
+</main>
 </body>
 </html>
