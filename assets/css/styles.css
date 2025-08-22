@@ -132,4 +132,11 @@ a{color:inherit}
   .grid-3{grid-template-columns:1fr}
   .footer-inner{grid-template-columns:1fr; text-align:center}
   .footer-legal{text-align:center}
+   /* FILE: /assets/css/styles.css  (aggiungi in fondo) */
+/* Auth bar (ACCEDI / Ciao, Nome / ESCI) */
+.authbar{display:flex;align-items:center;gap:10px;margin-left:12px}
+.authbar .hi{color:#6b7280;font-size:14px}
+.authbar a{font-weight:700;text-decoration:none;border:1px solid var(--ring, #e5e7eb);padding:6px 10px;border-radius:10px}
+.authbar a:hover{background:#f3f4f6}
+
 }
