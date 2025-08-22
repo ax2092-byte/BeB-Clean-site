@@ -1,54 +1,56 @@
-/* FILE: /assets/js/menu-auth.js
-   Mostra stato utente nel topbar e aggiunge Logout.
-   Richiede che auth0 SDK + auth-config.js + auth.js siano già caricati.
-*/
-(function(){
-  function el(tag, attrs, text){
-    const n = document.createElement(tag);
-    if (attrs) Object.keys(attrs).forEach(k=> n.setAttribute(k, attrs[k]));
-    if (text) n.textContent = text;
-    return n;
-  }
+document.addEventListener('DOMContentLoaded', async ()=>{
+  try{
+    const cfg = window.AUTH0_CONFIG || {};
+    const client = await (window.auth0 && window.auth0.createAuth0Client ? window.auth0.createAuth0Client(cfg) : window.createAuth0Client(cfg));
+    const isAuth = await client.isAuthenticated();
+    const nav = document.getElementById('main-nav') || document.querySelector('header nav');
+    const partnerCta = nav && (nav.querySelector('[data-role="nav-partner-cta"]') || nav.querySelector('a[href="/partner.html"]'));
+    const logout = document.getElementById('logout-link') || (nav && nav.querySelector('#logout-link'));
 
-  async function init(){
-    try{
-      await window.Auth.ensureReady();
-    }catch(e){ return; }
-
-    const topbar = document.querySelector('.topbar.container');
-    if (!topbar) return;
-
-    let bar = document.getElementById('authbar');
-    if (!bar){
-      bar = el('div', { id:'authbar', class:'authbar' });
-      topbar.appendChild(bar); // a destra del menu (flex order)
-    }
-    bar.innerHTML = '';
-
-    const logged = await window.Auth.isAuthenticated();
-    if (!logged){
-      const link = el('a', { href:'/login.html', id:'nav-login' }, 'ACCEDI');
-      bar.appendChild(link);
+    if (!isAuth){
+      if (logout) logout.style.display='none';
       return;
     }
+    const claims = await client.getIdTokenClaims();
+    const userType = claims['https://bebclean.it/user_type'];
+    const pid = claims['https://bebclean.it/partner_id'];
 
-    const user = await window.Auth.getUser();
-    const name = (user && (user.name || user.nickname || user.email)) || 'Utente';
-    const hi = el('span', { class:'hi', id:'user-badge' }, 'Ciao, ' + name);
-    const out = el('a', { href:'#', id:'nav-logout' }, 'ESCI');
+    if (partnerCta && (userType==='partner' || !!pid)){
+      partnerCta.style.display='none';
+    }
 
-    out.addEventListener('click', async function(e){
-      e.preventDefault();
-      try{ await window.Auth.logout(); }catch(_){}
-    });
+    if (logout){
+      window.authLogout = async function(){
+        await client.logout({logoutParams:{ returnTo: window.location.origin }});
+      };
+    }
+  }catch(e){ console.warn('menu-auth.js:', e); }
+});
+document.addEventListener('DOMContentLoaded', async ()=>{
+  try{
+    const cfg = window.AUTH0_CONFIG || {};
+    const client = await (window.auth0 && window.auth0.createAuth0Client ? window.auth0.createAuth0Client(cfg) : window.createAuth0Client(cfg));
+    const isAuth = await client.isAuthenticated();
+    const nav = document.getElementById('main-nav') || document.querySelector('header nav');
+    const partnerCta = nav && (nav.querySelector('[data-role="nav-partner-cta"]') || nav.querySelector('a[href="/partner.html"]'));
+    const logout = document.getElementById('logout-link') || (nav && nav.querySelector('#logout-link'));
 
-    bar.appendChild(hi);
-    bar.appendChild(out);
-  }
+    if (!isAuth){
+      if (logout) logout.style.display='none';
+      return;
+    }
+    const claims = await client.getIdTokenClaims();
+    const userType = claims['https://bebclean.it/user_type'];
+    const pid = claims['https://bebclean.it/partner_id'];
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+    if (partnerCta && (userType==='partner' || !!pid)){
+      partnerCta.style.display='none';
+    }
+
+    if (logout){
+      window.authLogout = async function(){
+        await client.logout({logoutParams:{ returnTo: window.location.origin }});
+      };
+    }
+  }catch(e){ console.warn('menu-auth.js:', e); }
+});
