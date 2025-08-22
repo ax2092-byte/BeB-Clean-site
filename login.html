@@ -1,11 +1,11 @@
-<!-- FILE: /login.html  (aggiornato: aggiunta UI stato utente + logout) -->
+<!-- FILE: /login.html  (AGGIORNATO: rispetta appState.returnTo per i partner; fallback clienti → /prenota.html) -->
 <!doctype html>
 <html lang="it">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Accedi o registrati — B&B Clean</title>
-  <meta name="description" content="Accedi o registrati per completare la prenotazione B&B Clean.">
+  <meta name="description" content="Accedi o registrati per completare la prenotazione B&B Clean o accedere all’Area Partner.">
   <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
@@ -28,13 +28,10 @@
     .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
     .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
     .muted{color:var(--muted)}
-    .authbar{display:flex;align-items:center;gap:10px;margin-left:12px}
-    .authbar .hi{color:var(--muted);font-size:14px}
-    .authbar a{font-weight:700;text-decoration:none;border:1px solid var(--ring);padding:6px 10px;border-radius:10px}
-    .authbar a:hover{background:#f3f4f6}
   </style>
 </head>
 <body>
+  <!-- HEADER -->
   <header class="topbar container" role="banner">
     <div class="left">
       <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
@@ -50,11 +47,13 @@
     </nav>
   </header>
 
+  <!-- HERO -->
   <section class="hero container">
     <h1>Accedi o registrati</h1>
-    <p class="sub">Per completare la prenotazione ti chiediamo di accedere (o creare un account).</p>
+    <p class="sub">Per completare la prenotazione accedi (o crea un account). I partner usano l’Area Partner.</p>
   </section>
 
+  <!-- BOX LOGIN -->
   <main class="container" style="margin-bottom:24px">
     <section class="card" id="gate">
       <div id="booking-summary" class="muted" style="margin-bottom:10px"></div>
@@ -64,6 +63,9 @@
       </div>
       <div id="login-note" class="muted" style="margin-top:10px">
         Dopo l’accesso verrai reindirizzato alla pagina di prenotazione.
+      </div>
+      <div class="muted" style="margin-top:6px">
+        Sei un partner? Vai su <a href="/partner-login.html"><strong>Area Partner</strong></a>.
       </div>
     </section>
   </main>
@@ -75,58 +77,81 @@
   <!-- Script comune -->
   <script src="/assets/js/site.js" defer></script>
 
-  <!-- SDK Auth0 (locale) + Config + Helper  → ordine OBBLIGATORIO -->
+  <!-- Auth0 SPA SDK (locale) + Config + Helper -->
   <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
   <script src="/assets/js/auth-config.js"></script>
   <script src="/assets/js/auth.js"></script>
-  <!-- Stato utente + Logout nel menu -->
-  <script src="/assets/js/menu-auth.js"></script>
 
-  <!-- Logica di Redirect/Login -->
+  <!-- Logica di Redirect/Login (CLIENTI) con supporto appState.returnTo -->
   <script>
-    (async function () {
-      const params = new URLSearchParams(location.search);
-      const qs = params.toString();
-      if (qs) sessionStorage.setItem('stima_qs', qs);
+  (async function(){
+    const params = new URLSearchParams(location.search);
+    const qs = params.toString();
 
-      const regione = params.get('regione') || '';
-      const citta = params.get('citta') || '';
-      const indirizzo = params.get('indirizzo') || '';
-      const mq = params.get('mq') || '';
-      const summary = [];
-      if (regione) summary.push('Regione: <strong>' + regione + '</strong>');
-      if (citta) summary.push('Città: <strong>' + citta + '</strong>');
-      if (indirizzo) summary.push('Indirizzo: <strong>' + indirizzo + '</strong>');
-      if (mq) summary.push('Metri quadri: <strong>' + mq + '</strong>');
-      var bs = document.getElementById('booking-summary');
-      if (bs) bs.innerHTML = summary.join(' • ');
+    // salva la query della stima per riprenderla dopo il login cliente
+    if (qs) sessionStorage.setItem('stima_qs', qs);
 
-      await window.Auth.ensureReady();
+    // Riepilogo prenotazione (se presenti parametri)
+    const regione = params.get('regione') || '';
+    const citta = params.get('citta') || '';
+    const indirizzo = params.get('indirizzo') || '';
+    const civico = params.get('civico') || '';
+    const mq = params.get('mq') || '';
+    const summary = [];
+    if (regione) summary.push(`Regione: <strong>${regione}</strong>`);
+    if (citta) summary.push(`Città: <strong>${citta}</strong>`);
+    if (indirizzo || civico) summary.push(`Indirizzo: <strong>${indirizzo}${civico?' '+civico:''}</strong>`);
+    if (mq) summary.push(`Metri quadri: <strong>${mq}</strong>`);
+    document.getElementById('booking-summary').innerHTML = summary.join(' • ');
 
-      if (location.search.includes('code=') && location.search.includes('state=')) {
-        await window.Auth.handleRedirect();
-      }
+    // Inizializza Auth0
+    await window.Auth.ensureReady();
 
-      if (await window.Auth.isAuthenticated()) {
+    // Gestione callback Auth0
+    if (location.search.includes('code=') && location.search.includes('state=')) {
+      await window.Auth.handleRedirect();
+
+      // Se il login è partito da /partner-login.html, qui troviamo appState.returnTo
+      const appState = window.Auth.getAppState && window.Auth.getAppState();
+      if (appState && appState.returnTo) {
         const saved = sessionStorage.getItem('stima_qs') || '';
-        location.replace('/prenota.html' + (saved ? ('?' + saved) : ''));
+        const qsFinal = appState.qs || saved || '';
+        location.replace(appState.returnTo + (qsFinal ? ('?' + qsFinal) : ''));
         return;
       }
+    }
 
-      const mkAppState = function () {
-        return { returnTo: '/prenota.html', qs: sessionStorage.getItem('stima_qs') || '' };
-      };
+    // Se già autenticato → CLIENTE: vai a prenota mantenendo i parametri
+    if (await window.Auth.isAuthenticated()) {
+      const saved = sessionStorage.getItem('stima_qs') || '';
+      location.replace("/prenota.html" + (saved ? ("?" + saved) : ""));
+      return;
+    }
 
-      var loginBtn = document.getElementById('btn-login');
-      if (loginBtn) loginBtn.addEventListener('click', async function () {
-        await window.Auth.login({ screen_hint: null, appState: mkAppState() });
+    // Bottoni (CLIENTI): login/signup con appState verso /prenota.html
+    const mkAppState = () => ({
+      returnTo: "/prenota.html",
+      qs: sessionStorage.getItem('stima_qs') || ''
+    });
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      await window.Auth.login({ screen_hint: null, appState: mkAppState() });
+    });
+
+    document.getElementById('btn-signup').addEventListener('click', async () => {
+      await window.Auth.login({ screen_hint: 'signup', appState: mkAppState() });
+    });
+
+    // Freccia indietro
+    const back = document.getElementById('back-link');
+    if (back){
+      back.addEventListener('click', function(e){
+        e.preventDefault();
+        if (history.length > 1) history.back();
+        else location.href = '/index.html';
       });
-
-      var signupBtn = document.getElementById('btn-signup');
-      if (signupBtn) signupBtn.addEventListener('click', async function () {
-        await window.Auth.login({ screen_hint: 'signup', appState: mkAppState() });
-      });
-    })();
+    }
+  })();
   </script>
 </body>
 </html>
