@@ -7,10 +7,10 @@
   <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body>
+<body data-back-fallback="/partner-dashboard.html">
 <header class="container nav">
-  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" style="height:32px" alt=""></div>
-  <nav>
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" style="height:32px" alt="B&B Clean"></div>
+  <nav id="main-nav">
     <a href="/partner-dashboard.html">Dashboard</a>
     <a href="/partner-billing.html" class="active">Pagamenti</a>
     <a href="#" id="logout-link">Esci</a>
@@ -37,5 +37,8 @@
 
 <script src="/assets/js/partner/state.js"></script>
 <script src="/assets/js/partner/billing.js"></script>
+
+<!-- Freccia indietro -->
+<script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
