@@ -1,4 +1,4 @@
-<!-- FILE: /partner-login.html  (NUOVO - login/registrazione partner) -->
+<!-- FILE: /partner-login.html  (AGGIORNATO: invia partner_flow=1 nell’autorizzazione) -->
 <!doctype html>
 <html lang="it">
 <head>
@@ -91,12 +91,13 @@
       }
 
       const appState = { returnTo: '/partner-dashboard.html' };
+      const extraParams = { partner_flow: '1' }; // << segnale per Action
 
       document.getElementById('btn-login').addEventListener('click', async function(){
-        await window.Auth.login({ screen_hint: null, appState });
+        await window.Auth.login({ screen_hint: null, appState, extraParams });
       });
       document.getElementById('btn-signup').addEventListener('click', async function(){
-        await window.Auth.login({ screen_hint: 'signup', appState });
+        await window.Auth.login({ screen_hint: 'signup', appState, extraParams });
       });
 
       const back = document.getElementById('back-link');
