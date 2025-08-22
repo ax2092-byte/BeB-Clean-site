@@ -1,3 +1,4 @@
+# FILE: /_redirects  (AGGIORNA/UNISCI con i tuoi esistenti)
 # Vecchi percorsi → percorsi canonici
 /signup.html                 /login.html?mode=signup                                301
 /iscrizione-cliente.html     /login.html?mode=signup                                301
@@ -9,6 +10,12 @@
 /index-old.html              /                                                      301
 /home                        /                                                      301
 /prenota_v1.html             /prenota.html                                          301
+
+# Aggiunte per area partner
+/profilo.html                /partner-dashboard.html                                 301
+/dashboard.html              /partner-dashboard.html                                 301
+/partner-login               /partner-login.html                                     301
+/partner-dashboard           /partner-dashboard.html                                 301
 
 # Importante: non toccare /admin (Netlify CMS)
 /admin/*                     /admin/index.html                                      200
