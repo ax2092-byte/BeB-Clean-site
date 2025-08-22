@@ -1,41 +1,37 @@
+<!-- FILE: /partner.html  (SUGGERITO - landing con pulsante "Area Partner") -->
 <!doctype html>
 <html lang="it">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Diventa partner — B&B Clean</title>
-  <meta name="description" content="Entra nella rete B&B Clean: lavori vicino a casa con prenotazioni chiare.">
+  <title>Diventa Partner — B&B Clean</title>
+  <meta name="description" content="Diventa partner B&B Clean e ricevi richieste nella tua zona.">
   <link rel="icon" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
-    :root{--brand:#0f9e9e;--brand-ink:#0a6f6f;--ink:#111827;--muted:#6b7280;--ring:#e5e7eb;--card:#f9fafb;--surface:#fff}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;color:var(--ink);background:var(--surface)}
+    :root{--brand:#0f9e9e;--ink:#111827;--ring:#e5e7eb;--muted:#6b7280}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;color:var(--ink)}
     .container{width:min(1000px,92%);margin:0 auto}
     .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
     .topbar .left{display:flex;align-items:center;gap:10px}
     .back-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;border:1px solid var(--ring);text-decoration:none;color:var(--ink)}
-    .back-arrow:hover{background:#f3f4f6}
     .logo{height:32px;display:block}
     .mainnav a{text-decoration:none;color:var(--ink);font-weight:700;margin-left:16px;padding:8px 12px;border-radius:12px}
     .mainnav a:hover{background:#f3f4f6}
-    .mainnav a.active{background:#e6f5f5;color:var(--brand-ink)}
-    .hero{padding:36px 0 8px}
+    .mainnav a.active{background:#e6f5f5;color:#0a6f6f}
+    .hero{padding:40px 0}
     .hero h1{font-size:clamp(26px,4vw,36px);margin:0 0 8px}
-    .hero .sub{color:var(--muted);margin:0}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:18px}
-    .grid{display:grid;gap:16px}
-    .cards{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .sub{color:var(--muted);margin:0 0 12px}
     .btn{display:inline-block;border:1px solid var(--ring);padding:12px 16px;border-radius:14px;text-decoration:none;font-weight:700}
     .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    form .field{margin:12px 0}
-    form label{display:block;margin-bottom:6px;font-weight:600}
-    form input,form select{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px}
+    .card{border:1px solid var(--ring);border-radius:16px;padding:18px}
+    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
   </style>
 </head>
 <body>
   <header class="topbar container" role="banner">
     <div class="left">
-      <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
+      <a class="back-arrow" href="/index.html" aria-label="Torna alla Home">←</a>
       <a href="/index.html" aria-label="B&B Clean — Home">
         <img class="logo" src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean">
       </a>
@@ -44,42 +40,24 @@
       <a href="/index.html" data-page="home">HOME</a>
       <a href="/prenota.html" data-page="prenota">PRENOTA</a>
       <a href="/servizi.html" data-page="servizi">I NOSTRI SERVIZI</a>
-      <a href="/partner.html" data-page="partner">DIVENTA PARTNER</a>
+      <a href="/partner.html" data-page="partner" class="active">DIVENTA PARTNER</a>
     </nav>
   </header>
 
   <section class="hero container">
-    <h1>Diventa partner</h1>
-    <p class="sub">Lavora vicino a casa, con prenotazioni chiare e pagamenti sicuri.</p>
+    <h1>Diventa Partner B&B Clean</h1>
+    <p class="sub">Ricevi richieste di pulizia nella tua zona. Profilo pubblico, prezzi extra personalizzabili, raggio di servizio.</p>
+    <a class="btn primary" href="/partner-login.html">Accedi all’Area Partner</a>
   </section>
 
-  <main class="container" style="margin-bottom:24px">
-    <div class="card" style="margin-bottom:18px">
-      <h3>Vantaggi</h3>
-      <ul>
-        <li>Ricevi richieste nella tua zona</li>
-        <li>Prezzi chiari (commissione partner 12%)</li>
-        <li>Dashboard per gestire disponibilità</li>
-      </ul>
-    </div>
-
+  <main class="container" style="margin-bottom:28px">
     <div class="card">
-      <h3>Candidati</h3>
-      <form id="form-partner">
-        <div class="field">
-          <label for="nome">Nome e Cognome</label>
-          <input id="nome" name="nome" required>
-        </div>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" required>
-        </div>
-        <div class="field">
-          <label for="zona">Zona</label>
-          <input id="zona" name="zona" placeholder="es. Nuoro, Olbia-Tempio">
-        </div>
-        <button class="btn primary" type="submit">Invia candidatura</button>
-      </form>
+      <h2 style="margin-top:0">Perché unirti</h2>
+      <div class="grid-3">
+        <div><strong>Clienti verificati</strong><div class="sub">Ricevi richieste con indirizzo e dettagli precisi.</div></div>
+        <div><strong>Prezzi extra personalizzati</strong><div class="sub">Imposta i tuoi prezzi per biancheria, forno, ecc.</div></div>
+        <div><strong>Zona di lavoro</strong><div class="sub">Scegli raggio e città servite.</div></div>
+      </div>
     </div>
   </main>
 
@@ -88,11 +66,9 @@
   </footer>
 
   <script src="/assets/js/site.js" defer></script>
-  <script>
-    document.getElementById('form-partner')?.addEventListener('submit', e=>{
-      e.preventDefault();
-      alert('Grazie! Ti contatteremo a breve.');
-    });
-  </script>
+  <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
+  <script src="/assets/js/auth-config.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/menu-auth.js"></script>
 </body>
 </html>
