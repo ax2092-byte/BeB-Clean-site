@@ -9,8 +9,7 @@ exports.handler = async (event) => {
     const service = process.env.TWILIO_VERIFY_SERVICE_SID;
 
     const res = await fetch(`https://verify.twilio.com/v2/Services/${service}/Verifications`, {
-      method:'POST',
-      headers:{ 'Authorization': basicAuth(sid, token), 'Content-Type':'application/x-www-form-urlencoded' },
+      method:'POST', headers:{ 'Authorization': basicAuth(sid, token), 'Content-Type':'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ To: phone_number, Channel: 'sms' }).toString()
     });
     if (!res.ok) return { statusCode:500, body: await res.text() };
