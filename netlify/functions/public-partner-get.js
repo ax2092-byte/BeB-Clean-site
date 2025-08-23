@@ -11,14 +11,8 @@ exports.handler = async (event) => {
     if (!res.ok) return { statusCode:500, body: await res.text() };
     const list = await res.json();
     if (!list.length) return { statusCode:404, body:'not found' };
-    const u = list[0];
-    const am = u.app_metadata || {};
-    const out = {
-      pid,
-      hourly_eur: am.rate?.hourly_eur || null,
-      nickname: am.profile?.nickname || null,
-      avatar_url: am.profile?.avatar_url || null
-    };
+    const u = list[0], am = u.app_metadata || {};
+    const out = { pid, hourly_eur: am.rate?.hourly_eur || null, nickname: am.profile?.nickname || null, avatar_url: am.profile?.avatar_url || null };
     return { statusCode:200, headers:{'Cache-Control':'no-store'}, body: JSON.stringify(out) };
   }catch(e){ return { statusCode:500, body:String(e) }; }
 };
