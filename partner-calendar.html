@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B&B Clean — Calendario Partner</title>
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body data-back-fallback="/partner-dashboard.html">
+<header class="container nav">
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px"></div>
+  <nav id="main-nav"><a href="/partner-dashboard.html">Dashboard</a><a href="/partner-calendar.html" class="active">Calendario</a><a href="#" id="logout-link">Esci</a></nav>
+</header>
+
+<main class="container">
+  <h1>Calendario personale</h1>
+  <div class="cal-wrap card">
+    <div class="cal-toolbar">
+      <button id="prev-month" type="button">⟵ Mese precedente</button>
+      <div id="cal-head" style="font-weight:700"></div>
+      <button id="next-month" type="button">Mese successivo ⟶</button>
+    </div>
+    <div id="cal-weekdays"></div>
+    <div id="cal-grid"></div>
+    <div class="row" style="justify-content:flex-end; margin-top:12px;">
+      <button id="save-cal" class="btn" type="button">Salva modifiche</button>
+    </div>
+    <p class="muted">Clicca sui giorni per bloccarli (non disponibile).</p>
+  </div>
+</main>
+
+<script src="/assets/js/vendor/auth0-spa-js.production.js"></script><script src="/assets/js/auth-config.js"></script><script src="/assets/js/auth.js"></script><script src="/assets/js/guard-partner.js"></script>
+<script src="/assets/js/partner/state.js"></script><script src="/assets/js/partner/calendar.js"></script>
+<script src="/assets/js/top-banner.js"></script><script src="/assets/js/back-arrow.js"></script>
+</body>
+</html>
