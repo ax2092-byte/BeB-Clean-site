@@ -4,15 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>B&B Clean — Prenota</title>
-  <link rel="icon" href="/assets/img/favicon-32.png">
-  <link rel="stylesheet" href="/assets/css/styles.css">
   <meta name="description" content="Prenota la tua pulizia con B&B Clean">
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
 <header class="container nav">
-  <div class="logo">
-    <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px">
-  </div>
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px"></div>
   <nav id="main-nav">
     <a href="/index.html">Home</a>
     <a href="/stima.html">Stima</a>
@@ -24,7 +23,7 @@
 
 <main class="container">
   <h1>Prenota il servizio</h1>
-  <p class="muted">Rivedi i dettagli e conferma. Gli importi sono una stima: il totale potrà variare in base alla durata effettiva ed eventuali extra.</p>
+  <p class="muted">Rivedi i dettagli e conferma. Gli importi sono una stima.</p>
 
   <section class="card" id="riepilogo">
     <h3>Riepilogo</h3>
@@ -53,8 +52,6 @@
     <h3>I tuoi dati</h3>
     <form name="prenota" method="POST" data-netlify="true" action="/success.html" id="form-prenota">
       <input type="hidden" name="form-name" value="prenota">
-
-      <!-- Hidden tecnici / riepilogo -->
       <input type="hidden" name="pid" id="f-pid">
       <input type="hidden" name="hourly_eur" id="f-hourly">
       <input type="hidden" name="estimated_hours" id="f-ore">
@@ -69,32 +66,13 @@
       <input type="hidden" name="extra_json" id="f-extra-json">
 
       <div class="grid-2">
-        <div>
-          <label>Nome e cognome</label>
-          <input name="nome" required>
-        </div>
-        <div>
-          <label>Email</label>
-          <input name="email" type="email" required>
-        </div>
-        <div>
-          <label>Telefono</label>
-          <input name="telefono" type="tel" required>
-        </div>
-        <div>
-          <label>Data</label>
-          <input name="data" type="date" required>
-        </div>
-        <div>
-          <label>Ora preferita</label>
-          <input name="ora" type="time" required>
-        </div>
-        <div>
-          <label>Note</label>
-          <textarea name="note" rows="3" placeholder="Indicazioni utili…"></textarea>
-        </div>
+        <div><label>Nome e cognome</label><input name="nome" required></div>
+        <div><label>Email</label><input name="email" type="email" required></div>
+        <div><label>Telefono</label><input name="telefono" type="tel" required></div>
+        <div><label>Data</label><input name="data" type="date" required></div>
+        <div><label>Ora preferita</label><input name="ora" type="time" required></div>
+        <div><label>Note</label><textarea name="note" rows="3" placeholder="Indicazioni utili…"></textarea></div>
       </div>
-
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">
         <button type="submit" class="btn">Conferma prenotazione</button>
       </div>
@@ -107,92 +85,32 @@
 <script src="/assets/js/auth.js"></script>
 <script src="/assets/js/menu-auth.js"></script>
 <script src="/assets/js/guard.js"></script>
-
+<script src="/assets/js/geo.js"></script>
 <script>
 const euro = v => (v===null||isNaN(v)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(v);
 let SETTINGS = { m2_per_hour: 35, default_hourly_eur: 20 };
-
 function qs(){ const o={}; const s=new URLSearchParams(location.search); for(const [k,v] of s) o[k]=v; return o; }
-
-function durataConsigliata(mq){
-  if (!mq || mq <= 0) return 1;
-  const ore = mq / (SETTINGS.m2_per_hour || 35);
-  return Math.max(1, Math.round(ore * 2) / 2);
-}
-
-async function publicPartner(pid){
-  const r = await fetch('/.netlify/functions/public-partner-get?pid='+encodeURIComponent(pid),{cache:'no-store'});
-  if (!r.ok) return null;
-  return r.json();
-}
-
-async function loadPartners(){
-  const r = await fetch('/assets/data/partner.json',{cache:'no-store'});
-  return r.json();
-}
-
-async function geocode(address, city, region){
-  const q = [address, city, region, 'Italia'].filter(Boolean).join(', ');
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
-  const res = await fetch(url, { headers: { 'Accept-Language':'it' }});
-  if (!res.ok) return null;
-  const js = await res.json();
-  if (!js || !js.length) return null;
-  return { lat: parseFloat(js[0].lat), lon: parseFloat(js[0].lon) };
-}
-
+function durataConsigliata(mq){ if (!mq || mq<=0) return 1; const ore = mq/(SETTINGS.m2_per_hour||35); return Math.max(1, Math.round(ore*2)/2); }
+async function publicPartner(pid){ const r=await fetch('/.netlify/functions/public-partner-get?pid='+encodeURIComponent(pid),{cache:'no-store'}); if(!r.ok) return null; return r.json(); }
+async function loadPartners(){ const r = await fetch('/assets/data/partner.json',{cache:'no-store'}); return r.json(); }
 function renderExtras(container, prices){
   const defaults = { cambio_biancheria:4, forno:7.5, frigo:6, vetri:8, balconi:12 };
   const p = Object.assign({}, defaults, prices || {});
-  const labels = {
-    cambio_biancheria: 'Cambio biancheria',
-    forno: 'Pulizia forno',
-    frigo: 'Pulizia frigo',
-    vetri: 'Pulizia vetri',
-    balconi: 'Pulizia balconi'
-  };
+  const labels = { cambio_biancheria:'Cambio biancheria', forno:'Pulizia forno', frigo:'Pulizia frigo', vetri:'Pulizia vetri', balconi:'Pulizia balconi' };
   container.innerHTML = '';
   Object.keys(p).forEach(key=>{
-    const row = document.createElement('label');
-    row.className = 'row';
-    row.style.justifyContent='space-between';
-    row.innerHTML = `
-      <span><input type="checkbox" data-key="${key}" data-price="${p[key]}"> ${labels[key]}</span>
-      <span class="muted">${euro(p[key])}</span>
-    `;
+    const row=document.createElement('label'); row.className='row'; row.style.justifyContent='space-between';
+    row.innerHTML = `<span><input type="checkbox" data-key="${key}" data-price="${p[key]}"> ${labels[key]}</span><span class="muted">${euro(p[key])}</span>`;
     container.appendChild(row);
   });
 }
-
-function extraTotal(){
-  const cbs = document.querySelectorAll('#extra-list input[type="checkbox"]');
-  let tot = 0; const items=[];
-  cbs.forEach(cb=>{
-    if (cb.checked){ const price = Number(cb.dataset.price||0); tot += price; items.push({key:cb.dataset.key, price}); }
-  });
-  return { tot, items };
-}
+function extraTotal(){ const cbs=document.querySelectorAll('#extra-list input[type="checkbox"]'); let tot=0; const items=[]; cbs.forEach(cb=>{ if(cb.checked){ const price=Number(cb.dataset.price||0); tot+=price; items.push({key:cb.dataset.key, price}); } }); return { tot, items }; }
 
 (async function init(){
-  const q = qs();
-  const pid = q.pid || '';
-  const regione = q.regione || '';
-  const citta = q.citta || '';
-  const indirizzo = q.indirizzo || '';
-  const civico = q.civico || '';
-  const mq = Number(q.mq || 0);
-  const oreStima = q.ore ? Number(q.ore) : durataConsigliata(mq);
-  let hourly = q.hourly ? Number(q.hourly) : null;
-
-  const pub = pid ? await publicPartner(pid) : null;
-  if (!hourly) hourly = pub?.hourly_eur || SETTINGS.default_hourly_eur;
-
-  let partnerRow = null;
-  try{
-    const partners = await loadPartners();
-    partnerRow = partners.find(p => (p.pid||p.partner_id||'') === pid);
-  }catch(e){}
-
+  const q = qs(); const pid = q.pid || ''; const regione = q.regione || ''; const citta = q.citta || ''; const indirizzo = q.indirizzo || ''; const civico = q.civico || '';
+  const mq = Number(q.mq || 0); const oreStima = q.ore ? Number(q.ore) : durataConsigliata(mq); let hourly = q.hourly ? Number(q.hourly) : null;
+  const pub = pid ? await publicPartner(pid) : null; if (!hourly) hourly = pub?.hourly_eur || SETTINGS.default_hourly_eur;
+  let partnerRow = null; try{ const partners = await loadPartners(); partnerRow = partners.find(p => (p.pid||p.partner_id||'') === pid); }catch(e){}
   const base = hourly * oreStima;
   document.getElementById('r-partner').textContent = pub?.nickname || partnerRow?.nome_visibile || 'B&B Cleaner';
   document.getElementById('r-pid').textContent = pid ? '('+pid+')' : '';
@@ -201,56 +119,22 @@ function extraTotal(){
   document.getElementById('r-hourly').textContent = euro(hourly);
   document.getElementById('r-ore').textContent = oreStima.toFixed(1) + ' h';
   document.getElementById('r-base').textContent = euro(base);
-
   renderExtras(document.getElementById('extra-list'), partnerRow?.extra_prices);
-  const refreshTotals = ()=>{
-    const { tot } = extraTotal();
-    document.getElementById('r-extra').textContent = euro(tot);
-    document.getElementById('r-totale').textContent = euro(base + tot);
-    document.getElementById('f-totale').value = String((base + tot).toFixed(2));
-    document.getElementById('f-extra-json').value = JSON.stringify(extraTotal().items);
-  };
-  document.getElementById('extra-list').addEventListener('change', refreshTotals);
-  refreshTotals();
-
-  document.getElementById('f-pid').value = pid;
-  document.getElementById('f-hourly').value = String(hourly);
-  document.getElementById('f-ore').value = String(oreStima);
-  document.getElementById('f-regione').value = regione;
-  document.getElementById('f-citta').value = citta;
-  document.getElementById('f-indirizzo').value = indirizzo;
-  document.getElementById('f-civico').value = civico;
-  document.getElementById('f-mq').value = String(mq);
-
-  const form = document.getElementById('form-prenota');
-  form.addEventListener('submit', async (e)=>{
+  const refreshTotals = ()=>{ const { tot } = extraTotal(); document.getElementById('r-extra').textContent = euro(tot); document.getElementById('r-totale').textContent = euro(base + tot); document.getElementById('f-totale').value = String((base + tot).toFixed(2)); document.getElementById('f-extra-json').value = JSON.stringify(extraTotal().items); };
+  document.getElementById('extra-list').addEventListener('change', refreshTotals); refreshTotals();
+  document.getElementById('f-pid').value = pid; document.getElementById('f-hourly').value = String(hourly); document.getElementById('f-ore').value = String(oreStima);
+  document.getElementById('f-regione').value = regione; document.getElementById('f-citta').value = citta; document.getElementById('f-indirizzo').value = indirizzo; document.getElementById('f-civico').value = civico; document.getElementById('f-mq').value = String(mq);
+  document.getElementById('form-prenota').addEventListener('submit', async (e)=>{
     const { tot, items } = extraTotal();
     document.getElementById('f-extra-json').value = JSON.stringify(items);
     document.getElementById('f-totale').value = String((hourly*oreStima + tot).toFixed(2));
-
-    const geo = await (async function geocode(address, city, region){
-      const q = [address, city, region, 'Italia'].filter(Boolean).join(', ');
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`;
-      try{
-        const res = await fetch(url, { headers: { 'Accept-Language':'it' }});
-        if (!res.ok) return null;
-        const js = await res.json();
-        if (!js || !js.length) return null;
-        return { lat: parseFloat(js[0].lat), lon: parseFloat(js[0].lon) };
-      }catch(_){ return null; }
-    })(`${indirizzo} ${civico}`, citta, regione);
-
-    if (geo){
-      document.getElementById('f-lat').value = String(geo.lat);
-      document.getElementById('f-lon').value = String(geo.lon);
-    }
+    const geo = await geocodeViaNominatim(`${indirizzo} ${civico}`, citta, regione);
+    if (geo){ document.getElementById('f-lat').value = String(geo.lat); document.getElementById('f-lon').value = String(geo.lon); }
   });
-
   document.getElementById('logout-link').addEventListener('click', (e)=>{ e.preventDefault(); window.authLogout && window.authLogout(); });
 })();
 </script>
-
-<!-- Freccia indietro -->
+<script src="/assets/js/top-banner.js"></script>
 <script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
