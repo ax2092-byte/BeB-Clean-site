@@ -1,44 +1,30 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>B&B Clean — Pagamenti</title>
   <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body data-back-fallback="/partner-dashboard.html">
 <header class="container nav">
-  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" style="height:32px" alt="B&B Clean"></div>
-  <nav id="main-nav">
-    <a href="/partner-dashboard.html">Dashboard</a>
-    <a href="/partner-billing.html" class="active">Pagamenti</a>
-    <a href="#" id="logout-link">Esci</a>
-  </nav>
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px"></div>
+  <nav id="main-nav"><a href="/partner-dashboard.html">Dashboard</a><a href="/partner-billing.html" class="active">Pagamenti</a><a href="#" id="logout-link">Esci</a></nav>
 </header>
 
 <main class="container">
   <h1>Coordinate di pagamento</h1>
-
   <div class="card">
-    <label>Intestatario</label>
-    <input id="iban-holder" placeholder="Nome e cognome">
-    <label>IBAN</label>
-    <input id="iban-input" placeholder="IT60X0542811101000000123456" style="text-transform:uppercase">
+    <label>Intestatario</label><input id="iban-holder" placeholder="Nome e cognome">
+    <label>IBAN</label><input id="iban-input" placeholder="IT60X0542811101000000123456" style="text-transform:uppercase">
     <button id="save-billing" class="btn">Salva</button>
     <p class="muted" id="iban-state">—</p>
   </div>
 </main>
 
-<script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
-<script src="/assets/js/auth-config.js"></script>
-<script src="/assets/js/auth.js"></script>
-<script src="/assets/js/guard-partner.js"></script>
-
-<script src="/assets/js/partner/state.js"></script>
-<script src="/assets/js/partner/billing.js"></script>
-
-<!-- Freccia indietro -->
-<script src="/assets/js/back-arrow.js"></script>
+<script src="/assets/js/vendor/auth0-spa-js.production.js"></script><script src="/assets/js/auth-config.js"></script><script src="/assets/js/auth.js"></script><script src="/assets/js/guard-partner.js"></script>
+<script src="/assets/js/partner/state.js"></script><script src="/assets/js/partner/billing.js"></script>
+<script src="/assets/js/top-banner.js"></script><script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
