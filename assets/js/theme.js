@@ -6,9 +6,9 @@
   const DEFAULTS = {
     base: 'system-ui',
     heading: 'system-ui',
-    baseSize: 16,      // px
+    baseSize: 16,
     lineHeight: 1.55,
-    h1: 2.0,           // moltiplicatore su baseSize
+    h1: 2.0,
     h2: 1.5,
     h3: 1.25
   };
@@ -22,54 +22,42 @@
     'Merriweather': { stack: "'Merriweather', Georgia, 'Times New Roman', serif", href: "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" }
   };
 
-  function read(){
-    try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(_){ return {}; }
-  }
-  function save(v){
-    try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(_){}
-  }
+  function read(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(_){ return {}; } }
+  function save(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(_){ } }
 
   function ensureFontLink(name){
     const info = FONT_MAP[name]; if (!info || !info.href) return;
     if (document.getElementById('bb-theme-fonts-'+name)) return;
-    // preconnect
     if (!document.querySelector('link[href^="https://fonts.gstatic.com"]')){
       const pc = document.createElement('link');
       pc.rel = 'preconnect'; pc.href = 'https://fonts.gstatic.com'; pc.crossOrigin = 'anonymous';
       document.head.appendChild(pc);
     }
     const l = document.createElement('link');
-    l.id = 'bb-theme-fonts-'+name;
-    l.rel = 'stylesheet'; l.href = info.href;
+    l.id = 'bb-theme-fonts-'+name; l.rel='stylesheet'; l.href=info.href;
     document.head.appendChild(l);
   }
 
   function styleEl(){
     let s = document.getElementById('bb-theme-style');
-    if (!s){
-      s = document.createElement('style'); s.id='bb-theme-style'; document.head.appendChild(s);
-    }
+    if (!s){ s = document.createElement('style'); s.id='bb-theme-style'; document.head.appendChild(s); }
     return s;
   }
 
   function apply(config){
     const cfg = Object.assign({}, DEFAULTS, config||{});
-    // Font loading
-    ensureFontLink(cfg.base);
-    ensureFontLink(cfg.heading);
-
+    ensureFontLink(cfg.base); ensureFontLink(cfg.heading);
     const baseStack = (FONT_MAP[cfg.base]||FONT_MAP['system-ui']).stack;
     const headStack = (FONT_MAP[cfg.heading]||FONT_MAP['system-ui']).stack;
 
     styleEl().textContent = `
       :root{
+        --bb-teal:#0fb6b1; --bb-dark:#1f2937; --bb-on-teal:#ffffff;
         --font-base:${baseStack};
         --font-heading:${headStack};
         --font-size-base:${cfg.baseSize}px;
         --line-height:${cfg.lineHeight};
-        --h1-scale:${cfg.h1};
-        --h2-scale:${cfg.h2};
-        --h3-scale:${cfg.h3};
+        --h1-scale:${cfg.h1}; --h2-scale:${cfg.h2}; --h3-scale:${cfg.h3};
       }
       html, body{ font-family: var(--font-base); font-size: var(--font-size-base); line-height: var(--line-height); }
       h1, h2, h3{ font-family: var(--font-heading); line-height: 1.2; }
@@ -80,13 +68,11 @@
     `;
   }
 
-  // API pubblica
   window.Theme = {
     get(){ return Object.assign({}, DEFAULTS, read()); },
     set(newCfg){ const merged = Object.assign({}, DEFAULTS, read(), newCfg||{}); save(merged); apply(merged); },
     reset(){ save({}); apply(DEFAULTS); }
   };
 
-  // Avvio
   apply(read());
 })();
