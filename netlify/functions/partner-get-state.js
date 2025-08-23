@@ -5,7 +5,6 @@ exports.handler = async (event) => {
     const auth = event.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     if (!token) return { statusCode:401, body:'missing token' };
-
     const payload = decodeJwt(token);
     const sub = payload.sub;
     const domain = process.env.AUTH0_DOMAIN;
@@ -18,7 +17,6 @@ exports.handler = async (event) => {
     const user = await ures.json();
     const am = user.app_metadata || {};
     const out = {
-      id_token: token, // utile client-side per chiamate successive
       partner_id: am.partner_id || payload['https://bebclean.it/partner_id'] || null,
       phone_number: am.phone_number || null,
       phone_verified: am.phone_verified===true,
@@ -30,7 +28,5 @@ exports.handler = async (event) => {
       hourly_eur: am.rate?.hourly_eur || null
     };
     return { statusCode:200, body: JSON.stringify(out) };
-  }catch(e){
-    return { statusCode:500, body:String(e) };
-  }
+  }catch(e){ return { statusCode:500, body:String(e) }; }
 };
