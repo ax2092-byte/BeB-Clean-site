@@ -1,91 +1,50 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>B&B Clean — Dashboard Partner</title>
   <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
   <header class="container nav">
-    <div class="logo">
-      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px">
-    </div>
+    <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px"></div>
     <nav id="main-nav">
-      <a href="/index.html">Home</a>
-      <a href="/stima.html">Stima</a>
-      <a href="/prenota.html">Prenota</a>
+      <a href="/index.html">Home</a><a href="/stima.html">Stima</a><a href="/prenota.html">Prenota</a>
       <a href="/partner.html" data-role="nav-partner-cta">Diventa partner</a>
-      <a href="/partner-dashboard.html" class="active">Dashboard</a>
-      <a href="#" id="logout-link">Esci</a>
+      <a href="/partner-dashboard.html" class="active">Dashboard</a><a href="#" id="logout-link">Esci</a>
     </nav>
   </header>
 
   <main class="container">
     <h1>Dashboard Partner</h1>
-
     <div id="alerts"></div>
 
     <section class="cards-grid">
       <div class="card">
         <h3>Telefono</h3>
         <p id="phone-state">—</p>
-        <div class="row">
-          <input id="phone-input" type="tel" placeholder="+39..." autocomplete="tel">
-          <button id="send-otp">Invia OTP</button>
-        </div>
-        <div class="row">
-          <input id="otp-input" type="text" inputmode="numeric" placeholder="Codice OTP">
-          <button id="verify-otp">Verifica</button>
-        </div>
+        <div class="row"><input id="phone-input" type="tel" placeholder="+39..." autocomplete="tel"><button id="send-otp">Invia OTP</button></div>
+        <div class="row"><input id="otp-input" type="text" inputmode="numeric" placeholder="Codice OTP"><button id="verify-otp">Verifica</button></div>
       </div>
 
-      <div class="card">
-        <h3>Documenti</h3>
-        <p id="docs-state">—</p>
-        <a class="btn" href="/partner-documents.html">Gestisci documenti</a>
+      <div class="card"><h3>Documenti</h3><p id="docs-state">—</p><a class="btn" href="/partner-documents.html">Gestisci documenti</a></div>
+
+      <div class="card"><h3>Profilo</h3>
+        <div class="row"><img id="avatar-preview" src="" alt="Avatar" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+        <div><div>Nickname: <strong id="nickname-label">—</strong></div><a class="btn" href="/partner-profile.html">Modifica profilo</a></div></div>
       </div>
 
-      <div class="card">
-        <h3>Profilo</h3>
-        <div class="row">
-          <img id="avatar-preview" src="" alt="Avatar" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
-          <div>
-            <div>Nickname: <strong id="nickname-label">—</strong></div>
-            <a class="btn" href="/partner-profile.html">Modifica profilo</a>
-          </div>
-        </div>
-      </div>
+      <div class="card"><h3>Tariffa oraria</h3><p id="rate-state">—</p><a class="btn" href="/partner-rate.html">Modifica tariffa</a></div>
+      <div class="card"><h3>Prodotti usati</h3><p id="products-state">—</p><a class="btn" href="/partner-products.html">Gestisci prodotti</a></div>
+      <div class="card"><h3>Domicilio & raggio</h3><p id="domicile-state">—</p><a class="btn" href="/partner-domicile.html">Imposta domicilio</a></div>
+      <div class="card"><h3>Pagamenti</h3><p id="billing-state">—</p><a class="btn" href="/partner-billing.html">Inserisci IBAN</a></div>
 
-      <div class="card">
-        <h3>Tariffa oraria</h3>
-        <p id="rate-state">—</p>
-        <a class="btn" href="/partner-rate.html">Modifica tariffa</a>
-      </div>
-
-      <div class="card">
-        <h3>Prodotti usati</h3>
-        <p id="products-state">—</p>
-        <a class="btn" href="/partner-products.html">Gestisci prodotti</a>
-      </div>
-
-      <div class="card">
-        <h3>Domicilio & raggio</h3>
-        <p id="domicile-state">—</p>
-        <a class="btn" href="/partner-domicile.html">Imposta domicilio</a>
-      </div>
-
-      <div class="card">
-        <h3>Pagamenti</h3>
-        <p id="billing-state">—</p>
-        <a class="btn" href="/partner-billing.html">Inserisci IBAN</a>
-      </div>
+      <div class="card"><h3>Calendario</h3><p class="muted">Blocca le date non disponibili.</p><a class="btn" href="/partner-calendar.html">Apri calendario</a></div>
     </section>
 
-    <section class="muted">
-      <p>Funzioni avanzate (ricevere richieste) sono abilitate solo con telefono verificato e documenti approvati.</p>
-    </section>
+    <section class="muted"><p>Funzioni avanzate abilitate con telefono verificato e documenti approvati.</p></section>
   </main>
 
   <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
@@ -93,34 +52,17 @@
   <script src="/assets/js/auth.js"></script>
   <script src="/assets/js/menu-auth.js"></script>
   <script src="/assets/js/guard-partner.js"></script>
-
   <script src="/assets/js/partner/state.js"></script>
   <script src="/assets/js/partner/ui.js"></script>
   <script>
     (async function(){
-      const st = await PartnerState.fetch();
-      UI.renderDashboardSummary(st);
-
-      document.getElementById('send-otp').addEventListener('click', async ()=>{
-        const phone = document.getElementById('phone-input').value.trim();
-        await PartnerState.sendOTP(phone);
-        alert('Codice inviato.');
-      });
-      document.getElementById('verify-otp').addEventListener('click', async ()=>{
-        const phone = document.getElementById('phone-input').value.trim();
-        const code  = document.getElementById('otp-input').value.trim();
-        const ok = await PartnerState.verifyOTP(phone, code);
-        alert(ok ? 'Telefono verificato!' : 'Codice non valido.');
-        const st2 = await PartnerState.fetch(true);
-        UI.renderDashboardSummary(st2);
-      });
-      document.getElementById('logout-link').addEventListener('click', (e)=>{
-        e.preventDefault(); window.authLogout && window.authLogout();
-      });
+      const st = await PartnerState.fetch(); UI.renderDashboardSummary(st);
+      document.getElementById('send-otp').addEventListener('click', async ()=>{ const phone=document.getElementById('phone-input').value.trim(); await PartnerState.sendOTP(phone); alert('Codice inviato.'); });
+      document.getElementById('verify-otp').addEventListener('click', async ()=>{ const phone=document.getElementById('phone-input').value.trim(); const code=document.getElementById('otp-input').value.trim(); const ok=await PartnerState.verifyOTP(phone,code); alert(ok?'Telefono verificato!':'Codice non valido.'); const st2=await PartnerState.fetch(true); UI.renderDashboardSummary(st2); });
+      document.getElementById('logout-link').addEventListener('click', (e)=>{ e.preventDefault(); window.authLogout && window.authLogout(); });
     })();
   </script>
-
-  <!-- Freccia indietro -->
+  <script src="/assets/js/top-banner.js"></script>
   <script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
