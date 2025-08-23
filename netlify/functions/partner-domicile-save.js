@@ -10,8 +10,7 @@ exports.handler = async (event) => {
 
     const patch = { app_metadata: { domicile: dom } };
     const res = await fetch(`https://${domain}/api/v2/users/${encodeURIComponent(sub)}`, {
-      method:'PATCH',
-      headers:{'Authorization':`Bearer ${access_token}`,'Content-Type':'application/json'},
+      method:'PATCH', headers:{'Authorization':`Bearer ${access_token}`,'Content-Type':'application/json'},
       body: JSON.stringify(patch)
     });
     if (!res.ok) return { statusCode:500, body: await res.text() };
