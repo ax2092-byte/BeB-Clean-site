@@ -15,7 +15,6 @@
       listEl.appendChild(li);
     });
   }
-
   render();
 
   document.getElementById('add-prod').addEventListener('click', async ()=>{
@@ -24,17 +23,13 @@
     const brand = document.getElementById('prod-brand').value.trim();
     const eco = document.getElementById('prod-eco').checked;
     products.push({name, brand, eco});
-    await PartnerState.saveProducts(products);
-    render();
-    document.getElementById('prod-name').value='';
-    document.getElementById('prod-brand').value='';
-    document.getElementById('prod-eco').checked=false;
+    await PartnerState.saveProducts(products); render();
+    document.getElementById('prod-name').value=''; document.getElementById('prod-brand').value=''; document.getElementById('prod-eco').checked=false;
   });
 
   listEl.addEventListener('click', async (e)=>{
     const btn = e.target.closest('button'); if(!btn) return;
-    const i = Number(btn.dataset.i);
-    const act = btn.dataset.act;
+    const i = Number(btn.dataset.i), act = btn.dataset.act;
     if (act==='del'){ products.splice(i,1); await PartnerState.saveProducts(products); render(); }
     if (act==='edit'){
       const p = products[i];
