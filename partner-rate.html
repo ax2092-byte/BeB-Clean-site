@@ -1,43 +1,25 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>B&B Clean — Tariffa Partner</title>
   <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body data-back-fallback="/partner-dashboard.html">
-  <header class="container nav">
-    <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" style="height:32px" alt="B&B Clean"></div>
-    <nav id="main-nav">
-      <a href="/partner-dashboard.html">Dashboard</a>
-      <a href="/partner-rate.html" class="active">Tariffa</a>
-      <a href="#" id="logout-link">Esci</a>
-    </nav>
-  </header>
+<header class="container nav">
+  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px"></div>
+  <nav id="main-nav"><a href="/partner-dashboard.html">Dashboard</a><a href="/partner-rate.html" class="active">Tariffa</a><a href="#" id="logout-link">Esci</a></nav>
+</header>
 
-  <main class="container">
-    <h1>Tariffa oraria</h1>
-    <p class="muted">Questa tariffa è mostrata ai clienti e usata per stime e prenotazioni.</p>
+<main class="container">
+  <h1>Tariffa oraria</h1><p class="muted">Questa tariffa è mostrata ai clienti e usata per stime e prenotazioni.</p>
+  <div class="card"><label for="rate-input">Tariffa (€/ora)</label><input id="rate-input" type="number" min="1" step="0.5" placeholder="es. 20"><button id="save-rate" class="btn">Salva</button><p id="rate-status" class="muted"></p></div>
+</main>
 
-    <div class="card">
-      <label for="rate-input">Tariffa (€/ora)</label>
-      <input id="rate-input" type="number" min="1" step="0.5" placeholder="es. 20">
-      <button id="save-rate" class="btn">Salva</button>
-      <p id="rate-status" class="muted"></p>
-    </div>
-  </main>
-
-  <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
-  <script src="/assets/js/auth-config.js"></script>
-  <script src="/assets/js/auth.js"></script>
-  <script src="/assets/js/guard-partner.js"></script>
-
-  <script src="/assets/js/partner/state.js"></script>
-  <script src="/assets/js/partner/rate.js"></script>
-
-  <!-- Freccia indietro -->
-  <script src="/assets/js/back-arrow.js"></script>
+<script src="/assets/js/vendor/auth0-spa-js.production.js"></script><script src="/assets/js/auth-config.js"></script><script src="/assets/js/auth.js"></script><script src="/assets/js/guard-partner.js"></script>
+<script src="/assets/js/partner/state.js"></script><script src="/assets/js/partner/rate.js"></script>
+<script src="/assets/js/top-banner.js"></script><script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
