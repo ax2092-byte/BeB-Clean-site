@@ -5,27 +5,20 @@ async function getMgmtToken(){
   const client_id = process.env.AUTH0_MGMT_CLIENT_ID;
   const client_secret = process.env.AUTH0_MGMT_CLIENT_SECRET;
   const res = await fetch(`https://${domain}/oauth/token`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      client_id, client_secret,
-      audience: `https://${domain}/api/v2/`,
-      grant_type: 'client_credentials'
-    })
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ client_id, client_secret, audience: `https://${domain}/api/v2/`, grant_type: 'client_credentials' })
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
 function decodeJwt(jwt){
-  const [h,p] = jwt.split('.'); 
+  const [h,p] = jwt.split('.');
   const payload = JSON.parse(Buffer.from(p,'base64url').toString('utf8'));
   return payload;
 }
 
-function basicAuth(user, pass){
-  return 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
-}
+function basicAuth(user, pass){ return 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'); }
 
 function maskIban(iban){
   if (!iban) return null;
