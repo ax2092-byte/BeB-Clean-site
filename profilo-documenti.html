@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documenti personali — B&B Clean</title>
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body data-profile="client">
+  <header class="container nav"><div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean"></div></header>
+  <main class="container">
+    <h1>Documenti personali</h1>
+    <p class="muted">Invia un documento valido e un selfie con documento. Le immagini restano riservate.</p>
+
+    <section class="card">
+      <div class="grid-2" style="gap:12px">
+        <div>
+          <label for="doc_type">Tipologia documento</label>
+          <select id="doc_type">
+            <option value="CI">Carta d'identità</option>
+            <option value="PASS">Passaporto</option>
+            <option value="PAT">Patente</option>
+          </select>
+        </div>
+        <div><label for="doc_number">Numero documento</label><input id="doc_number"></div>
+        <div><label for="doc_expiry">Scadenza</label><input id="doc_expiry" type="date"></div>
+
+        <div><label>Fronte</label><input type="file" id="doc_front" accept="image/*"></div>
+        <div><label>Retro</label><input type="file" id="doc_back" accept="image/*"></div>
+        <div><label>Selfie con documento</label><input type="file" id="doc_selfie" accept="image/*"></div>
+      </div>
+
+      <div class="row" style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn primary" id="btn-upload-docs" type="button">Invia documenti</button>
+        <span id="docs_msg" class="muted"></span>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/profile-docs.js"></script>
+  <script src="/assets/js/top-banner.js"></script>
+  <script src="/assets/js/back-arrow.js"></script>
+</body>
+</html>
