@@ -287,3 +287,132 @@ header.nav .logo img{ height:48px !important; width:auto; }
 @media (max-width: 640px){
   header.nav .logo img{ height:40px !important; }
 }
+/* ====== B&B Clean — Restyling pagina Stima (solo UI) ====== */
+body[data-page="stima"] main.container.stima-grid-host,
+body[data-page="stima"] .stima-grid-host{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px; /* form | riepilogo */
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px){
+  body[data-page="stima"] main.container.stima-grid-host,
+  body[data-page="stima"] .stima-grid-host{
+    grid-template-columns: 1fr; /* mobile: 1 colonna */
+  }
+}
+
+/* Card con profondità coerente con il sito */
+body[data-page="stima"] .card{
+  background:#fff;
+  border:1px solid #e6e6e6;
+  border-radius:16px;
+  padding:18px;
+  box-shadow: 0 8px 24px rgba(2, 24, 33, 0.04);
+}
+body[data-page="stima"] .form-card h2,
+body[data-page="stima"] .summary-card h2{
+  margin-top:0;
+}
+
+/* Sticky per il riepilogo */
+body[data-page="stima"] .sticky{
+  position: sticky;
+  top: 16px;
+}
+
+/* Form pro: input/select/textarea */
+body[data-page="stima"] input[type="text"],
+body[data-page="stima"] input[type="number"],
+body[data-page="stima"] input[type="tel"],
+body[data-page="stima"] input[type="email"],
+body[data-page="stima"] select,
+body[data-page="stima"] textarea{
+  width:100%;
+  height:46px;
+  padding:10px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+body[data-page="stima"] textarea{ min-height: 100px; height:auto; resize: vertical; }
+body[data-page="stima"] input::placeholder,
+body[data-page="stima"] textarea::placeholder{ color:#9ca3af; }
+
+body[data-page="stima"] input:focus,
+body[data-page="stima"] select:focus,
+body[data-page="stima"] textarea:focus{
+  outline: none;
+  border-color: var(--bb-teal, #0fb6b1);
+  box-shadow: 0 0 0 3px rgba(15,182,177,0.18);
+}
+
+/* Titoli di sezione del form (se presenti) */
+body[data-page="stima"] .section-title,
+body[data-page="stima"] .group-title,
+body[data-page="stima"] fieldset > legend{
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+/* Griglia campi: spazio verticale consistente */
+body[data-page="stima"] .form-card .row,
+body[data-page="stima"] .form-card .field{
+  margin-bottom: 12px;
+}
+
+/* Extra come chip (non alteriamo i checkbox) */
+body[data-page="stima"] .extras-grid{
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+body[data-page="stima"] .extras-grid label.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:999px;
+  background:#f8fafc;
+  cursor:pointer; user-select:none;
+  font-weight:600;
+}
+body[data-page="stima"] .extras-grid input[type="checkbox"]{
+  width:18px; height:18px;
+}
+body[data-page="stima"] .extras-grid input[type="checkbox"]:focus-visible + label.chip{
+  outline: 2px solid var(--bb-teal, #0fb6b1); outline-offset: 2px;
+}
+body[data-page="stima"] .extras-grid label.chip.is-checked,
+body[data-page="stima"] .extras-grid input[type="checkbox"]:checked + label.chip{
+  background: #e6fbfa;
+  border-color: #8be2df;
+}
+
+/* Riepilogo (usa i tuoi ID esistenti per i valori) */
+body[data-page="stima"] .summary-card .total{
+  font-size: 2rem; font-weight: 800; margin: 6px 0 10px;
+}
+body[data-page="stima"] .summary-card .line{
+  display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e5e7eb;
+}
+body[data-page="stima"] .summary-card .line:last-child{ border-bottom:0; }
+
+/* Stati geocode */
+body[data-page="stima"] #geocode-status{
+  margin-top:6px; border-radius:8px; padding:8px 12px; display:inline-block;
+}
+body[data-page="stima"] #geocode-status.is-pending{
+  background:#fff7ed; color:#92400e; border:1px solid #fde68a;
+}
+body[data-page="stima"] #geocode-status.is-ok{
+  background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;
+}
+body[data-page="stima"] #geocode-status.is-warn{
+  background:#fef2f2; color:#991b1b; border:1px solid #fecaca;
+}
+
+/* CTA nel form/summary coerenti con fix bottoni */
+body[data-page="stima"] .form-card .btn,
+body[data-page="stima"] .summary-card .btn{
+  width:100%;
+}
