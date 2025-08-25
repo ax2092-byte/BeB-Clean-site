@@ -140,3 +140,17 @@ a{color:inherit}
 .authbar a:hover{background:#f3f4f6}
 
 }
+/* ==== B&B Clean — Header logo più grande (uniforme) ==== */
+header.nav .logo img{
+  height: 48px !important; /* sovrascrive eventuali inline style "height:32px" */
+  width: auto;
+}
+@media (max-width: 640px){
+  header.nav .logo img{ height: 40px !important; }
+}
+
+/* ==== Nascondi le vecchie nav locali: usiamo solo il banner top ==== */
+header.nav nav,
+.mainnav{
+  display: none !important;
+}
