@@ -1,9 +1,9 @@
 [
   {
-    "id": "nuoro-01",
-    "nome": "Cleaner Nuoro",
-    "lat": 40.3202,
-    "lon": 9.3265,
+    "id": "Oliena-01",
+    "nome": "Cleaner Oliena",
+    "lat": 40.2749,
+    "lon": 9.4057,
     "raggio_km": 35,
     "hourly_rate": 22
   },
