@@ -416,3 +416,23 @@ body[data-page="stima"] .form-card .btn,
 body[data-page="stima"] .summary-card .btn{
   width:100%;
 }
+/* === B&B Clean — Bottoni "ghost" più scuri (global) === */
+.btn.ghost{
+  background:#e2e8f0;          /* più scuro, leggibile su sfondo bianco */
+  border-color:#94a3b8;        /* bordo contrastato */
+  color:#111827;               /* testo scuro coerente */
+  box-shadow:0 1px 0 rgba(2,24,33,.04);
+}
+.btn.ghost:hover{
+  background:#cbd5e1;          /* hover un tono più scuro */
+  border-color:#64748b;
+}
+.btn.ghost:active{
+  background:#bfcad6;
+  border-color:#64748b;
+  transform: translateY(.5px);
+}
+.btn.ghost:focus-visible{
+  outline:2px solid var(--bb-teal, #0fb6b1);
+  outline-offset:2px;
+}
