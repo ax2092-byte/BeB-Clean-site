@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fatturazione — B&B Clean</title>
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body data-profile="client">
+  <header class="container nav"><div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean"></div></header>
+  <main class="container">
+    <h1>Fatturazione (Italia)</h1>
+    <section class="card">
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+        <label><input type="radio" name="bill_type" value="PRIVATO" checked> Privato (CF)</label>
+        <label><input type="radio" name="bill_type" value="AZIENDA"> Azienda (P.IVA)</label>
+      </div>
+      <div class="grid-2" style="gap:12px;margin-top:10px">
+        <div><label for="bill_header">Intestazione</label><input id="bill_header" placeholder="Nome e cognome / Ragione sociale"></div>
+        <div><label for="bill_cf">Codice Fiscale</label><input id="bill_cf"></div>
+        <div><label for="bill_piva">Partita IVA</label><input id="bill_piva"></div>
+        <div><label for="bill_sdi">Codice SDI</label><input id="bill_sdi"></div>
+        <div><label for="bill_pec">PEC</label><input id="bill_pec"></div>
+        <div><label for="bill_addr">Indirizzo fattura</label><input id="bill_addr" placeholder="Via, n., CAP, Città"></div>
+      </div>
+      <div class="row" style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn primary" type="button">Salva impostazioni</button>
+      </div>
+    </section>
+  </main>
+  <script src="/assets/js/top-banner.js"></script>
+  <script src="/assets/js/back-arrow.js"></script>
+</body>
+</html>
