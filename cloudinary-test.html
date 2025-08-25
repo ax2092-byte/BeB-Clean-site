@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test Firma Cloudinary — B&B Clean</title>
+  <meta name="description" content="Pagina di test per firma Cloudinary via Netlify Function">
+  <style>
+    :root{ --bg:#0b1220; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --brand:#0fb6b1; --line:#1f2937; }
+    *{ box-sizing:border-box }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; background:var(--bg); color:var(--text) }
+    .wrap{ max-width:860px; margin:0 auto; padding:20px 14px }
+    .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:10px 0 }
+    h1{ margin:6px 0 10px }
+    p.muted{ color:var(--muted); margin:0 0 12px }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+    label{ display:block; font-size:14px; margin-bottom:4px; color:#cbd5e1 }
+    input[type="text"], input[type="file"]{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0f172a; color:var(--text)
+    }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px }
+    .btn{ padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#111827; color:#fff; cursor:pointer; text-decoration:none }
+    .btn.primary{ background:var(--brand); border-color:var(--brand); color:#042a2a; font-weight:800 }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed }
+    .ok{ color:#86efac } .err{ color:#fca5a5; white-space:pre-wrap }
+    code, .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:90% }
+    .preview{ margin-top:10px; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap }
+    .thumb{ width:220px; max-width:100%; border-radius:12px; border:1px solid #243144 }
+    .kv{ display:grid; grid-template-columns:160px 1fr; gap:6px; margin-top:8px }
+    .kv div:nth-child(odd){ color:#93a3b5 }
+    .sep{ height:1px; background:#1f2a3a; margin:10px 0 }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Test Firma Cloudinary</h1>
+    <p class="muted">Questa pagina verifica che le ENV <span class="mono">CLOUDINARY_*</span> siano corrette e che la function
+      <span class="mono">/.netlify/functions/cloudinary-sign</span> generi la firma per l’upload.</p>
+
+    <!-- Box autenticazione (serve per passare Authorization alle funzioni) -->
+    <div class="card">
+      <h2>1) Autenticazione</h2>
+      <p class="muted">Accedi con Auth0 per ottenere il token (audience <span class="mono">https://bebclean.it/api</span>).</p>
+      <div class="actions">
+        <button id="btn-login" class="btn primary">Accedi</button>
+        <button id="btn-logout" class="btn">Esci</button>
+        <span id="auth-status" class="ok"></span>
+      </div>
+    </div>
+
+    <!-- Box upload -->
+    <div class="card">
+      <h2>2) Firma & Upload</h2>
+      <div class="row">
+        <div>
+          <label>File da caricare (immagine/PDF)</label>
+          <input id="file" type="file" accept="image/*,application/pdf">
+        </div>
+        <div>
+          <label>Cartella Cloudinary (folder)</label>
+          <input id="folder" type="text" value="clients/docs">
+          <p class="muted">Lascia <span class="mono">clients/docs</span> come da progetto.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-upload" class="btn primary" disabled>Firma & Carica</button>
+        <span id="run-status" class="ok"></span>
+      </div>
+      <div id="error" class="err"></div>
+      <div class="sep"></div>
+      <div id="result" class="preview" style="display:none">
+        <img id="thumb" class="thumb" alt="anteprima">
+        <div class="kv">
+          <div>URL</div><div><a id="url" href="#" target="_blank" class="mono"></a></div>
+          <div>public_id</div><div id="pid" class="mono"></div>
+          <div>bytes</div><div id="bytes" class="mono"></div>
+          <div>format</div><div id="fmt" class="mono"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Note</h2>
+      <ul>
+        <li>Se “Accedi” non cambia stato → controlla <span class="mono">AUTH0_CONFIG</span> e l’API <span class="mono">https://bebclean.it/api</span> in Auth0.</li>
+        <li>Se la firma fallisce (401) → manca l’Header <span class="mono">Authorization</span> o le ENV Cloudinary non sono impostate.</li>
+        <li>Se l’upload fallisce con “Invalid signature” → <span class="mono">CLOUDINARY_API_SECRET</span> errata.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Config Auth0 + SDK -->
+  <script src="/assets/js/auth0-config.js" defer></script>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js" defer></script>
+  <script>
+  (function(){
+    const $ = s => document.querySelector(s);
+    let client, token = null, isAuth = false, user = null;
+
+    function logStatus(t){ $('#auth-status').textContent = t || ''; }
+    function runStatus(t){ $('#run-status').textContent = t || ''; }
+    function showErr(t){ $('#error').textContent = t || ''; }
+    function enableUpload(v){ $('#btn-upload').disabled = !v; }
+
+    async function waitForAuth0(){
+      const wait = ms => new Promise(r => setTimeout(r, ms));
+      let tries = 0;
+      while ((typeof window.AUTH0_CONFIG === 'undefined' || typeof auth0 === 'undefined') && tries < 200){
+        await wait(30); tries++;
+      }
+      if (typeof auth0 === 'undefined') throw new Error('Auth0 SDK non caricato');
+      if (typeof window.AUTH0_CONFIG === 'undefined'){
+        // fallback minimale (aggiorna con i tuoi dati se vuoi)
+        window.AUTH0_CONFIG = {
+          domain: "dev-nmvv4fpc7jmiw1pw.eu.auth0.com",
+          clientId: "Tpjl7J5RWMRm5WdGD8PCPTymMSFKiWmq",
+          authorizationParams: { redirect_uri: location.origin },
+          cacheLocation: "memory", useRefreshTokens: false
+        };
+      }
+      client = await auth0.createAuth0Client(window.AUTH0_CONFIG);
+    }
+
+    async function ensureAuth(){
+      isAuth = await client.isAuthenticated();
+      if (!isAuth) return false;
+      user = await client.getUser();
+      token = await client.getTokenSilently({ authorizationParams: { audience: 'https://bebclean.it/api' } });
+      logStatus('Autenticato come ' + (user?.email || user?.name || 'utente'));
+      enableUpload(true);
+      return true;
+    }
+
+    async function login(){
+      try{
+        await client.loginWithPopup({ authorizationParams: { audience: 'https://bebclean.it/api' }});
+        await ensureAuth();
+      }catch(e){ showErr('Login errore: ' + (e.message||e)); }
+    }
+    async function logout(){
+      try{
+        token=null; isAuth=false; user=null; enableUpload(false);
+        await client.logout({ logoutParams: { returnTo: location.origin }});
+      }catch(e){ /* ignore */ }
+    }
+
+    async function sign(folder){
+      const r = await fetch('/.netlify/functions/cloudinary-sign', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ folder })
+      });
+      if (!r.ok){
+        const t = await r.text().catch(()=> '');
+        throw new Error('Sign failed: ' + t);
+      }
+      return r.json();
+    }
+
+    async function uploadToCloudinary(file, signed){
+      const url = `https://api.cloudinary.com/v1_1/${signed.cloud_name}/auto/upload`;
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('api_key', signed.api_key);
+      fd.append('timestamp', signed.timestamp);
+      fd.append('signature', signed.signature);
+      fd.append('folder', signed.folder);
+      const r = await fetch(url, { method:'POST', body: fd });
+      if (!r.ok){
+        const t = await r.text().catch(()=> '');
+        throw new Error('Upload failed: ' + t);
+      }
+      return r.json();
+    }
+
+    async function onUpload(){
+      showErr(''); runStatus('');
+      if (!isAuth){ showErr('Devi prima accedere.'); return; }
+      const file = $('#file').files[0];
+      if (!file){ showErr('Seleziona un file.'); return; }
+      const folder = ($('#folder').value || 'clients/docs').trim();
+
+      try{
+        runStatus('Firma in corso…');
+        const signed = await sign(folder);
+        runStatus('Upload in corso…');
+        const out = await uploadToCloudinary(file, signed);
+        runStatus('Completato ✅');
+
+        $('#result').style.display='';
+        $('#thumb').src = out.secure_url;
+        $('#url').href = out.secure_url;
+        $('#url').textContent = out.secure_url;
+        $('#pid').textContent = out.public_id || '—';
+        $('#bytes').textContent = (out.bytes || 0) + ' bytes';
+        $('#fmt').textContent = out.format || '—';
+      }catch(e){
+        showErr(String(e.message || e));
+        runStatus('');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      try{
+        await waitForAuth0();
+        // gestisci eventuale callback
+        if (location.search.includes('state=') && (location.search.includes('code=') || location.search.includes('error='))){
+          try{ await client.handleRedirectCallback(); }catch(e){}
+          history.replaceState({}, document.title, location.pathname);
+        }
+        const ok = await ensureAuth();
+        if (!ok) logStatus('Non autenticato');
+
+        $('#btn-login').addEventListener('click', login);
+        $('#btn-logout').addEventListener('click', logout);
+        $('#btn-upload').addEventListener('click', onUpload);
+      }catch(e){
+        showErr('Init error: ' + (e.message||e));
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
