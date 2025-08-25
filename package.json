@@ -1,14 +1,13 @@
 {
-  "name": "bbclean-site",
+  "name": "bebclean-site",
   "private": true,
-  "version": "1.0.0",
-  "license": "MIT",
   "type": "module",
-  "dependencies": {
-    "@netlify/blobs": "^5.0.0",
-    "jose": "^5.2.4"
+  "scripts": {
+    "build": "echo \"Static site\"",
+    "dev": "netlify dev"
   },
-  "engines": {
-    "node": ">=18"
+  "dependencies": {
+    "jose": "^5.2.1"
   }
 }
+
