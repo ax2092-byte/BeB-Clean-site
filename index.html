@@ -3,41 +3,186 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B&B Clean — Home</title>
-  <meta name="description" content="Pulizie per B&B e appartamenti. Stime chiare, prenotazioni rapide.">
+  <title>B&B Clean — Pulizie per casa e B&B, veloci e senza pensieri</title>
+  <meta name="description" content="Trova un B&B Cleaner vicino a te. Stime chiare, prenotazioni rapide e pagamento sicuro.">
   <link rel="icon" href="/assets/img/favicon-32.png">
+  <!-- Font & tema globale -->
   <script src="/assets/js/theme.js"></script>
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-<body data-no-top-banner="0">
-<header class="container nav">
-  <div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" style="height:32px"></div>
-  <nav id="main-nav">
-    <a href="/index.html" class="active">Home</a>
-    <a href="/stima.html">Stima</a>
-    <a href="/prenota.html">Prenota</a>
-    <a href="/partner.html" data-role="nav-partner-cta">Diventa partner</a>
-    <a href="#" id="logout-link">Esci</a>
-  </nav>
-</header>
+<body>
+  <!-- HEADER: solo logo (la nav alta la inserisce top-banner.js) -->
+  <header class="container nav" role="banner">
+    <div class="logo">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" />
+    </div>
+  </header>
 
-<main class="container">
-  <h1>Benvenuto in B&amp;B Clean</h1>
-  <p class="muted">Stime trasparenti e partner verificati.</p>
-  <div class="row" style="gap:8px">
-    <a class="btn" href="/stima.html">Calcola una stima</a>
-    <a class="btn" href="/prenota.html">Prenota ora</a>
-  </div>
-</main>
+  <main>
+    <!-- HERO -->
+    <section class="hero-wrap">
+      <div class="container hero">
+        <div class="hero__text">
+          <h1>Pulizie per casa e B&amp;B, veloci e senza pensieri</h1>
+          <p class="sub">Trova un B&amp;B Cleaner vicino a te. Prezzi chiari e pagamento sicuro.</p>
+          <div class="cta">
+            <a class="btn primary xl" href="/stima.html">Calcola la stima</a>
+            <a class="btn ghost xl" href="/prenota.html">Prenota ora</a>
+          </div>
+          <p class="microtrust">Cleaner verificati • Pagamento sicuro • Senza sorprese</p>
+        </div>
+        <div class="hero__media">
+          <!-- Sostituisci con un'immagine reale /assets/img/home/hero.jpg -->
+          <img src="/assets/img/home/hero.jpg" alt="Pulizie professionali B&B Clean">
+        </div>
+      </div>
+    </section>
 
-<script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
-<script src="/assets/js/auth-config.js"></script>
-<script src="/assets/js/auth.js"></script>
-<script src="/assets/js/menu-auth.js"></script>
-<script>
-document.getElementById('logout-link').addEventListener('click', (e)=>{e.preventDefault(); window.authLogout && window.authLogout();});
-</script>
-<script src="/assets/js/top-banner.js"></script>
-<script src="/assets/js/back-arrow.js"></script>
+    <!-- PERCHÉ SCEGLIERCI -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Perché scegliere B&amp;B Clean</h2>
+        <div class="cards-grid">
+          <article class="card feature">
+            <img src="/assets/img/home/card-nearby.png" alt="" class="feature-ic">
+            <h3>Vicini a te</h3>
+            <p>Selezioniamo cleaner nel tuo raggio: puntualità e meno costi.</p>
+          </article>
+          <article class="card feature">
+            <img src="/assets/img/home/card-pricing.png" alt="" class="feature-ic">
+            <h3>Prezzi chiari</h3>
+            <p>Vedi la stima prima di confermare. Nessuna sorpresa.</p>
+          </article>
+          <article class="card feature">
+            <img src="/assets/img/home/card-quality.png" alt="" class="feature-ic">
+            <h3>Qualità garantita</h3>
+            <p>Partner verificati, feedback reali e controlli qualità.</p>
+          </article>
+          <article class="card feature">
+            <img src="/assets/img/home/card-support.png" alt="" class="feature-ic">
+            <h3>Supporto rapido</h3>
+            <p>Assistenza via WhatsApp/Email per ogni necessità.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- COME FUNZIONA -->
+    <section class="section alt">
+      <div class="container">
+        <h2 class="section-title">Come funziona</h2>
+        <div class="steps">
+          <article class="step">
+            <div class="step-num">1</div>
+            <h3>Inserisci indirizzo e mq</h3>
+            <p>Usiamo il geocode per trovare i cleaner più vicini.</p>
+          </article>
+          <article class="step">
+            <div class="step-num">2</div>
+            <h3>Scegli extra e orario</h3>
+            <p>Vetri, frigo, balconi e preferenze orarie.</p>
+          </article>
+          <article class="step">
+            <div class="step-num">3</div>
+            <h3>Conferma e paga in sicurezza</h3>
+            <p>Ricevi conferma e riepilogo via email.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESEMPIO PREZZI -->
+    <section class="section">
+      <div class="container">
+        <div class="card price-card">
+          <div>
+            <h2 class="section-title">Esempio prezzi trasparenti</h2>
+            <p class="muted">I valori sono indicativi. La stima reale si calcola in pochi secondi.</p>
+            <ul class="price-list">
+              <li>Tariffa oraria media: <strong>€20/h</strong></li>
+              <li>Durata tipica intervento: <strong>3 h</strong> → <strong>€60</strong></li>
+              <li>Extra: vetri €8 + frigo €6 → <strong>€14</strong></li>
+            </ul>
+          </div>
+          <div class="price-total">
+            <div>Totale stimato</div>
+            <div class="big">€74</div>
+            <a class="btn primary" href="/stima.html">Calcola la tua stima</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIANZE -->
+    <section class="section alt">
+      <div class="container">
+        <h2 class="section-title">Cosa dicono i clienti</h2>
+        <div class="cards-grid testimonials">
+          <blockquote class="card">
+            <p>“Veloci e precisi. Appartamento perfetto per il nuovo ospite.”</p>
+            <footer>— Laura, Cagliari</footer>
+          </blockquote>
+          <blockquote class="card">
+            <p>“Prezzo chiaro e prenotazione semplice. Consigliatissimi.”</p>
+            <footer>— Marco, Olbia</footer>
+          </blockquote>
+          <blockquote class="card">
+            <p>“Cleaner puntuale e professionale. Servizio top.”</p>
+            <footer>— Giulia, Sassari</footer>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Domande frequenti</h2>
+        <div class="faq">
+          <details>
+            <summary>Devo essere presente durante la pulizia?</summary>
+            <p>No, basta lasciare accesso e indicazioni. Ti aggiorniamo a fine lavoro.</p>
+          </details>
+          <details>
+            <summary>Come funziona il pagamento?</summary>
+            <p>Confermi online in sicurezza e saldi a fine lavoro secondo riepilogo.</p>
+          </details>
+          <details>
+            <summary>Posso spostare o cancellare una prenotazione?</summary>
+            <p>Sì, entro le 24 ore precedenti senza costi. Dopo, potrebbe essere applicata una penale.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINALE -->
+    <section class="section cta-final">
+      <div class="container center">
+        <h2 class="section-title">Pronto a prenotare?</h2>
+        <p class="muted">Ti bastano pochi minuti: superficie, extra e preferenze.</p>
+        <div class="cta">
+          <a class="btn primary" href="/prenota.html">Vai a Prenota</a>
+          <a class="btn ghost" href="/stima.html">Calcola la stima</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
+    </div>
+  </footer>
+
+  <!-- Auth (per gestione menu/Logout nel banner) -->
+  <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
+  <script src="/assets/js/auth-config.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/menu-auth.js"></script>
+
+  <!-- Banner colorato + Freccia indietro -->
+  <script src="/assets/js/top-banner.js"></script>
+  <script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
