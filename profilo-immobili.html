@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I tuoi immobili — B&B Clean</title>
+  <link rel="icon" href="/assets/img/favicon-32.png">
+  <script src="/assets/js/theme.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body data-profile="client">
+  <header class="container nav"><div class="logo"><img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean"></div></header>
+
+  <main class="container">
+    <h1>I tuoi immobili</h1>
+    <p class="muted">Aggiungi uno o più immobili per velocizzare le prenotazioni.</p>
+
+    <section class="card">
+      <h2>Aggiungi immobile</h2>
+      <div class="grid-2" style="gap:12px">
+        <div><label for="prop_region">Regione</label>
+          <select id="prop_region">
+            <option value="">Seleziona…</option>
+            <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
+            <option>Emilia-Romagna</option><option>Friuli-Venezia Giulia</option><option>Lazio</option><option>Liguria</option>
+            <option>Lombardia</option><option>Marche</option><option>Molise</option><option>Piemonte</option>
+            <option>Puglia</option><option>Sardegna</option><option>Sicilia</option><option>Toscana</option>
+            <option>Trentino-Alto Adige</option><option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
+          </select>
+        </div>
+        <div><label for="prop_city">Città</label>
+          <input id="prop_city" list="prop_city_list" placeholder="Digita e scegli…">
+          <datalist id="prop_city_list"></datalist>
+        </div>
+        <div><label for="prop_address">Indirizzo</label><input id="prop_address" placeholder="Via/Piazza"></div>
+        <div><label for="prop_nr">Civico</label><input id="prop_nr" placeholder="es. 12"></div>
+        <div><label for="prop_mq">Mq</label><input id="prop_mq" type="number" min="20" step="5"></div>
+        <div><label for="prop_label">Nome immobile</label><input id="prop_label" placeholder="es. Casa Mare Dorgali"></div>
+        <div><label for="prop_floors">Descrizione piani</label><input id="prop_floors" placeholder="PT, 1°, 2° …"></div>
+        <div><label for="prop_rooms">Stanze</label><input id="prop_rooms" placeholder="living, cucina, camere"></div>
+        <div><label for="prop_baths">Bagni</label><input id="prop_baths" placeholder="es. 2 bagni"></div>
+        <div><label>Documento proprietà (bolletta)</label><input type="file" id="prop_owner_doc" accept="image/*,application/pdf"></div>
+      </div>
+      <div class="row" style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" id="btn-add-prop" type="button">Aggiungi alla lista</button>
+        <button class="btn primary" id="btn-save-props" type="button">Salva immobili</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Elenco immobili</h2>
+      <div id="props_list"></div>
+    </section>
+  </main>
+
+  <script src="/assets/js/geo.js"></script>
+  <script src="/assets/js/profile-properties.js"></script>
+  <script src="/assets/js/top-banner.js"></script>
+  <script src="/assets/js/back-arrow.js"></script>
+</body>
+</html>
