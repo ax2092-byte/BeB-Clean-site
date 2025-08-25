@@ -1,79 +1,200 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>I nostri servizi — B&B Clean</title>
-  <meta name="description" content="Pulizie per casa e B&B: listino servizi ed extra disponibili.">
-  <link rel="icon" href="/assets/img/favicon-32.png">
-  <link rel="stylesheet" href="/assets/css/styles.css">
-  <style>
-    :root{--brand:#0f9e9e;--brand-ink:#0a6f6f;--ink:#111827;--muted:#6b7280;--ring:#e5e7eb;--card:#f9fafb;--surface:#fff}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;color:var(--ink);background:var(--surface)}
-    .container{width:min(1000px,92%);margin:0 auto}
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
-    .topbar .left{display:flex;align-items:center;gap:10px}
-    .back-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;border:1px solid var(--ring);text-decoration:none;color:var(--ink)}
-    .back-arrow:hover{background:#f3f4f6}
-    .logo{height:32px;display:block}
-    .mainnav a{text-decoration:none;color:var(--ink);font-weight:700;margin-left:16px;padding:8px 12px;border-radius:12px}
-    .mainnav a:hover{background:#f3f4f6}
-    .mainnav a.active{background:#e6f5f5;color:var(--brand-ink)}
-    .hero{padding:36px 0 8px}
-    .hero h1{font-size:clamp(26px,4vw,36px);margin:0 0 8px}
-    .hero .sub{color:var(--muted);margin:0}
-    .grid{display:grid;gap:16px}
-    .cards{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:18px}
-    .card h3{margin:0 0 6px}
-    .card p{margin:0;color:var(--muted)}
-    .btn{display:inline-block;border:1px solid var(--ring);padding:12px 16px;border-radius:14px;text-decoration:none;font-weight:700}
-    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B&B Clean — I nostri servizi</title>
+  <meta name="description" content="Pulizie professionali per B&B dopo il check-out e pulizie a domicilio. Stime chiare, prenotazioni rapide e pagamento sicuro." />
+  <link rel="icon" href="/assets/img/favicon-32.png" />
+  <!-- Tema & CSS globale -->
+  <script src="/assets/js/theme.js"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
 </head>
-<body>
-  <header class="topbar container" role="banner">
-    <div class="left">
-      <a id="back-link" class="back-arrow" href="#back" aria-label="Torna alla pagina precedente">←</a>
-      <a href="/index.html" aria-label="B&B Clean — Home">
-        <img class="logo" src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean">
-      </a>
+<body data-back-fallback="/index.html">
+  <!-- HEADER: solo logo (la nav alta la inserisce top-banner.js) -->
+  <header class="container nav" role="banner">
+    <div class="logo">
+      <img src="/assets/img/bbclean-logo-primary.png" alt="B&B Clean" />
     </div>
-    <nav class="mainnav" aria-label="Menu principale">
-      <a href="/index.html" data-page="home">HOME</a>
-      <a href="/prenota.html" data-page="prenota">PRENOTA</a>
-      <a href="/servizi.html" data-page="servizi">I NOSTRI SERVIZI</a>
-      <a href="/partner.html" data-page="partner">DIVENTA PARTNER</a>
-    </nav>
   </header>
 
-  <section class="hero container">
-    <h1>I nostri servizi</h1>
-    <p class="sub">Pulizie standard e extra, pensati per casa e B&B.</p>
-  </section>
+  <main>
+    <!-- HERO -->
+    <section class="hero-wrap">
+      <div class="container hero">
+        <div class="hero__text">
+          <h1>I nostri servizi</h1>
+          <p class="sub">Pulizie professionali per B&amp;B dopo il check-out e pulizie a domicilio. Stime chiare, prenotazioni rapide e pagamento sicuro.</p>
+          <div class="cta">
+            <a class="btn primary xl" href="/stima.html">Calcola la stima</a>
+            <a class="btn ghost xl" href="/prenota.html">Prenota ora</a>
+          </div>
+        </div>
+        <div class="hero__media">
+          <!-- Facoltativo: sostituisci con una tua immagine -->
+          <img src="/assets/img/home/hero.jpg" alt="Servizi di pulizia B&B Clean" loading="lazy" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </section>
 
-  <main class="container">
-    <div class="grid cards" style="margin:18px 0 28px">
-      <div class="card">
-        <h3>Pulizia standard</h3>
-        <p>Superfici, pavimenti, bagno e cucina. Prodotti inclusi.</p>
+    <!-- SERVIZI B&B -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Servizi per B&amp;B (post check-out)</h2>
+        <div class="cards-grid">
+          <article class="card">
+            <h3>Cosa include</h3>
+            <ul class="list">
+              <li>Rifacimento letti e sistemazione ambienti</li>
+              <li>Bagni: sanitari, box/doccia, rubinetterie, anticalcare</li>
+              <li>Cucina: piani, lavello, piastra/fornelli, esterno elettrodomestici</li>
+              <li>Spolvero arredi, aspirazione e lavaggio pavimenti</li>
+              <li>Smaltimento rifiuti e controllo “pronto ospite”</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Extra su richiesta</h3>
+            <ul class="list">
+              <li>Vetri e vetrate interne/esterne</li>
+              <li>Pulizia approfondita forno</li>
+              <li>Pulizia approfondita frigo</li>
+              <li>Balconi/terrazze</li>
+            </ul>
+            <p class="muted" style="margin-top:8px;">Gli extra si selezionano in <a href="/stima.html">Stima</a> o <a href="/prenota.html">Prenota</a>.</p>
+          </article>
+        </div>
       </div>
-      <div class="card">
-        <h3>Extra su richiesta</h3>
-        <p>Forno, frigo, vetri, balconi, cambio biancheria, stiratura.</p>
+    </section>
+
+    <!-- PULIZIE A DOMICILIO -->
+    <section class="section alt">
+      <div class="container">
+        <h2 class="section-title">Pulizie a domicilio</h2>
+        <div class="cards-grid">
+          <article class="card">
+            <h3>Cosa include</h3>
+            <ul class="list">
+              <li>Spolvero e riordino</li>
+              <li>Aspirazione e lavaggio pavimenti</li>
+              <li>Bagni completi</li>
+              <li>Cucina (esterno mobili, piani di lavoro, lavello)</li>
+              <li>Camere da letto e zona living</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Extra su richiesta</h3>
+            <ul class="list">
+              <li>Vetri</li>
+              <li>Forno</li>
+              <li>Frigo</li>
+              <li>Zone esterne</li>
+              <li>Anticalcare intensivo su box/doccia</li>
+            </ul>
+          </article>
+        </div>
       </div>
-      <div class="card">
-        <h3>Check-in/Check-out</h3>
-        <p>Preparazione B&B per nuovi ospiti con controllo finale.</p>
+    </section>
+
+    <!-- PRODOTTI UTILIZZATI -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Prodotti che utilizziamo</h2>
+        <div class="cards-grid">
+          <article class="card">
+            <ul class="list">
+              <li>Multiuso neutro per arredi e superfici</li>
+              <li>Sgrassatore cucina</li>
+              <li>Anticalcare per bagno</li>
+              <li>Detergente pavimenti pH neutro</li>
+              <li>Detergente vetri a rapida evaporazione</li>
+              <li>Panni in microfibra, mop, aspirapolvere</li>
+            </ul>
+            <p class="muted" style="margin-top:8px;">Su richiesta, disponibili soluzioni a <strong>ridotto impatto</strong> (eco).</p>
+          </article>
+          <article class="card" style="display:flex;align-items:center;justify-content:center;min-height:160px;">
+            <img src="/assets/img/home/card-quality.png" alt="" loading="lazy" class="feature-ic" onerror="this.style.display='none'">
+          </article>
+        </div>
       </div>
-    </div>
-    <a class="btn primary" href="/prenota.html">Prenota ora</a>
+    </section>
+
+    <!-- COME FUNZIONA -->
+    <section class="section alt">
+      <div class="container">
+        <h2 class="section-title">Come funziona</h2>
+        <div class="steps">
+          <article class="step">
+            <div class="step-num">1</div>
+            <h3>Inserisci indirizzo e mq</h3>
+            <p>Troviamo il cleaner più vicino grazie al geocode.</p>
+          </article>
+          <article class="step">
+            <div class="step-num">2</div>
+            <h3>Scegli extra e orario</h3>
+            <p>Vedi subito la stima in modo trasparente.</p>
+          </article>
+          <article class="step">
+            <div class="step-num">3</div>
+            <h3>Conferma e paga in sicurezza</h3>
+            <p>Ricevi conferma e riepilogo via email.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Domande frequenti</h2>
+        <div class="faq">
+          <details>
+            <summary>Devo essere presente durante la pulizia?</summary>
+            <p>No, basta lasciare accesso e indicazioni. Ti aggiorniamo a fine lavoro.</p>
+          </details>
+          <details>
+            <summary>Come funziona il pagamento?</summary>
+            <p>Confermi online in sicurezza e saldi a fine lavoro secondo riepilogo.</p>
+          </details>
+          <details>
+            <summary>Posso spostare o cancellare una prenotazione?</summary>
+            <p>Sì, entro le 24 ore precedenti senza costi. Dopo, potrebbe essere applicata una penale.</p>
+          </details>
+          <details>
+            <summary>Portate voi i prodotti?</summary>
+            <p>Sì, salvo diverse indicazioni. Disponibili anche prodotti a ridotto impatto.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINALE -->
+    <section class="section cta-final">
+      <div class="container center">
+        <h2 class="section-title">Pronto a prenotare?</h2>
+        <p class="muted">Ti bastano pochi minuti: superficie, extra e preferenze.</p>
+        <div class="cta">
+          <a class="btn primary" href="/prenota.html">Vai a Prenota</a>
+          <a class="btn ghost" href="/stima.html">Calcola la stima</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="container" style="border-top:1px solid var(--ring);margin-top:28px;padding:16px 0;color:var(--muted);font-size:14px">
-    © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      © 2025 B&B Clean — Il tuo tempo è il nostro lavoro!
+    </div>
   </footer>
 
-  <script src="/assets/js/site.js" defer></script>
+  <!-- Auth (per gestione Dashboard/Logout nel banner) -->
+  <script src="/assets/js/vendor/auth0-spa-js.production.js"></script>
+  <script src="/assets/js/auth-config.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/menu-auth.js"></script>
+
+  <!-- Banner colorato + Freccia indietro -->
+  <script src="/assets/js/top-banner.js"></script>
+  <script src="/assets/js/back-arrow.js"></script>
 </body>
 </html>
