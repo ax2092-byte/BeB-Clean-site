@@ -237,6 +237,52 @@ header.nav .logo img{ height:48px !important; width:auto; }
   .hero{ grid-template-columns: 1fr; }
   .price-card{ grid-template-columns: 1fr; }
   .price-total{ border-left:0; padding-left:0; text-align:left; }
+   /* === B&B Clean — Fix bottoni chiari (contrasto su sfondi bianchi) === */
+.btn{
+  color:#111827;                /* testo scuro */
+  border-color:#cbd5e1;         /* bordo più contrastato */
+  background:#ffffff;           /* base bianca (non trasparente) */
+  box-shadow:0 1px 0 rgba(0,0,0,0.02);
+  font-weight:700;              /* leggibilità coerente */
+}
+.btn:hover{
+  background:#f8fafc;           /* leggero lift */
+  border-color:#b6c2cf;
+}
+.btn:focus-visible{
+  outline:2px solid var(--bb-teal, #0fb6b1);
+  outline-offset:2px;
+}
+
+/* Variante chiara (ghost) più visibile su card/sfondo bianco */
+.btn.ghost{
+  background:#f3f4f6;           /* grigio chiaro, non bianco */
+  border-color:#cbd5e1;
+  color:#111827;
+}
+.btn.ghost:hover{
+  background:#e5e7eb;           /* hover un filo più scuro */
+  border-color:#94a3b8;
+}
+.btn.ghost:active{
+  background:#e2e8f0;
+}
+
+/* CTA primaria: invariata (teal), con focus ben visibile */
+.btn.primary{
+  background:var(--bb-teal, #0fb6b1);
+  border-color:var(--bb-teal, #0fb6b1);
+  color:#fff;
+}
+.btn.primary:hover{ filter:brightness(.96); }
+.btn.primary:focus-visible{
+  outline:2px solid #065e60;    /* focus contrastato sulla CTA */
+  outline-offset:2px;
+}
+
+/* Dimensioni XL coerenti (già in uso sulle CTA) */
+.btn.xl{ padding:16px 22px; border-radius:16px; font-size:18px; }
+
 }
 @media (max-width: 640px){
   header.nav .logo img{ height:40px !important; }
